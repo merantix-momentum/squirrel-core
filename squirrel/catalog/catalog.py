@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -13,7 +14,6 @@ from typing import (
     MutableMapping,
     NamedTuple,
     Optional,
-    TYPE_CHECKING,
     Tuple,
     Type,
     Union,
@@ -231,88 +231,49 @@ class Catalog(MutableMapping):
 
 
 class CatalogSource(Source):
+    """Represents a specific version of a source in catalog."""
+
     def __init__(
         self,
         source: Source,
         identifier: str,
         catalog: Catalog,
         version: int = 1,
-        versions: Optional[Dict[int, CatalogSource]] = None,
     ) -> None:
-        """Init a Catalog Source object which is used within a catalog to represent a source in the graph"""
+        """Initialize CatalogSource using a Source."""
+        super().__init__(driver_name=source.driver_name, driver_kwargs=source.driver_kwargs, metadata=source.metadata)
         self._identifier = identifier
         self._version = version
-        self._versions = {version: self} if versions is None else versions
         self._catalog = catalog
-        super().__init__(driver_name=source.driver_name, driver_kwargs=source.driver_kwargs, metadata=source.metadata)
 
     def __eq__(self, other: Any) -> bool:  # noqa D105
         if not isinstance(other, CatalogSource):
             return False
         if self.identifier != other.identifier:
             return False
-        if self.driver_kwargs != other.driver_kwargs:
-            return False
         if self.version != other.version:
             return False
-        if self.metadata != other.metadata:
-            return False
-        # do not check versions or catalog
-        return True
+        return super().__eq__(other)
 
     def __repr__(self) -> str:  # noqa D105
-        dct = {
-            "identifier": self.identifier,
-            "driver_name": self.driver_name,
-            "driver_kwargs": self.driver_kwargs,
-            "metadata": self.metadata,
-            "version": self.version,
-            "versions": list(self.versions.keys()),
-        }
+        vars = ("identifier", "driver_name", "driver_kwargs", "metadata", "version")
+        dct = {k: getattr(self, k) for k in vars}
         return json.dumps(dct, indent=2, default=str)
-
-    def _handle_latest(self, index: int) -> int:
-        if index == -1:
-            return sorted(self.versions.keys())[-1]
-        return index
-
-    def __delitem__(self, index: int) -> None:  # noqa D105
-        index = self._handle_latest(index)
-        del self._versions[index]
-
-    def __setitem__(self, index: int, value: Source) -> None:  # noqa D105
-        assert index > 0
-        self._versions[index] = CatalogSource(
-            source=value, identifier=self._identifier, catalog=self._catalog, version=index, versions=self.versions
-        )
-
-    def __contains__(self, index: int) -> bool:  # noqa D105
-        return index in self.versions
-
-    def __getitem__(self, index: int) -> CatalogSource:  # noqa D105
-        index = self._handle_latest(index)
-        return self.versions[index]
-
-    def __iter__(self) -> Iterable[CatalogSource]:  # noqa D105
-        return iter(self.versions.values())
-
-    def __len__(self) -> int:  # noqa D105
-        return len(self.versions.keys())
 
     @property
     def identifier(self) -> str:
-        """Read only property"""
+        """Identifier of the source, read-only."""
         return self._identifier
 
     @property
     def version(self) -> int:
-        """Read only property"""
+        """Version of the source, read-only."""
         return self._version
 
     @property
-    def versions(self) -> Dict[int, CatalogSource]:
-        """Read only property"""
-        return self._versions
+    def catalog(self) -> Catalog:
+        """Catalog containing the source, read-only."""
+        return self._catalog
 
     def get_driver(self, **kwargs) -> Driver:
         """Returns an instance of the driver specified by the source."""
@@ -322,9 +283,9 @@ class CatalogSource(Source):
         for plugin in plugins:
             for driver_cls in plugin:
                 if driver_cls.name == self.driver_name:
-                    return driver_cls(catalog=self._catalog, **{**self.driver_kwargs, **kwargs})
+                    return driver_cls(catalog=self.catalog, **{**self.driver_kwargs, **kwargs})
 
-        raise ValueError(f"driver {self.driver_name} not found")
+        raise ValueError(f"Driver {self.driver_name} not found.")
 
 
 class DummyCatalogSource:
