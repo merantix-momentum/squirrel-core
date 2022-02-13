@@ -3,7 +3,6 @@ from __future__ import annotations
 import io
 import json
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -14,6 +13,7 @@ from typing import (
     MutableMapping,
     NamedTuple,
     Optional,
+    TYPE_CHECKING,
     Tuple,
     Type,
     Union,

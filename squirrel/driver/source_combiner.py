@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from dask.dataframe import DataFrame
 
     from squirrel.catalog import Catalog, CatalogKey
-    from squirrel.catalog.source import Source
+    from squirrel.catalog.catalog import CatalogSource
     from squirrel.iterstream import Composable
     from squirrel.store import AbstractStore
 
@@ -39,7 +39,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
         """Ids of all subsets defined by this source."""
         return list(self._subsets.keys())
 
-    def get_source(self, subset: str) -> Source:
+    def get_source(self, subset: str) -> CatalogSource:
         """Returns subset source based on subset id.
 
         Args:
@@ -49,7 +49,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
             (Source): Subset source.
         """
         key, version = self._subsets[subset]
-        return self._catalog[key][version]
+        return self._catalog[key, version]
 
     def get_iter(self, subset: Optional[str] = None, **kwargs) -> Composable:
         """Routes to the :py:meth:`get_iter` method of the appropriate subset driver.
