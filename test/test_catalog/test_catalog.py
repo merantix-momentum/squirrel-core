@@ -24,14 +24,14 @@ def test_catalog_versioning() -> None:
     """Test versioning source in a Catalog"""
     cat = Catalog()
     cat["s"] = Source("csv", driver_kwargs={"path": "./test1.csv"})
-    cat["s"][cat["s"].version + 1] = Source("csv", driver_kwargs={"path": "./test2.csv"})
+    cat["s", cat["s"].version + 1] = Source("csv", driver_kwargs={"path": "./test2.csv"})
 
-    assert cat["s"][-1] == cat["s"]
-    assert len(cat["s"].versions) == 2
-    assert cat["s"][1] != cat["s"][2]
+    assert cat["s", -1] == cat["s"]
+    assert len(cat.get_versions("s")) == 2
+    assert cat["s", 1] != cat["s", 2]
 
-    del cat["s"][1]
-    assert len(cat["s"].versions) == 1
+    del cat["s", 1]
+    assert len(cat.get_versions("s")) == 1
 
     del cat["s"]
     assert "s" not in cat
@@ -57,43 +57,43 @@ def test_catalog_setapi() -> None:
 
     cat2 = Catalog()
     cat2["s0"] = Source("csv", driver_kwargs={"path": "./test0.csv"})
-    cat2["s1"][1] = Source("csv", driver_kwargs={"path": "./test1.csv"})
-    cat2["s1"][2] = Source("csv", driver_kwargs={"path": "./test11.csv"})
+    cat2["s1", 1] = Source("csv", driver_kwargs={"path": "./test1.csv"})
+    cat2["s1", 2] = Source("csv", driver_kwargs={"path": "./test1_v2.csv"})
     cat2["s3"] = Source("csv", driver_kwargs={"path": "./test3.csv"})
 
     intersection = cat1.intersection(cat2)
     assert "s0" in intersection
     assert "s1" in intersection
     assert len(intersection) == 2
-    assert len(intersection["s1"].versions) == 1
+    assert len(intersection.get_versions("s1")) == 1
 
-    union = cat1.union(cat2)
+    union = cat1.update(cat2)
     assert "s0" in union
     assert "s1" in union
     assert "s2" in union
     assert "s3" in union
     assert len(union) == 4
-    assert len(union["s1"].versions) == 2
+    assert len(union.get_versions("s1")) == 2
 
     difference = cat1.difference(cat2)
     assert "s2" in difference
     assert "s3" in difference
     assert "s1" in difference
-    assert len(difference["s1"].versions) == 1
     assert len(difference) == 3
+    assert len(difference.get_versions("s1")) == 1
 
     slice = cat2.slice(["s1"])
     assert len(slice) == 1
-    assert len(slice["s1"].versions) == 2
+    assert len(slice.get_versions("s1")) == 2
     slice = cat1.slice(["s1"])
     assert len(slice) == 1
-    assert len(slice["s1"].versions) == 1
+    assert len(slice.get_versions("s1")) == 1
 
     assert intersection.join(difference) == union
 
     cat3 = cat1.filter(lambda x: x.version == 1)
     assert len(cat3) == 3
-    assert all([s.version == 1 for _, s in cat3.items()])
+    assert all(s.version == 1 for _, s in cat3)
 
 
 def test_catalog_saveandload(tmp_path: URL) -> None:
@@ -154,10 +154,6 @@ def test_catalog_plugin_driver() -> None:
         def __init__(self, welcome: str, **kwargs) -> None:
             super().__init__(*kwargs)
             self.welcome = welcome
-
-        def get_store(self, **kwargs) -> None:
-            """Here to obey the API."""
-            pass
 
         def say_hi(self, **kwargs) -> str:
             return f"Hello {self.welcome}!"
