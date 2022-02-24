@@ -67,14 +67,14 @@ class Catalog(MutableMapping):
         # deep equal
         return all(source == other[src_id, source.version] for src_id, source in self)
 
-    def __contains__(self, identifier: Union[str, CatalogKey]) -> bool:  # noqa D105
+    def __contains__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> bool:  # noqa D105
         if isinstance(identifier, str):
             return identifier in self.sources
 
         identifier, version = identifier
         return identifier in self and version in self.get_versions(identifier)
 
-    def __delitem__(self, identifier: Union[str, CatalogKey]) -> None:  # noqa D105
+    def __delitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> None:  # noqa D105
         if isinstance(identifier, str):
             # if not given a specific version, we remove all versions of the identifier
             del self._sources[identifier]
@@ -84,7 +84,7 @@ class Catalog(MutableMapping):
             if (self._sources[identifier]) == 0:
                 del self.sources[identifier]
 
-    def __setitem__(self, identifier: Union[str, CatalogKey], value: Source) -> None:  # noqa D105
+    def __setitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]], value: Source) -> None:  # noqa D105
         if isinstance(identifier, str):
             version = 1
         else:
@@ -95,7 +95,7 @@ class Catalog(MutableMapping):
     def _handle_latest(self, identifier: str, index: int) -> int:
         return max(self._sources[identifier].keys()) if index == -1 else index
 
-    def __getitem__(self, identifier: Union[str, CatalogKey]) -> CatalogSource:  # noqa D105
+    def __getitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> CatalogSource:  # noqa D105
         if isinstance(identifier, str):
             version = -1
         else:
