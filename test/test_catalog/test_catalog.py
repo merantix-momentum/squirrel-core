@@ -1,6 +1,6 @@
 import pytest
 
-from squirrel.catalog import Catalog, Source
+from squirrel.catalog import Catalog, CatalogKey, Source
 from squirrel.constants import URL
 from squirrel.driver import Driver
 from squirrel.framework.plugins.plugin_manager import register_driver, register_source
@@ -58,7 +58,7 @@ def test_catalog_setapi() -> None:
     cat2 = Catalog()
     cat2["s0"] = Source("csv", driver_kwargs={"path": "./test0.csv"})
     cat2["s1", 1] = Source("csv", driver_kwargs={"path": "./test1.csv"})
-    cat2["s1", 2] = Source("csv", driver_kwargs={"path": "./test1_v2.csv"})
+    cat2[CatalogKey("s1", 2)] = Source("csv", driver_kwargs={"path": "./test1_v2.csv"})
     cat2["s3"] = Source("csv", driver_kwargs={"path": "./test3.csv"})
 
     intersection = cat1.intersection(cat2)
