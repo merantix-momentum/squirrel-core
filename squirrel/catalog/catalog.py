@@ -81,8 +81,8 @@ class Catalog(MutableMapping):
         else:
             identifier, version = identifier
             del self._sources[identifier][version]
-            if (self._sources[identifier]) == 0:
-                del self.sources[identifier]
+            if len(self._sources[identifier]) == 0:
+                del self._sources[identifier]
 
     def __setitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]], value: Source) -> None:  # noqa D105
         if isinstance(identifier, str):
@@ -172,9 +172,9 @@ class Catalog(MutableMapping):
         new_cat = Catalog()
         for iden, source in cat.items():
             ver = source.version
-            if iden in oth_cat and ver in oth_cat.sources[iden]:
-                assert cat[iden, ver] == oth_cat[iden, ver]
-                new_cat[iden, ver] = source
+            if (key := (iden, ver)) in oth_cat:
+                assert cat[key] == oth_cat[key]
+                new_cat[key] = source
         return new_cat
 
     def filter(self: Catalog, predicate: Callable[[CatalogSource], bool]) -> Catalog:
