@@ -6,7 +6,7 @@ pytest-timeout
 pytest-cov
 pytest-xdist
 Sphinx<4.0.0
-sphinx-mx-theme
+sphinx_rtd_theme
 sphinx_versions
 wandb
 mlflow

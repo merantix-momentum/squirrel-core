@@ -42,11 +42,14 @@ class Composable:
     def shuffle(self, size: int, **kw) -> Composable:
         """Shuffles items in the buffer, defined by `size`, to simulate IID sample retrieval. Acceptable keyword
         arguments:
-            - initial (int, optional): Minimum number of elements in the buffer before yielding the first element.
-              Must be less than or equal to `bufsize`, otherwise will be set to `bufsize`. Defaults to 100.
-            - rng (random.Random, optional): Either `random` module or a :py:class:`random.Random` instance. If None,
-            a `random.Random()` is used.
-            - seed (Union[int, float, str, bytes, bytearray, None]): A data input that can be used for `random.seed()`.
+
+        - initial (int, optional): Minimum number of elements in the buffer before yielding the first element.
+          Must be less than or equal to `bufsize`, otherwise will be set to `bufsize`. Defaults to 100.
+
+        - rng (random.Random, optional): Either `random` module or a :py:class:`random.Random` instance. If None,
+          a `random.Random()` is used.
+
+        - seed (Union[int, float, str, bytes, bytearray, None]): A data input that can be used for `random.seed()`.
 
         Args:
             size (int, optional): Buffer size for shuffling. Defaults to 1000. Skip the shuffle step if `size < 2`.
