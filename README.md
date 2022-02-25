@@ -4,7 +4,7 @@ Merantix Labs - Squirrel
 [![PyPI](https://badge.fury.io/py/squirrel-core.svg)](https://badge.fury.io/py/squirrel-core)
 [![Downloads](https://pepy.tech/badge/squirrel-core)](https://pepy.tech/project/squirrel-core)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://docs.squirrel.merantixlabs.cloud/)
+[![Documentation](https://img.shields.io/badge/ReadTheDocs-squirrel--core-yellow)](https://squirrel-core.readthedocs.io/en/latest/)
 [![Generic badge](https://img.shields.io/badge/Website-Merantix%20Momentum-blue.svg)](https://www.merantixlabs.com/)
 [![Slack](https://img.shields.io/badge/Slack-4A154B?logo=slack&logoColor=white)](https://squirrel-core.slack.com)
 
