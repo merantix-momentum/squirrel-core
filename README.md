@@ -6,8 +6,7 @@ Merantix Labs - Squirrel
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://docs.squirrel.merantixlabs.cloud/)
 [![Generic badge](https://img.shields.io/badge/Website-Merantix%20Momentum-blue.svg)](https://www.merantixlabs.com/)
-[![Slack](https://img.shields.io/badge/Slack-4A154B?logo=slack&logoColor=white)](https://merantix.slack.com/archives/C01QADV458S)
-[![Discord](https://img.shields.io/badge/Discord-Squirrel--Core-orange)](https://discord.gg/SKVnGjXKpT)
+[![Slack](https://img.shields.io/badge/Slack-4A154B?logo=slack&logoColor=white)](https://squirrel-core.slack.com)
 
 Squirrel is a data infrastructure library for scalable data loading and sharing.
 
