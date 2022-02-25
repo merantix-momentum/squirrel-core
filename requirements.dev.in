@@ -1,4 +1,3 @@
-keyrings.google-artifactregistry-auth==0.0.3
 twine
 wheel
 pytest>=6.2.1
@@ -6,8 +5,7 @@ pytest-timeout
 pytest-cov
 pytest-xdist
 Sphinx<4.0.0
-sphinx-mx-theme
-sphinx_versions
+sphinx-rtd-theme
 wandb
 mlflow
 pre-commit==2.16.0
