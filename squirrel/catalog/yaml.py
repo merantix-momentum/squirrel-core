@@ -45,7 +45,8 @@ def catalog2yamlcatalog(catobj: catalog.Catalog) -> YamlCatalog:
             version=source.version,
             metadata=source.metadata,
         )
-        for iden, source in catobj
+        for iden in catobj.keys()
+        for _ver, source in catobj.get_versions(iden).items()
     ]
     return YamlCatalog(sources=sources)
 

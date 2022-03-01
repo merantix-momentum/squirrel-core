@@ -69,7 +69,7 @@ class Catalog(MutableMapping):
 
     def __contains__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> bool:  # noqa D105
         if isinstance(identifier, str):
-            return identifier in self.sources
+            return identifier in self._sources
 
         identifier, version = identifier
         return identifier in self and version in self.get_versions(identifier)
@@ -106,18 +106,23 @@ class Catalog(MutableMapping):
     def items(self) -> Iterator[Tuple[str, CatalogSource]]:  # noqa D105
         return self.__iter__()
 
-    def __iter__(self) -> Iterator[Tuple[str, CatalogSource]]:  # noqa D105
-        return ((iden, source) for iden, versions in self.sources.items() for source in versions.values())
+    def __iter__(self) -> Iterator[Tuple[str, CatalogSource]]:
+        """Only iterates through the latest versions of sources."""
+        return ((iden, self[iden]) for iden in self._sources)
 
     def keys(self) -> KeysView[str]:  # noqa D105
         return self.sources.keys()
 
-    def __len__(self) -> int:  # noqa D105
-        return len(self.keys())
+    def __len__(self) -> int:
+        """
+        Return the number of source identifiers in the catalog, which can be different than the total number of sources
+        if some sources have multiple versions.
+        """
+        return len(self._sources)
 
     def copy(self) -> Catalog:
-        """Return a deep copy of catalog"""
-        # To be 100% save, serialize to string and back
+        """Return a deep copy of catalog."""
+        # To be 100% safe, serialize to string and back
         from squirrel.catalog.yaml import catalog2yamlcatalog, prep_yaml, yamlcatalog2catalog
 
         yaml = prep_yaml()
@@ -134,7 +139,7 @@ class Catalog(MutableMapping):
         cat_cp = self.copy()
         cat = Catalog()
         for k in keys:
-            for version, source in cat_cp.sources[k].items():
+            for version, source in cat_cp.get_versions(k).items():
                 cat[k, version] = source
         return cat
 
@@ -150,9 +155,10 @@ class Catalog(MutableMapping):
 
         new_cat = Catalog()
         for a_cat1, a_cat_2 in [(cat1, cat2), (cat2, cat1)]:
-            for iden, source in a_cat1.items():
-                if iden not in a_cat_2 or source.version not in a_cat_2.sources[iden]:
-                    new_cat[iden, source.version] = source
+            for iden in a_cat1.keys():
+                for ver, source in a_cat1.get_versions(iden).items():
+                    if iden not in a_cat_2 or ver not in a_cat_2.sources[iden]:
+                        new_cat[iden, ver] = source
         return new_cat
 
     def union(self, other: Catalog) -> Catalog:
@@ -160,8 +166,9 @@ class Catalog(MutableMapping):
         cat = self.copy()
         oth_cat = other.copy()
 
-        for iden, source in oth_cat.items():
-            cat[iden, source.version] = source
+        for iden in oth_cat.keys():
+            for ver, source in oth_cat.get_versions(iden).items():
+                cat[iden, ver] = source
         return cat
 
     def intersection(self, other: Catalog) -> Catalog:
@@ -170,11 +177,11 @@ class Catalog(MutableMapping):
         oth_cat = other.copy()
 
         new_cat = Catalog()
-        for iden, source in cat.items():
-            ver = source.version
-            if (key := (iden, ver)) in oth_cat:
-                assert cat[key] == oth_cat[key]
-                new_cat[key] = source
+        for iden in cat.keys():
+            for ver, source in cat.get_versions(iden).items():
+                if (key := (iden, ver)) in oth_cat:
+                    assert cat[key] == oth_cat[key]
+                    new_cat[key] = source
         return new_cat
 
     def filter(self: Catalog, predicate: Callable[[CatalogSource], bool]) -> Catalog:
@@ -182,9 +189,10 @@ class Catalog(MutableMapping):
         cat = self.copy()
 
         new_cat = Catalog()
-        for iden, source in cat.items():
-            if predicate(source):
-                new_cat[iden, source.version] = source
+        for iden in cat.keys():
+            for ver, source in cat.get_versions(iden).items():
+                if predicate(source):
+                    new_cat[iden, ver] = source
         return new_cat
 
     @staticmethod
@@ -240,7 +248,7 @@ class Catalog(MutableMapping):
 
     def get_versions(self, identifier: str) -> Dict[int, CatalogSource]:
         """Returns versions dictionary given a source identifier."""
-        return self.sources.get(identifier, {})
+        return self._sources.get(identifier, {})
 
 
 class CatalogSource(Source):
