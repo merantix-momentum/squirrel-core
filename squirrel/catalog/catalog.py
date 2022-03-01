@@ -86,7 +86,7 @@ class Catalog(MutableMapping):
 
     def __setitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]], value: Source) -> None:  # noqa D105
         if isinstance(identifier, str):
-            version = 1
+            version = 1 if identifier not in self else self._handle_latest(identifier, -1) + 1
         else:
             identifier, version = identifier
         versions = self._sources.setdefault(identifier, {})
