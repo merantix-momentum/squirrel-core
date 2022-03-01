@@ -67,7 +67,7 @@ def test_catalog_setapi() -> None:
     assert len(intersection) == 2
     assert len(intersection.get_versions("s1")) == 1
 
-    union = cat1.update(cat2)
+    union = cat1.union(cat2)
     assert "s0" in union
     assert "s1" in union
     assert "s2" in union

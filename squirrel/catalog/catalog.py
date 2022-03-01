@@ -141,7 +141,7 @@ class Catalog(MutableMapping):
     def join(self, other: Catalog) -> Catalog:
         """Return a joined Catalog out of two disjoint Catalogs."""
         assert len(self.intersection(other)) == 0
-        return self.update(other)
+        return self.union(other)
 
     def difference(self, other: Catalog) -> Catalog:
         """Return a Catalog which consists of the difference of the input Catalogs."""
@@ -155,8 +155,8 @@ class Catalog(MutableMapping):
                     new_cat[iden, source.version] = source
         return new_cat
 
-    def update(self, other: Catalog) -> Catalog:
-        """Update the catalog with the sources from other, overwriting existing sources."""
+    def union(self, other: Catalog) -> Catalog:
+        """Return a catalog with combined sources. If there is an intersection, sources from `other` will be kept."""
         cat = self.copy()
         oth_cat = other.copy()
 
