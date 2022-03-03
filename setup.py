@@ -79,7 +79,7 @@ if __name__ == "__main__":
         version=version,
         python_requires=">=3.8.0",
         description="Squirrel is a Python library that enables ML teams to share, load, and transform data in a "
-                    "collaborative, flexible, and efficient way.",
+        "collaborative, flexible, and efficient way.",
         long_description=f"{readme}\n\n{history}",
         author="Merantix Labs GmbH",
         license="Apache 2.0",
