@@ -1,0 +1,12 @@
+# Ignore everthing to use this dockerignore as a whitelist
+*
+
+# Specifically add all files that should not be ignored
+!requirements.txt
+!setup.py
+!src
+!pytest.ini
+!.flake8
+!scripts
+!squirrel
+!requirements.*.in

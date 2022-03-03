@@ -1,0 +1,17 @@
+FROM python:3.8-slim
+
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    python3-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+COPY ./requirements.txt /mxlabs-squirrel/requirements.txt
+
+ARG EXTRA_INDEX_URL
+
+RUN pip install --upgrade pip && \
+    pip install --require-hashes -r /mxlabs-squirrel/requirements.txt --extra-index-url ${EXTRA_INDEX_URL} --no-deps --disable-pip-version-check && \
+    pip cache purge
+
+COPY . /mxlabs-squirrel/
