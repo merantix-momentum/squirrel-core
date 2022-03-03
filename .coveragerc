@@ -1,0 +1,13 @@
+[report]
+exclude_lines =
+    # if a line gets matched with this, we dont count it as missing in the coverage report
+    # keep default behaviour of coverage
+    pragma: no cover
+
+    # skip lines that raise a specific error (^\s matches beginning of line + any whitespace length)
+    ^\s*raise NotImplementedError
+    ^\s*raise AssertionError
+    ^\s*raise ValueError
+
+    # skip lines that are only "pass"
+    ^\s*pass\s*$
