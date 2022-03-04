@@ -26,7 +26,7 @@ with open("%s/__init__.py" % SOURCE_DIR, "rb") as f:
     version = get_var("__version__")
 
 
-def assert_version(ver: str) -> bool:
+def assert_version(ver: str) -> None:
     """Assert version follows semantics such as 0.0.1 or 0.0.1-dev123. Notice English letters are not allowed after
     'dev'.
     """
@@ -34,8 +34,10 @@ def assert_version(ver: str) -> bool:
         r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
         + r"(?P<prepost>\.post\d+|(dev|a|b|rc)\d+)?(?P<devsuffix>[+-]dev)?\d*$"
     )
-    m = re.match(pattern, ver)
-    return bool(m)
+    assert bool(re.match(pattern, ver)), ValueError(
+        f"Version string '{ver}' does not conform with regex '{pattern}', which is required by pypi metadata "
+        "normalization."
+    )
 
 
 # add tag to version if provided
@@ -43,7 +45,7 @@ if "--version_tag" in sys.argv:
     v_idx = sys.argv.index("--version_tag")
     short_sha = sys.argv[v_idx + 1][3:]  # substring after the word 'dev'
     numberic_sha = "".join([char for char in short_sha if char.isdigit()])
-    version = version + "dev" + numberic_sha
+    version = version + "-dev" + numberic_sha
     assert_version(version)
     sys.argv.remove("--version_tag")
     sys.argv.pop(v_idx)
