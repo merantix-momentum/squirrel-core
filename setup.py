@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from pathlib import Path
 import ast
 import itertools
 import os
@@ -89,15 +90,23 @@ try:
 except ImportError:
     sys.stdout.write("WARNING: sphinx not available, not building docs")
 
+# read the contents of your README file
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+
 # Setup package using PIP
 if __name__ == "__main__":
     setup(
         name=f"{SOURCE_DIR}-core",
         version=version,
         python_requires=">=3.8.0",
-        description="Squirrel is a Python library that enables ML teams to share, load, and transform data in a "
-        "collaborative, flexible, and efficient way.",
-        long_description=f"{readme}\n\n{history}",
+        description=(
+            "Squirrel is a Python library that enables ML teams to share, load, and transform data in a "
+            + "collaborative, flexible, and efficient way."
+        ),
+        long_description=long_description,
+        long_description_content_type="text/markdown",
         author="Merantix Labs GmbH",
         license="Apache 2.0",
         package_dir=PACKAGE_DIR,
