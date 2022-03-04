@@ -27,7 +27,7 @@ with open("%s/__init__.py" % SOURCE_DIR, "rb") as f:
 # add tag to version if provided
 if "--version_tag" in sys.argv:
     v_idx = sys.argv.index("--version_tag")
-    version = version + "." + sys.argv[v_idx + 1]
+    version = version + sys.argv[v_idx + 1]
     sys.argv.remove("--version_tag")
     sys.argv.pop(v_idx)
 
