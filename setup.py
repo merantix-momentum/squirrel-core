@@ -42,7 +42,6 @@ if "--version_tag" in sys.argv:
     v_idx = sys.argv.index("--version_tag")
     short_sha = sys.argv[v_idx + 1][3:]  # substring after the word 'dev'
     numberic_sha = "".join([char for char in short_sha if char.isdigit()])
-    numberic_sha = "0" if not numberic_sha else numberic_sha
     version = version + "dev" + numberic_sha
     assert_version(version)
     sys.argv.remove("--version_tag")
