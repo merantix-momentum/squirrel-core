@@ -29,11 +29,11 @@ def assert_version(version: str) -> bool:
     """Assert version follows semantics such as 0.0.1 or 0.0.1-dev123. Notice English letters are not allowed after
     'dev'.
     """
-    PATTERN = (
+    pattern = (
         r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
         + r"(?P<prepost>\.post\d+|(dev|a|b|rc)\d+)?(?P<devsuffix>[+-]dev)?\d*$"
     )
-    m = re.match(PATTERN, version)
+    m = re.match(pattern, version)
     return bool(m)
 
 
