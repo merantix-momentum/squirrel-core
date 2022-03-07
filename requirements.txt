@@ -129,9 +129,9 @@ jmespath==0.10.0 \
     --hash=sha256:cdf6525904cc597730141d61b36f2e4b8ecc257c420fa2f4549bac2c2d0cb72f
 keyring==23.5.0 \
     --hash=sha256:b0d28928ac3ec8e42ef4cc227822647a19f1d544f21f96457965dc01cf555261 \
-    --hash=sha256:abbda4133107876a948f5ac8da2513fefa47280ca17be48dc7b0c226175d1922
-keyrings.google-artifactregistry-auth==0.0.3 \
-    --hash=sha256:abbda4133107876a948f5ac8da2513fefa47280ca17be48dc7b0c226175d1922
+    --hash=sha256:849c5b209d0dd804cc7d44c877fe3cf2f968cfbe808bef09c711bf25c3e651a5
+keyrings.google-artifactregistry-auth==1.0.0 \
+    --hash=sha256:849c5b209d0dd804cc7d44c877fe3cf2f968cfbe808bef09c711bf25c3e651a5
 lazy-object-proxy==1.7.1 \
     --hash=sha256:91ba172fc5b03978764d1df5144b4ba4ab13290d7bab7a50f12d8117f8630c38
 llvmlite==0.38.0 \
