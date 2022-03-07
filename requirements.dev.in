@@ -1,3 +1,4 @@
+keyrings.google-artifactregistry-auth==0.0.3
 twine
 wheel
 pytest>=6.2.1
@@ -9,3 +10,4 @@ sphinx_versions
 wandb
 mlflow
 pre-commit==2.16.0
+sphinx-autoapi
