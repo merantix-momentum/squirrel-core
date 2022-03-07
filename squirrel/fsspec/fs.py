@@ -1,6 +1,7 @@
-from squirrel import fsspec
+import fsspec
+from fsspec.core import split_protocol
+
 from squirrel.constants import FILESYSTEM, URL
-from squirrel.fsspec import split_protocol
 
 __all__ = ["get_fs_from_url", "get_protocol", "create_dir_if_does_not_exist"]
 

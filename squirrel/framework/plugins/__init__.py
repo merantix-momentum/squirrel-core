@@ -1,1 +1,0 @@
-PLUGGY_HOOKGROUP = "squirrel"
