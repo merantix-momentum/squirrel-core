@@ -27,7 +27,7 @@ from squirrel.iterstream import Composable, IterableSource
 from squirrel.serialization import JsonSerializer, MessagepackSerializer
 from squirrel.store import FilesystemStore
 from squirrel.store.squirrel_store import SquirrelStore
-from squirrel.zarr.convenience import get_group
+from squirrel.zarr.group import get_group
 
 if TYPE_CHECKING:
     from squirrel.constants import SampleType

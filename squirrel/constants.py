@@ -11,10 +11,6 @@ SampleType = Dict[str, Any]
 ShardType = List[SampleType]
 SeedType = Optional[Union[int, float, str, bytes, bytearray]]
 
-RECORD = Dict[str, Any]
 
 SQUIRREL_PREFIX = ".squirrel_"
 SQUIRREL_DIR = ".squirrel"
-
-LOGGER_PROJECT_NAME = "squirrel"
-MLFLOW_TRACKING_URI = "http://localhost:5000"
