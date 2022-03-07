@@ -15,6 +15,7 @@ from typing import (
     NamedTuple,
     Optional,
     Tuple,
+    Type,
     Union,
 )
 
@@ -313,16 +314,15 @@ class CatalogSource(Source):
         """Read only property"""
         return self._versions
 
-    @property
-    def load(self) -> Driver:
-        """Returns an instance of the specified driver."""
+    def get_driver(self, **kwargs) -> Driver:
+        """Returns an instance of the driver specified by the source."""
         from squirrel.framework.plugins.plugin_manager import squirrel_plugin_manager
 
-        plugins = squirrel_plugin_manager.hook.squirrel_drivers()
+        plugins: List[List[Type[Driver]]] = squirrel_plugin_manager.hook.squirrel_drivers()
         for plugin in plugins:
-            for driver in plugin:
-                if driver.name == self.driver_name:
-                    return driver(catalog=self._catalog, **self.driver_kwargs)
+            for driver_cls in plugin:
+                if driver_cls.name == self.driver_name:
+                    return driver_cls(catalog=self._catalog, **{**self.driver_kwargs, **kwargs})
 
         raise ValueError(f"driver {self.driver_name} not found")
 

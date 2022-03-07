@@ -22,11 +22,11 @@ def test_combiner_in_catalog(test_path: URL) -> None:
         },
     )
 
-    d = c["combined"].load
+    d = c["combined"].get_driver()
     assert len(d.subsets) == 3
-    assert d.get_source("subset1").load.path == test_path + "train.dummy"
-    assert d.get_source("subset2").load.path == test_path + "val.dummy"
-    assert d.get_source("subset3").load.path == test_path + "test.dummy"
+    assert d.get_source("subset1").get_driver().path == test_path + "train.dummy"
+    assert d.get_source("subset2").get_driver().path == test_path + "val.dummy"
+    assert d.get_source("subset3").get_driver().path == test_path + "test.dummy"
 
 
 def test_copy_combiner(test_path: URL) -> None:

@@ -66,7 +66,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
             return IterableSource(
                 more_itertools.interleave_longest(self.get_iter(subset=k, **kwargs) for k in self.subsets)
             )
-        return self.get_source(subset).load.get_iter(**kwargs)
+        return self.get_source(subset).get_driver().get_iter(**kwargs)
 
     def get(self, subset: str, key: Any, **kwargs) -> Iterable:
         """Routes to the :py:meth:`get` method of the appropriate subset driver.
@@ -79,7 +79,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
         Returns:
             (Iterable) Iterable over the items corresponding to `key` for subset driver `subset`.
         """
-        return self.get_source(subset).load.get(key, **kwargs)
+        return self.get_source(subset).get_driver().get(key, **kwargs)
 
     def keys(self, subset: str, **kwargs) -> Iterable:
         """Routes to the :py:meth:`keys` method of the appropriate subset driver.
@@ -91,7 +91,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
         Returns:
             (Iterable) Iterable over the keys for subset driver `subset`.
         """
-        return self.get_source(subset).load.keys(**kwargs)
+        return self.get_source(subset).get_driver().keys(**kwargs)
 
     def get_df(self, subset: str, **kwargs) -> DataFrame:
         """Routes to the :py:meth:`get_df` method of the appropriate subset driver.
@@ -103,7 +103,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
         Returns:
             (DataFrame) Data of the subset driver `subset` as a Dask DataFrame.
         """
-        return self.get_source(subset).load.get_df(*kwargs)
+        return self.get_source(subset).get_driver().get_df(*kwargs)
 
     def get_store(self, subset: str) -> AbstractStore:
         """Returns the store of the appropriate subset driver.
@@ -114,7 +114,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
         Returns:
             (AbstractStore) Store of the subset driver `subset`.
         """
-        return self.get_source(subset).load.store
+        return self.get_source(subset).get_driver().store
 
     def get_iter_sampler(
         self,

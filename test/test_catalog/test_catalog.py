@@ -112,7 +112,7 @@ def test_catalog_saveandload(tmp_path: URL) -> None:
 def test_catalog_loadyaml(tmp_yaml_1: URL) -> None:
     """Test load from a serialized a catalog"""
     cat = Catalog.from_files([tmp_yaml_1])
-    df = cat["cs"].load.get_df()
+    df = cat["cs"].get_driver().get_df()
 
     assert df["a"].compute().iloc[0] == 1
 
@@ -167,7 +167,7 @@ def test_catalog_plugin_driver() -> None:
     cat = Catalog()
     cat["test"] = Source("testdriver", driver_kwargs={"welcome": "Squirrel"})
 
-    assert cat["test"].load.say_hi() == "Hello Squirrel!"
+    assert cat["test"].get_driver().say_hi() == "Hello Squirrel!"
 
 
 def test_catalog_plugin_source() -> None:
