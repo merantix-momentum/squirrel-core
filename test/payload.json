@@ -1,0 +1,14 @@
+{
+    "driver": {
+        "callback": "dask.dataframe.read_csv",
+        "args": {
+            "blocksize": "default",
+            "compression": "infer"
+        },
+        "urlpath": null
+    },
+    "identifier": "ident",
+    "metadata": {
+        "key": "values"
+    }
+}

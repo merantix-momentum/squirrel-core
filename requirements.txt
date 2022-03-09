@@ -96,21 +96,21 @@ gitdb==4.0.9 \
     --hash=sha256:8033ad4e853066ba6ca92050b9df2f89301b8fc8bf7e9324d412a63f8bf1a8fd
 GitPython==3.1.27 \
     --hash=sha256:5b68b000463593e05ff2b261acff0ff0972df8ab1b70d3cdbd41b546c8b8fc3d
-google-api-core==2.7.0 \
-    --hash=sha256:4ef13280a8b00772f9effa92c8f798bd2b7d2637ffe7d5bc8d50356448f1840b
+google-api-core==2.6.0 \
+    --hash=sha256:3c9f0c539281529e26cc5631dba911ded66e27ed91f269b58fc4eb53d4b81ce8
 google-auth==2.6.0 \
     --hash=sha256:218ca03d7744ca0c8b6697b6083334be7df49b7bf76a69d555962fd1a7657b5f \
     --hash=sha256:8b7ff4d2fe81e3bd034306aa665444360b3c67195b9dea582dddc7dfb8d89d34
 google-auth-oauthlib==0.5.0 \
     --hash=sha256:8b7ff4d2fe81e3bd034306aa665444360b3c67195b9dea582dddc7dfb8d89d34
-google-cloud-core==2.2.3 \
-    --hash=sha256:a423852f4c36622376c8f0be509b67533690e061062368b763b92694c4ee06a7
+google-cloud-core==2.2.2 \
+    --hash=sha256:d9cffaf86df6a876438d4e8471183bbe404c9a15de9afe60433bc7dce8cb4252
 google-cloud-storage==2.1.0 \
     --hash=sha256:53e4f6030d771526e4dbe9c6000cca44eab812f39ae8c7a810be999473e4f02c
 google-crc32c==1.3.0 \
     --hash=sha256:a7f9cbea4245ee36190f85fe1814e2d7b1e5f2186381b082f5d59f99b7f11328
-google-resumable-media==2.3.2 \
-    --hash=sha256:3c13f84813861ac8f5b6371254bdd437076bf1f3bac527a9f3fd123a70166f52
+google-resumable-media==2.3.1 \
+    --hash=sha256:7465f228b1d4b79f6048403b7873e1167d2ee31ae3e552fc0698a9a8789e594c
 googleapis-common-protos==1.55.0 \
     --hash=sha256:183bb0356bd614c4330ad5158bc1c1bcf9bcf7f5e7f911317559fe209496eeee
 greenlet==1.1.2 \
@@ -204,8 +204,8 @@ pre-commit==2.16.0 \
     --hash=sha256:758d1dc9b62c2ed8881585c254976d66eae0889919ab9b859064fc2fe3c7743e
 prometheus-client==0.13.1 \
     --hash=sha256:357a447fd2359b0a1d2e9b311a0c5778c330cfbe186d880ad5a6b39884652316
-prometheus-flask-exporter==0.19.0 \
-    --hash=sha256:11f127dc0a3f60376dcb934fad3d11183f0b9dbde6a5d77e9182a5ce6227eb03
+prometheus-flask-exporter==0.18.7 \
+    --hash=sha256:38bc68db295d0f895ad0fb319b1bfd200ae273b33397ce497c9b96dceb708ce9
 promise==2.3 \
     --hash=sha256:dfd18337c523ba4b6a58801c164c1904a9d4d1b1747c7d5dbf45b693a49d93d0
 protobuf==3.19.4 \
@@ -293,8 +293,8 @@ scipy==1.8.0 \
     --hash=sha256:ad5be4039147c808e64f99c0e8a9641eb5d2fa079ff5894dcd8240e94e347af4
 SecretStorage==3.3.1 \
     --hash=sha256:422d82c36172d88d6a0ed5afdec956514b189ddbfb72fefab0c8a1cee4eaf71f
-sentry-sdk==1.5.7 \
-    --hash=sha256:411a8495bd18cf13038e5749e4710beb4efa53da6351f67b4c2f307c2d9b6d49
+sentry-sdk==1.5.6 \
+    --hash=sha256:1ab34e3851a34aeb3d1af1a0f77cec73978c4e9698e5210d050e4932953cb241
 setproctitle==1.2.2 \
     --hash=sha256:c611f65bc9de5391a1514de556f71101e6531bb0715d240efd3e9732626d5c9e
 shortuuid==1.0.8 \
@@ -358,8 +358,8 @@ tqdm==4.63.0 \
     --hash=sha256:e643e071046f17139dea55b880dc9b33822ce21613b4a4f5ea57f202833dbc29
 twine==3.8.0 \
     --hash=sha256:d0550fca9dc19f3d5e8eadfce0c227294df0a2a951251a4385797c8a6198b7c8
-typing-extensions==3.10.0.2 \
-    --hash=sha256:f1d25edafde516b146ecd0613dabcc61409817af4766fbbcfb8d1ad4ec441a34
+typing_extensions==4.1.1 \
+    --hash=sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2
 Unidecode==1.3.3 \
     --hash=sha256:a5a8a4b6fb033724ffba8502af2e65ca5bfc3dd53762dedaafe4b0134ad42e3c
 urllib3==1.26.8 \
