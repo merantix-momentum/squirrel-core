@@ -14,3 +14,5 @@ SeedType = Optional[Union[int, float, str, bytes, bytearray]]
 
 SQUIRREL_PREFIX = ".squirrel_"
 SQUIRREL_DIR = ".squirrel"
+
+SQUIRREL_BUCKET = "gs://squirrel-core-public-data"

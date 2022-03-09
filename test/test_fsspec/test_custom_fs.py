@@ -1,7 +1,7 @@
 import fsspec
 import pytest
 
-from squirrel.constants import FILESYSTEM, URL
+from squirrel.constants import FILESYSTEM, URL, SQUIRREL_BUCKET
 from squirrel.fsspec.custom_gcsfs import CustomGCSFileSystem
 from squirrel.fsspec.fs import get_fs_from_url
 
@@ -14,7 +14,7 @@ def fs(test_gcs_url: URL) -> FILESYSTEM:
 
 def test_make_connection(fs: FILESYSTEM) -> None:
     """Test connection to custom gcsfs by gcs.ls command."""
-    fs.ls("gs://mx-labs-squirrel-git-test")
+    fs.ls(SQUIRREL_BUCKET)
 
 
 def test_simple_upload(fs: FILESYSTEM, test_gcs_url: URL) -> None:
