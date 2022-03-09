@@ -8,8 +8,8 @@
 [![PyPI](https://badge.fury.io/py/squirrel-core.svg)](https://badge.fury.io/py/squirrel-core)
 [![Downloads](https://pepy.tech/badge/squirrel-core)](https://pepy.tech/project/squirrel-core)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://docs.squirrel.merantixlabs.cloud/)
-[![Generic badge](https://img.shields.io/badge/Website-Merantix%20Momentum-blue.svg)](https://)
+[![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://squirrel-core.readthedocs.io)
+[![Generic badge](https://img.shields.io/badge/Website-Merantix%20Labs-blue)](https://www.merantixlabs.com/)
 [![Slack](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw)
 
 </div>
@@ -64,7 +64,7 @@ Squirrel is open source and community contributions are welcome!
 Check out the [contribution guide](https://docs.squirrel.merantixlabs.cloud/usage/contribute.html) to learn how to get involved.
 
 # The humans behind Squirrel
-We are [Merantix Momentum](https://merantixlabs.com/), a team of ~30 machine learning engineers, developing machine learning solutions for industry and research. Each project comes with its own challenges, data types and learnings, but one issue we always faced was scalable data loading, transforming and sharing. We were looking for a solution that would allow us to load the data in a fast and cost-efficient way, while keeping the flexibility to work with any possible dataset and integrate with any API. That's why we build Squirrel – and we hope you'll find it as useful as we do! By the way, [we are hiring](https://www.merantixlabs.com/career)!
+We are [Merantix Labs](https://merantixlabs.com/), a team of ~30 machine learning engineers, developing machine learning solutions for industry and research. Each project comes with its own challenges, data types and learnings, but one issue we always faced was scalable data loading, transforming and sharing. We were looking for a solution that would allow us to load the data in a fast and cost-efficient way, while keeping the flexibility to work with any possible dataset and integrate with any API. That's why we build Squirrel – and we hope you'll find it as useful as we do! By the way, [we are hiring](https://www.merantixlabs.com/career)!
 
 
 # Citation

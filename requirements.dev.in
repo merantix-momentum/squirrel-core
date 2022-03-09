@@ -9,3 +9,4 @@ sphinx_versions
 wandb
 mlflow
 pre-commit==2.16.0
+sphinx-autoapi
