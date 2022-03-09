@@ -9,7 +9,7 @@
 [![Downloads](https://pepy.tech/badge/squirrel-core)](https://pepy.tech/project/squirrel-core)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://squirrel-core.readthedocs.io)
-[![Generic badge](https://img.shields.io/badge/Website-Merantix%20Momentum-blue.svg)](https://www.merantixlabs.com/)
+[![Generic badge](https://img.shields.io/badge/Website-Merantix%20Labs-blue)](https://www.merantixlabs.com/)
 [![Slack](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw)
 
 </div>
