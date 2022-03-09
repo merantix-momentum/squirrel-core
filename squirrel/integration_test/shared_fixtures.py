@@ -18,6 +18,7 @@ from unittest.mock import MagicMock
 import pytest
 import random_name
 from pytest import FixtureRequest
+
 from squirrel.constants import URL
 from squirrel.fsspec.fs import get_fs_from_url
 from squirrel.integration_test.helpers import create_torch_mock
