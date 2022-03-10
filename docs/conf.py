@@ -27,12 +27,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))
 
 # -- Project information -----------------------------------------------------
 
-project = "squirrel"
-copyright = f"{datetime.datetime.now().year}, Merantix AG"
-author = "Merantix AG"
-
-# The full version, including alpha/beta/rc tags
-release = "0.0.1"
+project = "Squirrel"
+copyright = f"{datetime.datetime.now().year}, Merantix Labs GmbH"
+author = "Merantix Labs GmbH"
 
 
 # -- General configuration ---------------------------------------------------
@@ -43,7 +40,10 @@ release = "0.0.1"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    "sphinx_mx_theme",
+    "sphinx.ext.doctest",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.napoleon",
     "sphinx.ext.autosectionlabel",
     "autoapi.extension",
 ]
@@ -67,22 +67,31 @@ scv_sort = ("semver",)
 scv_priority = "branches"
 
 todo_include_todos = False
+
+# Add links to other docs
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+    # TODO Add squirrel-datasets once the RTD is online.
+}
+
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_mx_theme"
+html_theme = "sphinx_rtd_theme"
 
 # Material theme options (see theme.conf for more information)
-html_theme_options = {
-    "logo_url": "https://merantixlabs.com",
-    "logo": "mxl-logo.png",
-    "github_repository": "squirrel-core",
-    "path_to_documentation_dir": "docs",
-    "github_sphinx_locale": "",
-    "github_branch": "main",
-}
+# TODO the following is unsupported by RTD, configure them in other ways.
+# html_theme_options = {
+#     "logo_url": "https://merantixlabs.com",
+#     "logo": "mxl-logo.png",
+#     "github_repository": "squirrel-core",
+#     "path_to_documentation_dir": "docs",
+#     "github_sphinx_locale": "",
+#     "github_branch": "main",
+# }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

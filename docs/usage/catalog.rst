@@ -1,8 +1,8 @@
 Catalog
 =======
 
-Squirrel is a pip package which can be installed from our PyPi server using ``pip3 install mxlabs-squirrel``.
-It adds the module ``squirrel`` to your environment. The high-level API of squirrel is the Catalog. It allows you to discover and access data sources. 
+Squirrel is a pip package which can be installed from our PyPi server using ``pip3 install squirrel-core``.
+It adds the module ``squirrel`` to your environment. The high-level API of squirrel is the Catalog. It allows you to discover and access data sources.
 
 A Catalog can be instantiated using the Python API, plugins, and Yaml files.
 
@@ -13,7 +13,7 @@ You can create and manipulate a Catalog using it's Python API. The Catalog acts 
 .. code-block:: python
 
     from squirrel.catalog import Catalog, Source
-    
+
     # Create catalog
     ca = Catalog()
     ca['test'] = Source("csv", driver_kwargs={'path':'./test.csv'}, metadata={'created': 'yesterday'})
@@ -49,7 +49,7 @@ You can create and manipulate a Catalog using it's Python API. The Catalog acts 
 Source plugins
 --------------------
 
-Sources can be added to the catalog via a plugin mechanism. The intended use case is sharing of sources within a project or via distribution of a Python package (e.g. mxlabs-datasets). You can inject sources via pluggy or on the fly like in this example:
+Sources can be added to the catalog via a plugin mechanism. The intended use case is sharing of sources within a project or via distribution of a Python package (e.g. squirrel-datasets-core). You can inject sources via pluggy or on the fly like in this example:
 
 .. code-block:: python
 
@@ -106,7 +106,7 @@ You can inject drivers for your custom data types via pluggy or on the fly like 
         name='mydriver'
 
         def __init__(self, name, **kwargs):
-            
+
             super().__init__(*kwargs)
             self.name = name
 

@@ -14,7 +14,6 @@ Welcome to Squirrel´s documentation!
    usage/Iterstream
    usage/code_of_conduct
    usage/contribute
-   usage/document
    usage/glossary
 
 

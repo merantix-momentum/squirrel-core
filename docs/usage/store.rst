@@ -52,7 +52,7 @@ This is the recommended approach, unless low-level control is needed.
 
 Writing samples as shards using SquirrelStore
 ---------------------------------------------
-#. Approach 1: Write/read shards sequentially
+Approach 1: Write/read shards sequentially
 #############################################
 
 .. code-block:: python
