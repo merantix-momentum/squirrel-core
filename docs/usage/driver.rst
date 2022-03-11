@@ -30,7 +30,7 @@ IterDriver
 ----------
 
 Most drivers provide a way to iterate over the parts of the underlying data source.
-Such drivers implement the :py:class:`IterDriver` base class and their :py:meth:`~IterDriver.get_iter` method returns
+Such drivers inherit from the :py:class:`IterDriver` base class and their :py:meth:`~IterDriver.get_iter` method returns
 an iterable of these parts.
 Semantically, the "parts" are dataset-dependent and can be anything: a single sentence in a text corpus, or a single
 row in a csv file, or a single (image, label) pair in an image classification dataset.
@@ -48,12 +48,25 @@ Let's see an IterDriver in action:
     class MyDriver(IterDriver):
         """Driver that loads lines of a text file."""
 
+        name = "my_iter_driver"
+
         def __init__(self, txt_path: str):
             self.txt_path = txt_path
 
         def get_iter(self) -> Composable:
             with open(self.txt_path, "r") as f:
                 return IterableSource(line.strip() for line in f.readlines())
+
+
+.. note::
+
+    It is required to define the ``name`` class variable if this driver is intended to be registered with a source in a :ref:`Catalog`.
+    When loading the driver of a source (via the :py:meth:`get_driver` method), the driver name defined in the source
+    is checked against the ``name``s of all available drivers to find the target driver.
+
+    To see how you can register your custom driver so that it can be used with a Catalog, refer to the `Plugin Tutorial`.
+
+.. code-block:: python
 
     # prepare a text "corpus" and read from it
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
@@ -94,6 +107,9 @@ Squirrel provides the :py:class:`MapDriver` base class for this use case:
 
 
     class MyDriver(MapDriver):
+
+        name = "my_map_driver"
+
         def __init__(self, csv_path: str, index_col: str):
             self.csv_path = csv_path
             self.df = pd.read_csv(csv_path, index_col=index_col)
@@ -178,6 +194,6 @@ FileDriver
 
 Further reading
 ---------------
-Drivers can be registered, loaded from, and combined together in a :ref:`Catalog <catalog>`.
+Drivers can be registered as part of a :py:class:`~squirrel.catalog.source.Source` in a :ref:`Catalog <catalog>`.
 
 `squirrel-datasets <https://docs.datasets.merantixlabs.cloud>`_ provides drivers to load data from various datasets.
