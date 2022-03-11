@@ -1,119 +1,231 @@
 Catalog
 =======
-
-Squirrel is a pip package which can be installed from our PyPi server using ``pip3 install squirrel-core``.
-It adds the module ``squirrel`` to your environment. The high-level API of squirrel is the Catalog. It allows you to discover and access data sources.
-
-A Catalog can be instantiated using the Python API, plugins, and Yaml files.
-
-Catalog Python API
---------------------
-You can create and manipulate a Catalog using it's Python API. The Catalog acts like a Python Dict[str, Source]. Example:
+Squirrel provides an easy way of both defining a data source and how to read from it at the same time:
 
 .. code-block:: python
 
-    from squirrel.catalog import Catalog, Source
+    from squirrel.catalog import Source
 
-    # Create catalog
-    ca = Catalog()
-    ca['test'] = Source("csv", driver_kwargs={'path':'./test.csv'}, metadata={'created': 'yesterday'})
+    source = Source(
+        driver_name="file",
+        driver_kwargs={"path": "path/to/my/file"},
+        metadata={"owner": "Merantix", "license": "Other"},
+    ) 
 
-    # Access metadata
-    print(ca['test'].metadata)
+That's it, we created our first :py:class:`~squirrel.catalog.source.Source`. Note that:
 
-    # Access underlying dataframe using the specified driver
-    df = ca['test'].get_driver().get_df()
+- Our source can be read using a certain :py:class:`~squirrel.driver.Driver`, i.e. the Driver that corresponds to "file".
+  
+  .. note::
+  
+    Note that each driver defines its name with the ``name`` class variable.
+    You can check out :py:class:`~squirrel.driver.FileDriver` to verify that its name is indeed "file".
 
-    # Versionise source
-    ca['test'] = Source("csv", driver_kwargs={'path':'./test2.csv'}, metadata={'created': 'today'})
-    df = ca['test'] # latest version
-    df = ca['test'][-1] # latest version
-    df = ca['test'][1] # first version
-    df = ca['test'][2] # second version
-    print(ca['test'].versions) # list versions
+    You can refer to :py:mod:`squirrel.driver` to see all built-in squirrel drivers.
+    To see how you can implement your own driver and register it so that a Catalog can use it, see the `Plugin Tutorial`.
 
-    # A Catalog supports set operations e.g.
-    ca2 = Catalog()
-    ca2['v'] = Source("csv", driver_kwargs={'path':'./test.csv'})
-    ca3 = ca.union(ca2)
-    ca4 = ca.intersection(ca2)
-    ca5 = ca.difference(ca2)
+- The driver will be called using some arguments, i.e. ``path="path/to/my/file"``
+- We can add metadata to the Source
 
-    # You can filter the catalog by a predicate
-    ca6 = ca.filter(lambda x: x.driver_name == 'csv')
+If we have a lot of Sources, then keeping track of them can be troublesome.
+This is where :py:class:`~squirrel.catalog.Catalog` comes in.
 
-    # Persist catalog to yaml
-    ca.to_file('./test.yaml')
-
-
-Source plugins
---------------------
-
-Sources can be added to the catalog via a plugin mechanism. The intended use case is sharing of sources within a project or via distribution of a Python package (e.g. squirrel-datasets-core). You can inject sources via pluggy or on the fly like in this example:
-
-.. code-block:: python
-
-    from squirrel.catalog import Catalog, Source
-    from squirrel.framework.plugins.plugin_manager import register_source
-
-    s = Source("csv", driver_kwargs={'path':'./test.csv'})
-    register_source('cs', s)
-
-    ca = Catalog.from_plugins()
-    df = ca['cs'].get_driver().get_df()
-
-Catalog Yaml Files
---------------------
-
-You can also create a Catalog based on a yaml. The intended use case is easy sharing of automatically created datasets (e.g. from a ETL pipeline). Squirrel can scan local and remote locations for Catalog files (e.g. Catalog.from_dirs()). Example for a local Catalog file and data source.
-
-Create a catalog.yaml file:
-
-.. code-block:: yaml
-
-    !YamlCatalog
-    version: 0.4.0
-    sources:
-    - !YamlSource
-      identifier: cs
-      driver_name: csv
-      driver_kwargs:
-        path: ./test.csv
-
-This Catalog defines a data source 'cs' from a local CSV file. To create the corresponding dataframe:
+Catalog is a dictionary-like data structure that maintains Sources.
+Let's create a Catalog and add our Source to it.
 
 .. code-block:: python
 
     from squirrel.catalog import Catalog
 
-    cat = Catalog.from_files(['./catalog.yaml'])
-    source = cat["ca"]
-    df = source.get_driver().get_df()
+    cat = Catalog()
+    cat["my_source"] = source
 
+Now we can see how the Source is stored::
 
-Driver plugins
---------------------
+    >>> cat["my_source"]
+    {
+        "identifier": "my_source",
+        "driver_name": "file",
+        "driver_kwargs": {
+            "path": "path/to/my/file",
+        },
+        "metadata": {
+            "owner": "Merantix",
+            "license": "Other"
+        },
+        "version": 1
+        "versions": [
+            1
+        ]
+    }
 
-You can inject drivers for your custom data types via pluggy or on the fly like in this example:
+Note that there are some new fields, more specifically, the source now also has:
+
+- An identifier
+- A version
+
+We specified the identifier when adding the Source to the Catalog.
+However, the version was automatically set.
+We could have set the version ourselves as well:
 
 .. code-block:: python
 
-    from squirrel.catalog import Catalog, Source
-    from squirrel.driver import Driver
-    from squirrel.framework.plugins.plugin_manager import register_driver
+    cat["my_source"][2] = source  # setting version 2 of the same source
 
-    class MyDriver(Driver):
-        name='mydriver'
+Now the catalog entry has become::
 
-        def __init__(self, name, **kwargs):
+    >>> cat["my_source"]
 
-            super().__init__(*kwargs)
-            self.name = name
+    {
+        "identifier": "my_source",
+        "driver_name": "file",
+        "driver_kwargs": {
+            "path": "path/to/my/file",
+        },
+        "metadata": {
+            "owner": "Merantix",
+            "license": "Other"
+        },
+        "version": 2
+        "versions": [
+            1,
+            2
+        ]
+    }
 
-        def say_hi(self, **kwargs):
-            return f"Hello {self.name}!"
-    register_driver(MyDriver)
+The catalog returns us the latests version available, which is v2.
+It is possible to specify which version to get::
 
-    ca = Catalog()
-    ca['test'] = Source("mydriver", driver_kwargs={'name':'Labs'})
-    print(ca['test'].get_driver().say_hi())
+    >>> cat["my_source"][1]  # getting a specific version
+    {
+        "identifier": "my_source",
+        "driver_name": "file",
+        "driver_kwargs": {
+            "path": "path/to/my/file",
+        },
+        "metadata": {
+            "owner": "Merantix",
+            "license": "Other"
+        },
+        "version": 1
+    }
+
+It is possible to get a Driver instance to read from a Catalog Source.
+
+.. code-block:: python
+
+    import tempfile
+
+    # create a dummy file and load it using a FileDriver
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        fpath = f"{tmp_dir}/myfile.txt"
+        with open(fpath, "w") as f:
+            for i in range(5):
+                f.write(f"line #{i}\n")
+
+        new_source = Source(driver_name="file")
+        cat["new_source"] = new_source
+
+        driver = cat["new_source"].get_driver(path=fpath)
+        with driver.open() as f:
+            f.readlines() # -> ['line #0\n', 'line #1\n', 'line #2\n', 'line #3\n', 'line #4\n']
+
+Catalog Operations
+------------------
+We will be using the following Catalogs to demonstrate the operations:
+
+.. code-block:: python
+
+    cat1 = Catalog()
+    cat2 = Catalog()
+
+    # shared sources
+    for i in range(2):
+        key, src = f"shared_{i}", Source(driver_name="file")
+        cat1[key] = src
+        cat2[key] = src
+
+    # distinct sources
+    cat1["distinct_for_1"] = Source(driver_name="file")
+    cat2["distinct_for_2"] = Source(driver_name="file")
+
+Catalogs can be sliced so that only some sources are left:
+
+.. code-block:: python
+
+    res = cat1.slice(["shared_1"])
+    list(res.keys())  # -> ["shared_1"]
+
+Catalogs can be summed together:
+
+
+.. code-block:: python
+    
+    res = cat1.union(cat2)
+    list(res.keys())  # -> ['shared_0', 'shared_1', 'distinct_for_1', 'distinct_for_2']
+
+The difference between two catalogs can be taken:
+
+.. code-block:: python
+    
+    res = cat1.difference(cat2)
+    list(res.keys())  # -> ['distinct_for_1', 'distinct_for_2']
+
+Catalogs can be intersected:
+
+.. code-block:: python
+    
+    res = cat1.intersection(cat2)
+    list(res.keys())  # -> ['shared_0', 'shared_1']
+
+To see all catalog operations, check out the API reference.
+
+Sharing your Catalog
+--------------------
+
+As most things, Catalogs are more fun when shared with others.
+To share a Catalog, you must first serialize it.
+Luckily, Squirrel provides `Catalog.to_file()` method, which will serialize your catalog for you and write it to a .yaml file with all information regarding the sources.
+
+.. code-block:: python
+    
+    import tempfile
+
+    temp_d = tempfile.TemporaryDirectory()
+    fp = f"{temp_d.name}/my_catalog.yaml"
+    cat1.to_file(fp)
+
+You can see that all source information is neatly stored in this file::
+
+    >>> with open(fp, "r") as f:
+    >>>     for _ in range(10):
+    >>>         print(f.readline())
+    !YamlCatalog
+    version: 0.11.0
+    sources:
+    - !YamlSource
+    identifier: shared_0
+    driver_name: MyDriver
+    driver_kwargs: {}
+    version: 1
+    metadata: {}
+    - !YamlSource
+
+Reading the file into a catalog is also simple:
+
+.. code-block:: python
+
+    cat_reloaded = Catalog.from_files([fp])
+    cat1 == cat_reloaded # -> True
+
+That's it, now you know (almost) everything about Catalogs!
+
+If you are willing to learn more, check out the `Catalog Tutorial` to see some real-world examples or
+the `Plugins Tutorial` to see how you can implement and register a new plugin.
+You can also refer to the API reference to discover more information such as implementation details.
+
+Don't forget to clean up:
+
+.. code-block:: python
+
+    temp_d.cleanup()
