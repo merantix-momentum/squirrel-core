@@ -97,6 +97,15 @@ except ImportError:
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
+# TODO remove after beta-testing phase
+classifiers = [
+    "Private :: Do Not Upload",
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.8",
+    "Typing :: Typed",
+]
+
 # Setup package using PIP
 if __name__ == "__main__":
     setup(
@@ -124,4 +133,5 @@ if __name__ == "__main__":
                 "gs=squirrel.fsspec.custom_gcsfs.CustomGCSFileSystem",
             ],
         },
+        classifiers=classifiers,
     )
