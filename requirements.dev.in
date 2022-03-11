@@ -6,6 +6,7 @@ pytest-cov
 pytest-xdist
 Sphinx<4.0.0
 sphinx_versions
+sphinx_rtd_theme
 wandb
 mlflow
 pre-commit==2.16.0
