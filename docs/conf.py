@@ -45,6 +45,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosectionlabel",
+    "sphinx.ext.todo",
     "autoapi.extension",
 ]
 

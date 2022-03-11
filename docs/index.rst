@@ -23,10 +23,13 @@ Squirrel is a data catalog library that provides you with an efficient data infr
 
 #. :doc:`driver <usage/driver>` to learn about data loading functionalities for various formats.
 
-#. :doc:`catalog <usage/catalog>` to learn more about how to use Squirrel catalog in your project (experimental)
+#. :doc:`catalog <usage/catalog>` to learn more about how to use Squirrel catalog in your project
 
 #. :doc:`stream data with Iterstream <usage/Iterstream>` to learn about streaming capabilities of squirrel
 
-#. Checkout whats possible by looking at some `examples <https://github.com/merantix/squirrel-core/examples>`_
+#. Checkout whats possible by looking at some `examples <https://github.com/merantix/squirrel-datasets/tree/main/examples>`_
 
 #. :doc:`here <usage/contribute>` if you plan to contribute to this project.
+
+.. todo::
+    Update merantix/squirrel-datasets to merantix-momentum/squirrel-datasets-core
