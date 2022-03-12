@@ -47,10 +47,10 @@ def normalize_version(_version: str, _version_tag: str) -> str:
         short_sha = _version_tag[3:]  # substring after the word 'dev'
         numberic_sha = "".join([char for char in short_sha if char.isdigit()])
         _version += "-dev" + numberic_sha
-        assert_version(_version)
     else:
         # In tag build, use the $TAG_NAME as the version string.
-        _version = _version_tag
+        _version = _version_tag.replace("v", "")
+    assert_version(_version)
     return _version
 
 
