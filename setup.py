@@ -40,13 +40,25 @@ def assert_version(ver: str) -> None:
     )
 
 
+def normalize_version(_version: str, _version_tag: str) -> str:
+    """Normalize version string according to tag build or dev build, to conform with the standard of PEP 440."""
+    if "dev" in _version_tag:
+        # remove alphabetic characters after keyword 'dev', which is forbidden PEP 440.
+        short_sha = _version_tag[3:]  # substring after the word 'dev'
+        numberic_sha = "".join([char for char in short_sha if char.isdigit()])
+        _version += "-dev" + numberic_sha
+        assert_version(_version)
+    else:
+        # In tag build, use the $TAG_NAME as the version string.
+        _version = _version_tag
+    return _version
+
+
 # add tag to version if provided
 if "--version_tag" in sys.argv:
     v_idx = sys.argv.index("--version_tag")
-    short_sha = sys.argv[v_idx + 1][3:]  # substring after the word 'dev'
-    numberic_sha = "".join([char for char in short_sha if char.isdigit()])
-    version = version + "-dev" + numberic_sha
-    assert_version(version)
+    version_tag = sys.argv[v_idx + 1]
+    version = normalize_version(version, version_tag)
     sys.argv.remove("--version_tag")
     sys.argv.pop(v_idx)
 
