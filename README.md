@@ -61,7 +61,8 @@ To view the docs locally, please use the following command in root directory of 
 ```
 sphinx-build ./docs ./docs/build
 ```
-then open file `./docs/build/index.html` in your browser. 
+The command above will create all documentation pages under `./docs/build`.
+To view the start page, open `./docs/build/index.html` in your browser. 
 
 # Examples
 Check out the [Squirrel-datasets repository](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for open source and community-contributed examples of using Squirrel.
