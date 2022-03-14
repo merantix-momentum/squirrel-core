@@ -31,29 +31,38 @@ Squirrel is a Python library that enables ML teams to share, load, and transform
 If you have any questions or would like to contribute, join our [Slack community](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw).
 
 # Installation
-You can install the latest stable version of Squirrel via pip:
+Currently, we have not released a functional version of `squirrel-core` and `squirrel-datasets-core` into the public 
+pypi registry. Therefore we ask you to use the following installation method, which uses the source code directly:
 
+First, you need to clone the `squirrel-core` and `squirrel-datasets-core` repositories by:
 ```shell
-pip install squirrel-core
+git clone https://github.com/merantix-momentum/squirrel-core.git
+```
+and 
+```shell
+git clone https://github.com/merantix-momentum/squirrel-datasets-core.git
+```
+Then you can install both packages by
+```shell
+pip install -e squirrel-core
+```
+and
+```shell
+pip install -e squirrel-core-datasets
 ```
 
-Install the Squirrel [public dataset collection](https://github.com/merantix-momentum/squirrel-datasets-core) via:
-
-```shell
-pip install squirrel-datasets-core
-```
+In the documentation, you may also see some requirements to install the two packages first, please follow the 
+instruction above, instead of installing from public pypi registry (e.g `pip install squirrel-core` or 
+`pip install squirrel-datasets-core`). We kindly ask for your patience.
 
 # Documentation
 
-You can visit https://docs.squirrel.merantixlabs.cloud/ to access the documentation of squirrel (login with your @merantix e-mail account).
-
-The documentation is built & deployed automatically via cloudbuild for the master-branch and tags. Please find more information on that topic [here](https://docs.squirrel.merantixlabs.cloud/usage/document.html).
-
-Alternatively, build the documentation locally:
+To view the docs locally, please use the following command in root directory of the repo:
 ```
-cd squirrel/
-mx build_docs
+sphinx-build ./docs ./docs/build
 ```
+The command above will create all documentation pages under `./docs/build`.
+To view the start page, open `./docs/build/index.html` in your browser. 
 
 # Examples
 Check out the [Squirrel-datasets repository](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for open source and community-contributed examples of using Squirrel.
