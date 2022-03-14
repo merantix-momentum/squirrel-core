@@ -1,6 +1,6 @@
 <div align="center">
   
-# Squirrel Core
+# <img src="docs/_static/logo.png" width="150px"> Squirrel Core
   
 **Share, load, and transform data in a collaborative, flexible, and efficient way**
 
