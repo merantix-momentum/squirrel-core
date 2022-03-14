@@ -31,27 +31,33 @@ Squirrel is a Python library that enables ML teams to share, load, and transform
 If you have any questions or would like to contribute, join our [Slack community](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw).
 
 # Installation
-You can install the latest stable version of Squirrel via pip editable install:
+Currently, we have not released a functional version of `squirrel-core` and `squirrel-datasets-core` into the public 
+pypi registry. Therefore we ask you to use the following installation method, which uses the source code directly:
 
+First, you need to clone the `squirrel-core` and `squirrel-datasets-core` repositories by:
 ```shell
-pip install -e . 
+git clone https://github.com/merantix-momentum/squirrel-core.git
+```
+and 
+```shell
+git clone https://github.com/merantix-momentum/squirrel-datasets-core.git
+```
+Then you can install both packages by
+```shell
+pip install -e squirrel-core
+```
+and
+```shell
+pip install -e squirrel-core-datasets
 ```
 
-Install the Squirrel Datasets [public dataset collection](https://github.com/merantix-momentum/squirrel-datasets-core) 
-via (in the root directory of the respective repo):
-
-```shell
-pip install -e . 
-```
-
-(Currently we have not released a functional version of both packages into the public pypi registry for privacy. 
-Therefore, we ask you to use this installation method instead. In the documentation, you may also see some requirements 
-to install the two packages first, please follow the instruction above, instead of using 
-`pip install squirrel-core` and `pip install squirrel-datasets-core` directly. We kindly ask for your patience.)
+In the documentation, you may also see some requirements to install the two packages first, please follow the 
+instruction above, instead of installing from public pypi registry (e.g `pip install squirrel-core` or 
+`pip install squirrel-datasets-core`). We kindly ask for your patience.
 
 # Documentation
 
-To view the docs locally, please use the following command in root directory of this repo:
+To view the docs locally, please use the following command in root directory of the repo:
 ```
 sphinx-build ./docs ./docs/build
 ```
