@@ -45,14 +45,9 @@ pip install squirrel-datasets-core
 
 # Documentation
 
-You can visit https://docs.squirrel.merantixlabs.cloud/ to access the documentation of squirrel (login with your @merantix e-mail account).
-
-The documentation is built & deployed automatically via cloudbuild for the master-branch and tags. Please find more information on that topic [here](https://docs.squirrel.merantixlabs.cloud/usage/document.html).
-
-Alternatively, build the documentation locally:
+To view the docs locally, please use the following command in root directory of this repo:
 ```
-cd squirrel/
-mx build_docs
+sphinx-build ./docs ./docs/build && open ./docs/build/index.html
 ```
 
 # Examples
