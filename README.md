@@ -53,8 +53,9 @@ to install the two packages first, please follow the instruction above, instead 
 
 To view the docs locally, please use the following command in root directory of this repo:
 ```
-sphinx-build ./docs ./docs/build && open ./docs/build/index.html
+sphinx-build ./docs ./docs/build
 ```
+then open file `./docs/build/index.html` in your browser. 
 
 # Examples
 Check out the [Squirrel-datasets repository](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for open source and community-contributed examples of using Squirrel.
