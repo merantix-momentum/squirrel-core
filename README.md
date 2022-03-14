@@ -31,17 +31,23 @@ Squirrel is a Python library that enables ML teams to share, load, and transform
 If you have any questions or would like to contribute, join our [Slack community](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw).
 
 # Installation
-You can install the latest stable version of Squirrel via pip:
+You can install the latest stable version of Squirrel via pip editable install:
 
 ```shell
-pip install squirrel-core
+pip install -e . 
 ```
 
-Install the Squirrel [public dataset collection](https://github.com/merantix-momentum/squirrel-datasets-core) via:
+Install the Squirrel Datasets [public dataset collection](https://github.com/merantix-momentum/squirrel-datasets-core) 
+via (in the root directory of the respective repo):
 
 ```shell
-pip install squirrel-datasets-core
+pip install -e . 
 ```
+
+(Currently we have not released a functional version of both packages into the public pypi registry for privacy. 
+Therefore, we ask you to use this installation method instead. In the documentation, you may also see some requirements 
+to install the two packages first, please follow the instruction above, instead of using 
+`pip install squirrel-core` and `pip install squirrel-datasets-core` directly. We kindly ask for your patience.)
 
 # Documentation
 
