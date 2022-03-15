@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
+import functools
 from abc import ABC, abstractmethod
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
+from inspect import isclass
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Type, Union
 
 from squirrel.catalog import Catalog
-from squirrel.iterstream import IterableSource
+from squirrel.iterstream import Composable, IterableSource
 
 if TYPE_CHECKING:
     from pandas import DataFrame
 
-    from squirrel.iterstream import Composable
 
 __all__ = ["Driver", "IterDriver", "MapDriver", "DataFrameDriver"]
 
@@ -68,7 +69,7 @@ class MapDriver(IterDriver):
         self,
         keys_iterable: Optional[Iterable] = None,
         shuffle_key_buffer: int = 1,
-        key_hooks: Optional[Iterable[Callable]] = None,
+        key_hooks: Optional[Iterable[Union[Callable, Type[Composable], functools.partial]]] = None,
         max_workers: Optional[int] = None,
         prefetch_buffer: int = 10,
         shuffle_item_buffer: int = 1,
@@ -88,7 +89,15 @@ class MapDriver(IterDriver):
             keys_iterable (Iterable, optional): If provided, only the keys in `keys_iterable` will be used to fetch
                 items. If not provided, all keys in the store are used.
             shuffle_key_buffer (int): Size of the buffer used to shuffle keys.
-            key_hooks (Iterable[Callable], optional): Functions that are applied to the keys before fetching the items.
+            key_hooks (Iterable[Iterable[Union[Callable, Type[Composable], functools.partial]]], optional): Hooks
+                to apply to keys before fetching the items. It is an Iterable any of these objects:
+                    1) subclass of :py:meth:`~squirrel.iterstream.Composable`: in this case, `.compose(hook, **kw)`
+                    will be applied to the stream
+                    2) A Callable:  `.to(hook, **kw)` will be applied to the stream
+                    3) A partial function: the three attributes `args`, `keywords` and `func` will be retrieved, and
+                    depending on whether `func` is a subclass of :py:meth:`~squirrel.iterstream.Composable` or a
+                    `Callable`, one of the above cases will happen, with the only difference that arguments are passed
+                    too. This is useful for passing arguments.
             max_workers (int, Optional): If larger than 1 or None, :py:meth:`~squirrel.iterstream.Composable.async_map`
                 is called to fetch multiple items simultaneously and `max_workers` refers to the maximum number of
                 workers in the ThreadPoolExecutor used by `async_map`.
@@ -120,7 +129,23 @@ class MapDriver(IterDriver):
 
         if key_hooks:
             for hook in key_hooks:
-                it = it.to(hook)
+                arg = []
+                kwarg = {}
+                f = hook
+                if isinstance(hook, partial):
+                    arg = hook.args
+                    kwarg = hook.keywords
+                    f = hook.func
+
+                if isclass(f) and issubclass(f, Composable):
+                    it = it.compose(f, *arg, **kwarg)
+                elif isinstance(f, Callable):
+                    it = it.to(f, *arg, **kwarg)
+                else:
+                    raise ValueError(
+                        f"wrong argument for hook {hook}, it should be a Callable, partial function, or a subclass "
+                        f"of Composable"
+                    )
 
         map_fn = partial(self.get, **get_kwargs)
         _map = (

@@ -188,6 +188,17 @@ The Squirrel api is designed to support fast streaming of datasets to a multi-ra
 
 Note that the rank of the distributed system depends on the torch distributed process group and is automatically determined.
 
+And using :py:mod:`squirrel.driver` api:
+
+.. code-block:: python
+
+    from squirrel.driver import MessagepackDriver
+    url = ""
+    it = MessagepackDriver(url).get_iter(key_hooks=[SplitByWorker]).async_map(times_two).batched(batch_size).compose(TorchIterable)
+    dl = DataLoader(it, num_workers=num_workers)
+
+In this example, :code:`key_hooks=[SplitByWorker]` ensures that keys are split between workers before fetching the data and we achieve two level of parallelism; multi-processing provided by :code:`torch.utils.data.DataLoader`, and multi-threading inside each process for efficiently fetching samples by :code:`get_iter`.
+
 Performance Monitoring
 -----------------------
 In squirrel, performance in :code:`iterstream` can be calculated and logged. This is done by applying an extra method
