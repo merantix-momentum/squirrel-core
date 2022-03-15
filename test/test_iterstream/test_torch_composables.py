@@ -1,10 +1,14 @@
-from typing import List
+import tempfile
+from functools import partial
+from typing import List, Any
 from unittest import mock
 
 import pytest
 import torch
 import torch.utils.data as tud
 
+from squirrel.driver import MessagepackDriver
+from squirrel.iterstream.iterators import map_
 from squirrel.iterstream.source import IterableSource
 from squirrel.iterstream.torch_composables import SplitByRank, SplitByWorker, TorchIterable, skip_k
 
@@ -114,3 +118,30 @@ def test_multi_rank_multi_worker_torch_iterable(
         dl = tud.DataLoader(it, num_workers=num_workers)
         out = torch.Tensor(list(dl))
         assert sorted(out.cpu().flatten().numpy().tolist()) == [2.0 * s for s in samples[rank::world_size]]
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            driver = MessagepackDriver(tmp_dir)
+            store = driver.store
+            keys_ = list(range(1000, 1100))
+            for idx, sh in enumerate(samples):
+                store.set(value=sh, key=keys_[idx])
+
+            def _cb(x: Any) -> Any:
+                return x
+
+            it2 = (
+                driver.get_iter(
+                    key_hooks=[
+                        _cb,
+                        SplitByRank,
+                        partial(map_, *[], **{"callback": _cb}),
+                        SplitByWorker,
+                    ]
+                )
+                .async_map(_times_two)
+                .compose(TorchIterable)
+            )
+
+            dl2 = tud.DataLoader(it2, num_workers=num_workers)
+            out2 = torch.Tensor(list(dl2))
+            assert sorted(out2.cpu().flatten().numpy().tolist()) == [2.0 * s for s in samples[rank::world_size]]
