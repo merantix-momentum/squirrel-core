@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/pypi/pyversions/squirrel-core.svg?style=plastic)](https://badge.fury.io/py/squirrel-core)
 [![PyPI](https://badge.fury.io/py/squirrel-core.svg)](https://badge.fury.io/py/squirrel-core)
-[![Downloads](https://pepy.tech/badge/squirrel-core)](https://pepy.tech/project/squirrel-core)
+[![Downloads](https://img.shields.io/pypi/dm/squirrel-core.svg)](https://badge.fury.io/py/squirrel-core)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://squirrel-core.readthedocs.io)
 [![Generic badge](https://img.shields.io/badge/Website-Merantix%20Labs-blue)](https://www.merantixlabs.com/)
