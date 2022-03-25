@@ -28,7 +28,16 @@ Squirrel is a Python library that enables ML teams to share, load, and transform
 
 4. **COLLABORATION:** Make it easier to share data & code between teams and projects in a self-service model.
 
-If you have any questions or would like to contribute, join our [Slack community](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw).
+Stream data from anywhere to your machine learning model as easy as:
+```python
+it = (Catalog.from_plugins()["imagenet"].get_driver()
+      .get_iter("train")
+      .map(lambda r: (augmentation(r["image"], train_augment), r["label"]))
+      .batched(10)
+      )
+```
+
+Check out our full [getting started](https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/01.Getting_Started.ipynb) tutorial notebook. If you have any questions or would like to contribute, join our [Slack community](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw).
 
 # Installation
 Currently, we have not released a functional version of `squirrel-core` and `squirrel-datasets-core` into the public 
@@ -64,8 +73,8 @@ sphinx-build ./docs ./docs/build
 The command above will create all documentation pages under `./docs/build`.
 To view the start page, open `./docs/build/index.html` in your browser. 
 
-# Examples
-Check out the [Squirrel-datasets repository](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for open source and community-contributed examples of using Squirrel.
+# Example Notebooks
+Check out the [Squirrel-datasets repository](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for open source and community-contributed tutorial and example notebooks of using Squirrel.
 
 # Contributing
 Squirrel is open source and community contributions are welcome!
