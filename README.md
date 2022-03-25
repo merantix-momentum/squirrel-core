@@ -33,8 +33,7 @@ Stream data from anywhere to your machine learning model as easy as:
 it = (Catalog.from_plugins()["imagenet"].get_driver()
       .get_iter("train")
       .map(lambda r: (augment(r["image"]), r["label"]))
-      .batched(10)
-      )
+      .batched(100))
 ```
 
 Check out our full [getting started](https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/01.Getting_Started.ipynb) tutorial notebook. If you have any questions or would like to contribute, join our [Slack community](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw).
