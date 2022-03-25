@@ -32,7 +32,7 @@ Stream data from anywhere to your machine learning model as easy as:
 ```python
 it = (Catalog.from_plugins()["imagenet"].get_driver()
       .get_iter("train")
-      .map(lambda r: (augmentation(r["image"], train_augment), r["label"]))
+      .map(lambda r: (augment(r["image"]), r["label"]))
       .batched(10)
       )
 ```
