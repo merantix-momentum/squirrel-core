@@ -44,11 +44,11 @@ git clone https://github.com/merantix-momentum/squirrel-datasets-core.git
 ```
 Then you can install both packages by
 ```shell
-pip install -e squirrel-core
+pip install -e "squirrel-core[all]"
 ```
 and
 ```shell
-pip install -e squirrel-core-datasets
+pip install -e "squirrel-datasets-core[all]"
 ```
 
 In the documentation, you may also see some requirements to install the two packages first, please follow the 
