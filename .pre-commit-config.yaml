@@ -6,7 +6,7 @@ default_language_version:
   python: python3.8
 exclude: (?x)(^docs/_build)
 repos:
-- repo: https://github.com/ambv/black
+- repo: https://github.com/psf/black
   rev: 22.3.0
   hooks:
   - id: black # Format Python code

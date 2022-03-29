@@ -1,5 +1,4 @@
 [flake8]
-# This file is used for mx lint command, no matter from where it is executed.
 ignore =
     # C812: Missing trailing comma. Deactivated because of incompatibility with black.
     C812,
