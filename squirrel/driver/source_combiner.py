@@ -121,7 +121,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
         probs: Optional[List[float]] = None,
         rng: Optional[random.Random] = None,
         seed: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> Composable:
         """Returns an iterstream that samples from the subsets of this source.
 
