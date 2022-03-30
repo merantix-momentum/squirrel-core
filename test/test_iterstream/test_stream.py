@@ -126,7 +126,7 @@ def test_different_maps() -> None:
 def test_dask(samples: t.List[SampleType]) -> None:
     """Test async_map with dask executor"""
     client = dask.distributed.Client()
-    res = IterableSource([1, 2, 3]).async_map(lambda x: x ** 2, executor=client).collect()
+    res = IterableSource([1, 2, 3]).async_map(lambda x: x**2, executor=client).collect()
     client.shutdown()
     assert res == [1, 4, 9]
 

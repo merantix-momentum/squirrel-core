@@ -7,7 +7,7 @@ default_language_version:
 exclude: (?x)(^docs/_build)
 repos:
 - repo: https://github.com/ambv/black
-  rev: 21.9b0
+  rev: 22.3.0
   hooks:
   - id: black # Format Python code
     additional_dependencies: [keyrings.google-artifactregistry-auth, "--index-url=https://pypi.org/simple/"]
