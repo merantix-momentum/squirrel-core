@@ -45,7 +45,7 @@ pip install "squirrel-core[all]"
 
 # Documentation
 
-Read our documentation at [ReadTheDocs](https://squirrel.readthedocs.io/)
+Read our documentation at [ReadTheDocs](https://squirrel-core.readthedocs.io/)
 
 # Example Notebooks
 Check out the [Squirrel-datasets repository](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for open source and community-contributed tutorial and example notebooks of using Squirrel.
