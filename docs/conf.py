@@ -28,8 +28,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))
 # -- Project information -----------------------------------------------------
 
 project = "Squirrel"
-copyright = f"{datetime.datetime.now().year}, Merantix Labs GmbH"
-author = "Merantix Labs GmbH"
+copyright = f"{datetime.datetime.now().year}, Merantix Momentum"
+author = "Merantix Momentum"
 
 
 # -- General configuration ---------------------------------------------------
@@ -73,7 +73,7 @@ todo_include_todos = False
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
-    # TODO Add squirrel-datasets once the RTD is online.
+    "squirrel-datasets": ("https://squirrel-datasets-core.readthedocs.io", None),
 }
 
 # -- Options for HTML output -------------------------------------------------

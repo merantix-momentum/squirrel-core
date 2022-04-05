@@ -129,7 +129,7 @@ if __name__ == "__main__":
         ),
         long_description=long_description,
         long_description_content_type="text/markdown",
-        author="Merantix Labs GmbH",
+        author="Merantix Momentum",
         license="Apache 2.0",
         package_dir=PACKAGE_DIR,
         packages=find_packages(),
