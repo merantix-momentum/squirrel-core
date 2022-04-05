@@ -4,10 +4,7 @@ pytest>=6.2.1
 pytest-timeout
 pytest-cov
 pytest-xdist
-Sphinx<4.0.0
-sphinx_versions
-sphinx_rtd_theme
-sphinx-autoapi
 wandb
 mlflow
 pre-commit==2.16.0
+pip-tools
