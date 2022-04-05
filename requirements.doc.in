@@ -5,3 +5,4 @@ Sphinx<4.0.0
 sphinx_versions
 sphinx_rtd_theme
 sphinx-autoapi
+Jinja2<3.1 # breaks readthedoc for newer version
