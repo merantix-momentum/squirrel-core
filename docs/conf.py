@@ -73,7 +73,7 @@ todo_include_todos = False
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
-    "squirrel-datasets": ("https://squirrel-datasets-core.readthedocs.io", None),
+    "squirrel-datasets": ("https://squirrel-datasets-core.readthedocs.io/en/latest", None),
 }
 
 # -- Options for HTML output -------------------------------------------------
