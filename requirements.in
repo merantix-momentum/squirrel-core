@@ -8,5 +8,3 @@ random-name
 ruamel.yaml
 tqdm
 numba
-# typing-extensions<4,>=3.7.0 # required by apache-beam 2.35.0
-# TODO resolution failure. Add this back once we have a functional main.
