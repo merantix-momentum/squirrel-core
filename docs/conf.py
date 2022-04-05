@@ -28,8 +28,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))
 # -- Project information -----------------------------------------------------
 
 project = "Squirrel"
-copyright = f"{datetime.datetime.now().year}, Merantix Labs GmbH"
-author = "Merantix Labs GmbH"
+copyright = f"{datetime.datetime.now().year}, Merantix Momentum"
+author = "Merantix Momentum"
 
 
 # -- General configuration ---------------------------------------------------

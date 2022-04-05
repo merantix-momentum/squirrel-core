@@ -38,38 +38,14 @@ it = (Catalog.from_plugins()["imagenet"].get_driver()
 Check out our full [getting started](https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/01.Getting_Started.ipynb) tutorial notebook. If you have any questions or would like to contribute, join our [Slack community](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw).
 
 # Installation
-Currently, we have not released a functional version of `squirrel-core` and `squirrel-datasets-core` into the public 
-pypi registry. Therefore we ask you to use the following installation method, which uses the source code directly:
-
-First, you need to clone the `squirrel-core` and `squirrel-datasets-core` repositories by:
+You can install `squirrel-core` by 
 ```shell
-git clone https://github.com/merantix-momentum/squirrel-core.git
+pip install "squirrel-core[all]"
 ```
-and 
-```shell
-git clone https://github.com/merantix-momentum/squirrel-datasets-core.git
-```
-Then you can install both packages by
-```shell
-pip install -e "squirrel-core[all]"
-```
-and
-```shell
-pip install -e "squirrel-datasets-core[all]"
-```
-
-In the documentation, you may also see some requirements to install the two packages first, please follow the 
-instruction above, instead of installing from public pypi registry (e.g `pip install squirrel-core` or 
-`pip install squirrel-datasets-core`). We kindly ask for your patience.
 
 # Documentation
 
-To view the docs locally, please use the following command in root directory of the repo:
-```
-sphinx-build ./docs ./docs/build
-```
-The command above will create all documentation pages under `./docs/build`.
-To view the start page, open `./docs/build/index.html` in your browser. 
+Read our documentation at [ReadTheDocs](https://squirrel.readthedocs.io/)
 
 # Example Notebooks
 Check out the [Squirrel-datasets repository](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for open source and community-contributed tutorial and example notebooks of using Squirrel.
