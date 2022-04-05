@@ -1,0 +1,7 @@
+# used by .readthedocs.yml as dependencies for documentation
+# readthedocs does not include `sphinx-autoapi` by default
+# plus configure everything doc related here for consistency
+Sphinx<4.0.0
+sphinx_versions
+sphinx_rtd_theme
+sphinx-autoapi
