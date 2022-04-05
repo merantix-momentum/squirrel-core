@@ -111,8 +111,7 @@ long_description = (this_directory / "README.md").read_text()
 
 # TODO remove after beta-testing phase
 classifiers = [
-    "Private :: Do Not Upload",
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.8",
     "Typing :: Typed",
