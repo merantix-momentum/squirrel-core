@@ -4,6 +4,7 @@
   
 **Share, load, and transform data in a collaborative, flexible, and efficient way**
 
+[![Python](https://img.shields.io/pypi/pyversions/squirrel-core.svg?style=plastic)](https://badge.fury.io/py/squirrel-core)
 [![PyPI](https://img.shields.io/pypi/v/squirrel-core?label=pypi%20package)](https://pypi.org/project/squirrel-core/)  
 [![Conda](https://img.shields.io/conda/vn/conda-forge/squirrel-core)](https://anaconda.org/conda-forge/squirrel-core)
 [![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://squirrel-core.readthedocs.io/en/latest)
