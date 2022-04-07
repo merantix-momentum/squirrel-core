@@ -16,6 +16,7 @@ Fixes # issue
 
 # Checklist:
 
+- [ ] I have read the [contributing guideline doc](https://squirrel-core.readthedocs.io/en/latest/usage/code_of_conduct.html) (external contributors only)
 - [ ] Lint and unit tests pass locally with my changes
 - [ ] I have kept the PR small so that it can be easily reviewed  
 - [ ] I have made corresponding changes to the documentation
