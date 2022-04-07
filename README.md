@@ -4,10 +4,12 @@
   
 **Share, load, and transform data in a collaborative, flexible, and efficient way**
 
-[![PyPI](https://badge.fury.io/py/squirrel-core.svg)](https://badge.fury.io/py/squirrel-core)
+[![PyPI](https://img.shields.io/pypi/v/squirrel-core?label=pypi%20package)](https://pypi.org/project/squirrel-core/)  
+[![Conda](https://img.shields.io/conda/vn/conda-forge/squirrel-core)](https://anaconda.org/conda-forge/squirrel-core)
+[![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://squirrel-core.readthedocs.io/en/latest)
 [![Downloads](https://static.pepy.tech/personalized-badge/squirrel-core?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/squirrel-core)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://squirrel-core.readthedocs.io/en/latest)
+[![DOI](https://zenodo.org/badge/458099869.svg)](https://zenodo.org/badge/latestdoi/458099869)
 [![Generic badge](https://img.shields.io/badge/Website-Merantix%20Momentum-blue)](https://merantix-momentum.com)
 [![Slack](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw)
 
