@@ -69,6 +69,7 @@ If you use Squirrel in your research, please cite it using:
   title={Squirrel: A Python library that enables ML teams to share, load, and transform data in a collaborative, flexible, and efficient way.},
   author={Squirrel Developer Team},
   journal={GitHub. Note: https://github.com/merantix-momentum/squirrel-core},
+  doi={10.5281/zenodo.6418280},
   year={2022}
 }
 ```
