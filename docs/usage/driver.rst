@@ -196,4 +196,5 @@ Further reading
 ---------------
 Drivers can be registered as part of a :py:class:`~squirrel.catalog.source.Source` in a :ref:`Catalog <catalog>`.
 
-`squirrel-datasets <https://docs.datasets.merantixlabs.cloud>`_ provides drivers to load data from various datasets.
+`squirrel-datasets <https://squirrel-datasets-core.readthedocs.io/en/latest/>`_ provides drivers to load data from
+various datasets.
