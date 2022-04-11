@@ -18,5 +18,5 @@ We mostly follow `this workflow <https://kennethreitz.org/essays/2016/02/25/a-be
 Tests
 -------------------------------------
 
-You can run tests by executing ``pytest``. Prior make sure that you installed the testing extras e.g. via
+You can run tests by executing ``pytest``. Prior make sure that you installed the testing extras via
 ``pip install -e '.[dev,dask,gcp,torch,zarr]'``.
