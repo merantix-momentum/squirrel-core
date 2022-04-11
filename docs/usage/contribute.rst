@@ -19,4 +19,4 @@ Tests
 -------------------------------------
 
 You can run tests by executing ``pytest``. Prior make sure that you installed the testing extras e.g. via
-``pip install -e .[dev]`` or ``pip install -e '.[dev, zarr]`` if zarr is needed.
+``pip install -e .[dev]`` or ``pip install -e '.[dev, zarr]'`` if zarr is needed.
