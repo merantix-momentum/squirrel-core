@@ -69,7 +69,7 @@ class MessagepackSerializer(SquirrelSerializer):
             fs (AbstractFileSystem, optional): Filesystem to use for opening the file. If not provided, `fsspec` will
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "rb".
-            unpacker_kwarg (Dict, optional): kwargs to be passed to `msgpack.Unpacker()`.
+            unpacker_kwarg (Dict, optional): Kwargs to be passed to `msgpack.Unpacker()`.
                 If `use_list` not given, it will be set to False.
             **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`. `open_kwargs` will always have
                 `compression="gzip"` set.
