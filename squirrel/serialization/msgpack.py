@@ -59,7 +59,7 @@ class MessagepackSerializer(SquirrelSerializer):
         fp: str,
         fs: t.Optional[AbstractFileSystem] = None,
         mode: str = "rb",
-        unpacker_kwarg: t.Optional[t.Dict] = None,
+        unpacker_kwargs: t.Optional[t.Dict] = None,
         **open_kwargs,
     ) -> t.Iterable[t.Any]:
         """Reads a shard from file and returns an iterable over its samples.
