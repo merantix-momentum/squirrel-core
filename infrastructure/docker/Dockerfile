@@ -6,7 +6,6 @@ RUN apt-get update && \
 
 ADD . .
 
-RUN pip3 install keyrings.google-artifactregistry-auth --index-url=https://pypi.org/simple/ # TODO remove after public release
 RUN pip3 install --upgrade pip && \
     pip3 install --require-hashes -r requirements.txt --no-deps --disable-pip-version-check && \
     pip3 cache purge
