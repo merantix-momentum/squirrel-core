@@ -8,4 +8,4 @@ random-name
 ruamel.yaml
 tqdm
 numba
-numpy<1.21 # Numba needs NumPy 1.21 or less
+numpy<=1.21 # Numba needs NumPy 1.21 or less
