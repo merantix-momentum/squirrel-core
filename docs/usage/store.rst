@@ -21,7 +21,7 @@ Squirrel store API defines three methods:
 
     * Use one of the `Squirrel Datasets <https://squirrel-datasets-core.readthedocs.io/en/latest/>`_ drivers.
       For this, your dataset must be in a supported format and structure.
-    
+
     * Implement a custom driver.
       By implementing your own driver, you can make use of the Squirrel API in a way that suits you best.
       Implementing a driver is easy, just have a look at the custom :ref:`usage/driver:IterDriver` and
