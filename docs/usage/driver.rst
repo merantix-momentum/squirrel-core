@@ -2,7 +2,7 @@ Driver
 ==============
 
 Driver is the Squirrel component that is used for accessing data.
-Combined with the :ref:`iterstream` functionalities, drivers provide a powerful and intuitive way of accessing data:
+Combined with the :ref:`usage/iterstream:IterStream` functionalities, drivers provide a powerful and intuitive way of accessing data:
 
 .. code-block:: python
     
@@ -60,9 +60,9 @@ Let's see an IterDriver in action:
 
 .. note::
 
-    It is required to define the ``name`` class variable if this driver is intended to be registered with a source in a :ref:`Catalog`.
+    It is required to define the ``name`` class variable if this driver is intended to be registered with a source in a :ref:`Catalog <usage/catalog:Catalog>`.
     When loading the driver of a source (via the :py:meth:`get_driver` method), the driver name defined in the source
-    is checked against the ``name``s of all available drivers to find the target driver.
+    is checked against the ``name``\s of all available drivers to find the target driver.
 
     To see how you can register your custom driver so that it can be used with a Catalog, refer to the `Plugin Tutorial`.
 
@@ -141,11 +141,22 @@ For this simple example, a custom driver works well. In general, it is better to
 
 StoreDriver
 -----------
-For common data access scenarios, it is much simpler to delegate low-level data operations to a :ref:`Store <store>`.
+For common data access scenarios, it is much simpler to delegate low-level data operations to a :ref:`Store <usage/store:Store>`.
 :py:class:`StoreDriver` lets the underlying store to handle :py:meth:`get` and :py:meth:`keys` calls.
 
-For example, :py:class:`MessagepackDriver` can load messagepack-serialized data by using the :py:class:`SquirrelStore`
+For example, :py:class:`MessagepackDriver` can load messagepack-serialized data by using the :ref:`usage/store:SquirrelStore`
 behind the scenes.
+
+.. note::
+
+    If you have a dataset in MessagePack or jsonl format, you can load your data directly by using a StoreDriver and
+    passing a SquirrelStore instance to it.
+
+    .. code-block:: python
+
+        my_driver = StoreDriver(store=SquirrelStore(url="path/to/data", serializer=MessagepackSerializer()))
+
+
 
 FileDriver
 ----------
@@ -194,7 +205,7 @@ FileDriver
 
 Further reading
 ---------------
-Drivers can be registered as part of a :py:class:`~squirrel.catalog.source.Source` in a :ref:`Catalog <catalog>`.
+Drivers can be registered as part of a :py:class:`~squirrel.catalog.source.Source` in a :ref:`Catalog <usage/catalog:Catalog>`.
 
 `squirrel-datasets <https://squirrel-datasets-core.readthedocs.io/en/latest/>`_ provides drivers to load data from
 various datasets.
