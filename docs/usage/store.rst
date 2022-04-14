@@ -12,10 +12,25 @@ Squirrel store API defines three methods:
 
 * :py:meth:`Store.keys`: Returns all the keys for which the store has a value.
 
-.. note::
+.. admonition:: Store vs Driver
 
-    A Store permits persisting of value via the :py:meth:`set` method whereas a :ref:`Driver <driver>` can only read
+    A Store permits persisting of values via the :py:meth:`set` method whereas a :ref:`Driver <usage/driver:Driver>` can only read
     from a data source and cannot write to it.
+
+    If you only want to load data, you can:
+
+    * Use one of the `Squirrel Datasets <https://squirrel-datasets-core.readthedocs.io/en/latest/>`_ drivers.
+      For this, your dataset must be in a supported format and structure.
+    
+    * Implement a custom driver.
+      By implementing your own driver, you can make use of the Squirrel API in a way that suits you best.
+      Implementing a driver is easy, just have a look at the custom :ref:`usage/driver:IterDriver` and
+      :ref:`usage/driver:MapDriver` implementations.
+
+    If you need to rewrite your data after processing/transforming it, you should use a Store.
+    We recommend using the SquirrelStore, since it comes with performance benefits as well as serialization and
+    sharding support.
+    Keep reading this page to get more information about SquirrelStore.
 
 SquirrelStore
 --------------
