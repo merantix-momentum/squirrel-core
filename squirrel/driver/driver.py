@@ -90,14 +90,18 @@ class MapDriver(IterDriver):
                 items. If not provided, all keys in the store are used.
             shuffle_key_buffer (int): Size of the buffer used to shuffle keys.
             key_hooks (Iterable[Iterable[Union[Callable, Type[Composable], functools.partial]]], optional): Hooks
-                to apply to keys before fetching the items. It is an Iterable any of these objects:
-                    1) subclass of :py:meth:`~squirrel.iterstream.Composable`: in this case, `.compose(hook, **kw)`
-                    will be applied to the stream
-                    2) A Callable:  `.to(hook, **kw)` will be applied to the stream
+                to apply to keys before fetching the items. It is an Iterable of any of these objects:
+
+                    1) A subclass of :py:class:`~squirrel.iterstream.Composable`: in this case, `.compose(hook, **kw)`
+                       will be applied to the stream.
+
+                    2) A Callable: `.to(hook, **kw)` will be applied to the stream.
+
                     3) A partial function: the three attributes `args`, `keywords` and `func` will be retrieved, and
-                    depending on whether `func` is a subclass of :py:meth:`~squirrel.iterstream.Composable` or a
-                    `Callable`, one of the above cases will happen, with the only difference that arguments are passed
-                    too. This is useful for passing arguments.
+                       depending on whether `func` is a subclass of :py:meth:`~squirrel.iterstream.Composable` or a
+                       `Callable`, one of the above cases will happen, with the only difference that arguments are
+                       passed too. This is useful for passing arguments.
+
             max_workers (int, Optional): If larger than 1 or None, :py:meth:`~squirrel.iterstream.Composable.async_map`
                 is called to fetch multiple items simultaneously and `max_workers` refers to the maximum number of
                 workers in the ThreadPoolExecutor used by `async_map`.
