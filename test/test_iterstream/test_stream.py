@@ -4,6 +4,7 @@ import os
 import tempfile
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 
 import dask.distributed
 import mlflow
@@ -17,6 +18,37 @@ from squirrel.iterstream.metrics import MetricsConf
 
 if t.TYPE_CHECKING:
     from squirrel.constants import SampleType
+
+
+def test_iterablesource() -> None:
+    """Test instantiating IterableSource in different ways"""
+
+    def _gen() -> t.Any:
+        """A generator without argument"""
+        for i in range(3):
+            yield i
+
+    def _gen_2(num: int) -> t.Any:
+        """A generator with arguments"""
+        for i in range(num):
+            yield i
+
+    class _Gen:
+        def __init__(self, items: t.List):
+            self.items = items
+
+        def __iter__(self):
+            yield from self.items
+
+    s = [0, 1, 2]
+    it1 = IterableSource(range(3)).collect()
+    it2 = IterableSource(s).collect()
+    it3 = IterableSource(_gen).collect()
+    it4 = IterableSource(_gen()).collect()
+    it5 = IterableSource(partial(_Gen, s)).collect()
+    it6 = IterableSource(partial(_gen_2, 3)).collect()
+    it7 = IterableSource(_Gen(s)).collect()
+    assert s == it1 == it2 == it3 == it4 == it5 == it6 == it7
 
 
 def test_map(samples: t.List[t.Dict]) -> None:

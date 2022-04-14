@@ -27,7 +27,7 @@ __all__ = ["Composable", "AsyncContent"]
 class Composable:
     """A mix-in class that provides stream manipulation functionalities."""
 
-    def __init__(self, source: t.Optional[t.Iterable] = None):
+    def __init__(self, source: t.Optional[t.Union[t.Iterable, t.Callable]] = None):
         """Init"""
         self.source = source
 

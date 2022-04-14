@@ -5,7 +5,6 @@ import typing as t
 from squirrel.driver.store_driver import StoreDriver
 from squirrel.iterstream import Composable
 from squirrel.serialization import JsonSerializer
-from squirrel.store import SquirrelStore
 
 __all__ = ["JsonlDriver"]
 
@@ -16,7 +15,7 @@ class JsonlDriver(StoreDriver):
     name = "jsonl"
 
     def __init__(self, url: str, deser_hook: t.Optional[t.Callable] = None, **kwargs):
-        """Initializes JsonlDriver with default store and serializer.
+        """Initializes JsonlDriver with default serializer.
 
         Args:
             url (str): Path to the root directory. If this path does not exist, it will be created.
@@ -26,7 +25,7 @@ class JsonlDriver(StoreDriver):
         """
         if "store" in kwargs:
             raise ValueError("Store of JsonlDriver is fixed, `store` cannot be provided.")
-        super().__init__(store=SquirrelStore(url=url, serializer=JsonSerializer(deser_hook=deser_hook)), **kwargs)
+        super().__init__(url=url, serializer=JsonSerializer(deser_hook=deser_hook), **kwargs)
 
     def get_iter(
         self,

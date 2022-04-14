@@ -1,9 +1,20 @@
 import tempfile
 
+import torch.utils.data as tud
+
+from squirrel.constants import URL
 from squirrel.driver import MessagepackDriver
 from squirrel.iterstream import IterableSource
+from squirrel.iterstream.torch_composables import TorchIterable, SplitByWorker
 from squirrel.serialization import MessagepackSerializer
 from squirrel.store import SquirrelStore
+
+
+def test_dataloader_2_workers(local_msgpack_url: URL, num_samples: int) -> None:
+    """Test passing an instance of a `Composable` to `torch.utils.data.DataLoader` with 2 workers"""
+    it = MessagepackDriver(url=local_msgpack_url).get_iter(key_hooks=[SplitByWorker]).compose(TorchIterable)
+    dl = tud.DataLoader(it, num_workers=2)
+    assert len(list(dl)) == num_samples
 
 
 def test_keys(dummy_msgpack_store: SquirrelStore, num_samples: int) -> None:

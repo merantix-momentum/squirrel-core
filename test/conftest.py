@@ -11,6 +11,7 @@ https://pytest.org/en/6.2.x/writing_plugins.html#conftest-py-local-per-directory
 import logging
 import os
 import subprocess
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, List, Tuple
 
@@ -152,3 +153,13 @@ def toggle_wandb() -> None:
     subprocess.run(["wandb", "offline"])
     yield None
     subprocess.run(["wandb", MODE if MODE is not None else "online"])
+
+
+@pytest.fixture
+def local_msgpack_url(num_samples) -> str:
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        store = SquirrelStore(url=tmp_dir, serializer=MessagepackSerializer())
+        IterableSource([{f"_{i}": i} for i in range(num_samples)]).batched(2, drop_last_if_not_full=False).async_map(
+            store.set
+        ).join()
+        yield tmp_dir
