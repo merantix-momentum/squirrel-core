@@ -82,9 +82,11 @@ class MessagepackSerializer(SquirrelSerializer):
         unpacker_kwargs = {} if unpacker_kwargs is None else unpacker_kwargs
         if "use_list" not in unpacker_kwargs:
             unpacker_kwargs["use_list"] = False
+        if "object_hook" not in unpacker_kwargs:
+            unpacker_kwargs["object_hook"] = msgpack_numpy.decode
 
         if fs is None:
             fs = fsspec
 
         with fs.open(fp, **open_kwargs) as f:
-            yield from msgpack.Unpacker(f, object_hook=msgpack_numpy.decode, **unpacker_kwargs)
+            yield from msgpack.Unpacker(f, **unpacker_kwargs)
