@@ -16,3 +16,4 @@ SQUIRREL_PREFIX = ".squirrel_"
 SQUIRREL_DIR = ".squirrel"
 
 SQUIRREL_BUCKET = "gs://squirrel-core-public-data"
+SQUIRREL_TMP_DATA_BUCKET = "gs://squirrel-core-public-data-tmp"
