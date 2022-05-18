@@ -1,6 +1,5 @@
 from tempfile import TemporaryDirectory
 
-import numpy as np
 import pandas as pd
 
 from squirrel.catalog import Catalog, CatalogKey
