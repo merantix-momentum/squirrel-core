@@ -156,7 +156,8 @@ def toggle_wandb() -> None:
 
 
 @pytest.fixture
-def local_msgpack_url(num_samples) -> str:
+def local_msgpack_url(num_samples: int) -> str:
+    """Create a temporary directory, write some dummy data to it and yield it"""
     with tempfile.TemporaryDirectory() as tmp_dir:
         store = SquirrelStore(url=tmp_dir, serializer=MessagepackSerializer())
         IterableSource([{f"_{i}": i} for i in range(num_samples)]).batched(2, drop_last_if_not_full=False).async_map(
