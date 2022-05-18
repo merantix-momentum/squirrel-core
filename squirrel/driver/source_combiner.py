@@ -64,7 +64,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
         """
         if subset is None:
             return IterableSource(
-                more_itertools.interleave_longest(self.get_iter(subset=k, **kwargs) for k in self.subsets)
+                more_itertools.interleave_longest(*[self.get_iter(subset=k, **kwargs) for k in self.subsets])
             )
         return self.get_source(subset).get_driver().get_iter(**kwargs)
 
