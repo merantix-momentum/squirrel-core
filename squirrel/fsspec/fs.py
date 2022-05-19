@@ -25,7 +25,7 @@ def get_fs_from_url(url: URL, **storage_options) -> FILESYSTEM:
     protocol, _ = split_protocol(url)
     _google_pay_project = os.environ.get("GOOGLE_PAY_PROJECT")
     if _google_pay_project is not None:
-        storage_options = {**storage_options, "requester_pay": _google_pay_project}
+        storage_options = {**storage_options, "requester_pays": _google_pay_project}
     return fsspec.filesystem(protocol, **storage_options)
 
 
