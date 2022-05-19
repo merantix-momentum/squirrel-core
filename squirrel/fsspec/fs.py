@@ -1,3 +1,5 @@
+import os
+
 import fsspec
 from fsspec.core import split_protocol
 
@@ -15,8 +17,15 @@ def get_fs_from_url(url: URL, **storage_options) -> FILESYSTEM:
 
     If the protocol "gs" is detected, will return a custom squirrel gcs file system instance which is more robust. For
     details, see :py:class:`squirrel.fsspec.custom_gcsfs.CustomGCSFileSystem`).
+
+    Allow user to access requester pay buckets, if a env var `GOOGLE_PAY_PROJECT` is used. In such case, the user is
+    accessing the bucket, but the data transferring cost will be bear on the project `$GOOGLE_PAY_PROEJCT`. The user
+    must have `resourcemanager.projects.createBillingAssignment` IAM right on this project to create such billings.
     """
     protocol, _ = split_protocol(url)
+    _google_pay_project = os.environ.get("GOOGLE_PAY_PROJECT")
+    if _google_pay_project is not None:
+        storage_options = {**storage_options, "requester_pay": _google_pay_project}
     return fsspec.filesystem(protocol, **storage_options)
 
 
