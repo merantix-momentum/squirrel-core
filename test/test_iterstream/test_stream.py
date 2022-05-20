@@ -75,19 +75,34 @@ def test_filter(samples: t.List[SampleType]) -> None:
     assert len(res) == 0
 
 
-def test_take(samples: t.List[SampleType]) -> None:
+def test_take(samples: t.List[SampleType], num_samples: int) -> None:
     """Test take"""
     # take less than elements in iterator
-    res = IterableSource(samples).take(len(samples) - 1).collect()
-    assert len(res) == len(samples) - 1
+    it = IterableSource(samples).take(len(samples) - 1).collect()
+    assert len(list(it)) == len(samples) - 1
 
     # take more than elements in iterator
-    res = IterableSource(samples).take(len(samples) + 1).collect()
-    assert len(res) == len(samples)
+    it = IterableSource(samples).take(len(samples) + 1).collect()
+    assert len(list(it)) == len(samples) + 1
 
     # take all elements in iterator
-    res = IterableSource(samples).take(len(samples)).collect()
-    assert len(res) == len(samples)
+    it = IterableSource(samples).take(len(samples)).collect()
+    assert len(list(it)) == len(samples)
+
+    # n == 0
+    it = IterableSource(samples).take(0).collect()
+    assert len(list(it)) == 0
+
+    # ensure that empty iterable works as expected
+    it = IterableSource([]).take(2).collect()
+    assert len(list(it)) == 0
+
+
+@pytest.mark.parametrize("n", [0, 2, 4, 8, 10])
+def test_loop(samples: t.List[SampleType], n: int) -> None:
+    """Test loop"""
+    it = IterableSource(samples).loop(n).collect()
+    assert len(list(it)) == n * len(samples)
 
 
 def test_take_side_effect() -> None:
@@ -96,11 +111,6 @@ def test_take_side_effect() -> None:
     it = iter(lst)
     assert list(take_(it, 2)) == [1, 2]
     assert list(take_(it, 2)) == [3, 4]
-
-
-def test_take_less_elements() -> None:
-    """Check that trying to take more elements than possible does not lead to errors."""
-    assert list(take_([1, 2, 3], 10)) == [1, 2, 3]
 
 
 def test_batched(samples: t.List[SampleType]) -> None:

@@ -1,3 +1,4 @@
+import itertools
 import os
 import pickle
 import random
@@ -72,18 +73,11 @@ def shuffle_(
         yield _pick(buf, rng)
 
 
-def take_(iterable: t.Iterable, n: int) -> t.Iterator:
-    """Yield the first n elements from the iterable.
-
-    Args:
-        iterable (Iterable): Iterable to take from.
-        n (int): Number of samples to take.
-
-    Yields:
-        Any: First `n` elements of `iterable`. Less elements can be yielded if the iterable does not have enough
-        elements.
-    """
-    yield from islice(iterable, 0, n, 1)
+def loop_(iterable: t.Iterable, n: int) -> t.Iterator:
+    """Loop over the iterable n times"""
+    iterable = itertools.tee(iterable, n)
+    for iter_ in iterable:
+        yield from iter_
 
 
 def batched_(

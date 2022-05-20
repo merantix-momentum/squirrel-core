@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import queue
 import typing as t
 from abc import abstractmethod
@@ -16,8 +17,8 @@ from squirrel.iterstream.iterators import (
     map_,
     monitor_,
     shuffle_,
-    take_,
     tqdm_,
+    loop_,
 )
 from squirrel.iterstream.metrics import MetricsConf
 
@@ -73,11 +74,19 @@ class Composable:
         """Applies the `callback` to each item in the stream"""
         return self.to(map_, callback)
 
-    def take(self, n: t.Optional[int]) -> Composable:
-        """Take n samples from iterable"""
-        if n is None:
-            return self
-        return self.to(take_, n)
+    def take(self, n: int) -> Composable:
+        """Yield the first n elements from the iterable. Less elements can be yielded if the iterable does not have
+        enough elements. If n is bigger than the number of items in the iterable, this method will loop until
+        *exactly* n items are yielded.
+
+        Args:
+            n (int): Number of samples to take.
+        """
+        return _FixedLengthIterable(self.source, n)
+
+    def loop(self, n: int) -> Composable:
+        """Repeat the iterable n times"""
+        return self.to(loop_, n)
 
     def filter(self, predicate: t.Callable) -> _Iterable:
         """Filters items by `predicate` callable"""
@@ -240,6 +249,31 @@ class _Iterable(Composable):
         assert self.source is not None, f"must set source before calling iter {self.f} {self.args} {self.kw}"
         assert callable(self.f), self.f
         return self.f(iter(self.source), *self.args, **self.kw)
+
+
+class _FixedLengthIterable(Composable):
+    def __init__(self, source, n):
+        """Init"""
+        super(_FixedLengthIterable, self).__init__(source=source)
+        self.n = n
+        self._started = False
+        self.idx = 0
+
+    def __iter__(self):
+        """Iterate over the iterable until *exactly* n elements are yielded"""
+        current_, next_ = itertools.tee(self.source, 2)
+        while self.idx < self.n:
+            try:
+                yield next(current_)
+                # self._started ensures that input iterable is not empty. If so we return in the except block
+                # Without this it would not be possible if `yield next(current)` raises because the end of a non-empty
+                # iterable has been reached, or the input iterable is empty.
+                self._started = True
+                self.idx += 1
+            except StopIteration:
+                if not self._started:
+                    return
+                current_, next_ = itertools.tee(next_, 2)
 
 
 class _AsyncMap(Composable):
