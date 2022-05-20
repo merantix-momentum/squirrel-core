@@ -252,7 +252,7 @@ class _Iterable(Composable):
 
 
 class _FixedLengthIterable(Composable):
-    def __init__(self, source, n):
+    def __init__(self, source: t.Iterable, n: int):
         """Init"""
         super(_FixedLengthIterable, self).__init__(source=source)
         self.n = n
