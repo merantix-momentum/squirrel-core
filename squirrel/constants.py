@@ -16,5 +16,4 @@ SQUIRREL_PREFIX = ".squirrel_"
 SQUIRREL_DIR = ".squirrel"
 
 SQUIRREL_BUCKET = "gs://squirrel-core-public-data"
-SQUIRREL_TMP_DATA_BUCKET = "gs://squirrel-core-public-data-tmp-test"
-# TODO tmp requester pay bucket to test this PR, reverse to 'gs://squirrel-core-public-data-tmp' after testing.
+SQUIRREL_TMP_DATA_BUCKET = "gs://squirrel-core-public-data-tmp"
