@@ -1,6 +1,3 @@
-from __future__ import annotations
-import os
-
 import fsspec
 from fsspec.core import split_protocol
 
@@ -19,13 +16,7 @@ def get_fs_from_url(url: URL, **storage_options) -> FILESYSTEM:
     If the protocol "gs" is detected, will return a custom squirrel gcs file system instance which is more robust. For
     details, see :py:class:`squirrel.fsspec.custom_gcsfs.CustomGCSFileSystem`).
 
-    Allow users to access requester pay buckets, if a env var `REQUESTER_PAYS` is True. In such case, the user will
-    inform gcloud to pay with its project it is currently in. To switch project, please use
-    `gcloud config set project PROJECT_ID`. We do not support specifying another project other than your default
-    project, this will cause a side effect, that we have to give cloud build service account too much IAM rights
-    for testing to happen in cloudbuilds. For details, read below about IAM rights for requester pays.
-
-    Users must have one of these IAM right in the respective projects to be able to access the requester pay bucket:
+    Users must have one of these IAM right in the respective projects to be able to access a requester pay bucket:
     (Copied from https://issuetracker.google.com/issues/156960628.)
 
     Requesters who include a billing project in their request. The project used in the request must be in good standing,
@@ -35,20 +26,14 @@ def get_fs_from_url(url: URL, **storage_options) -> FILESYSTEM:
     Requesters who don't include a billing project but have resourcemanager.projects.createBillingAssignment permission
     for the project that contains the bucket. The Billing Project Manager role contains the required permission.
     Access charges associated with these requests are billed to the project that contains the bucket.
+
+    If you have encountered `ValueError: Bucket is requester pays. Set `requester_pays=True` when creating the
+    GCSFileSystem.` I suggest you instead of passing `requester_pays=True` to `storage_options` in fsspec, simply
+    switch to the right project by `gcloud config set project PROJECT_ID` where you have the right role(s). The problem
+    should be resolved by itself.
     """
     protocol, _ = split_protocol(url)
-    requester_pays = eval(os.environ.get("REQUESTER_PAYS").capitalize())
-    validate_requester_pay(requester_pays)
-    if requester_pays is True:  # filter other wield strings
-        storage_options = {**storage_options, "requester_pays": requester_pays}
     return fsspec.filesystem(protocol, **storage_options)
-
-
-def validate_requester_pay(requester_pays: bool) -> None:
-    """Valide the requester pay env var, make sure there is no weird strings."""
-    assert isinstance(requester_pays, bool), ValueError(
-        "Environment variable 'REQUESTER_PAYS' only accepts value 'true', 'false', 'True' or 'False' in string."
-    )
 
 
 def get_protocol(url: str) -> str:
