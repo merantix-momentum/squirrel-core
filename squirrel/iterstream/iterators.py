@@ -80,6 +80,20 @@ def loop_(iterable: t.Iterable, n: int) -> t.Iterator:
         yield from iter_
 
 
+def take_(iterable: t.Iterable, n: int) -> t.Iterator:
+    """Yield the first n elements from the iterable.
+
+    Args:
+        iterable (Iterable): Iterable to take from.
+        n (int): Number of samples to take.
+
+    Yields:
+        Any: First `n` elements of `iterable`. Less elements can be yielded if the iterable does not have enough
+            elements.
+    """
+    yield from islice(iterable, 0, n, 1)
+
+
 def batched_(
     iterable: t.Iterable,
     batchsize: int = 20,

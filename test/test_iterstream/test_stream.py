@@ -75,26 +75,41 @@ def test_filter(samples: t.List[SampleType]) -> None:
     assert len(res) == 0
 
 
-def test_take(samples: t.List[SampleType], num_samples: int) -> None:
+def test_take(samples: t.List[SampleType]) -> None:
     """Test take"""
     # take less than elements in iterator
-    it = IterableSource(samples).take(len(samples) - 1).collect()
+    res = IterableSource(samples).take(len(samples) - 1).collect()
+    assert len(res) == len(samples) - 1
+
+    # take more than elements in iterator
+    res = IterableSource(samples).take(len(samples) + 1).collect()
+    assert len(res) == len(samples)
+
+    # take all elements in iterator
+    res = IterableSource(samples).take(len(samples)).collect()
+    assert len(res) == len(samples)
+
+
+def test_take_exact(samples: t.List[SampleType], num_samples: int) -> None:
+    """Test take_exact"""
+    # take less than elements in iterator
+    it = IterableSource(samples).take_exact(len(samples) - 1).collect()
     assert len(list(it)) == len(samples) - 1
 
     # take more than elements in iterator
-    it = IterableSource(samples).take(len(samples) + 1).collect()
+    it = IterableSource(samples).take_exact(len(samples) + 1).collect()
     assert len(list(it)) == len(samples) + 1
 
     # take all elements in iterator
-    it = IterableSource(samples).take(len(samples)).collect()
+    it = IterableSource(samples).take_exact(len(samples)).collect()
     assert len(list(it)) == len(samples)
 
-    # n == 0
-    it = IterableSource(samples).take(0).collect()
+    # take 0 elements
+    it = IterableSource(samples).take_exact(0).collect()
     assert len(list(it)) == 0
 
     # ensure that empty iterable works as expected
-    it = IterableSource([]).take(2).collect()
+    it = IterableSource([]).take_exact(2).collect()
     assert len(list(it)) == 0
 
 

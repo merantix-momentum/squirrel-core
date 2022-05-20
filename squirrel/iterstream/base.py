@@ -19,6 +19,7 @@ from squirrel.iterstream.iterators import (
     shuffle_,
     tqdm_,
     loop_,
+    take_,
 )
 from squirrel.iterstream.metrics import MetricsConf
 
@@ -74,7 +75,13 @@ class Composable:
         """Applies the `callback` to each item in the stream"""
         return self.to(map_, callback)
 
-    def take(self, n: int) -> Composable:
+    def take(self, n: t.Optional[int]) -> Composable:
+        """Take n samples from iterable"""
+        if n is None:
+            return self
+        return self.to(take_, n)
+
+    def take_exact(self, n: int) -> Composable:
         """Yield the first n elements from the iterable. Less elements can be yielded if the iterable does not have
         enough elements. If n is bigger than the number of items in the iterable, this method will loop until
         *exactly* n items are yielded.
@@ -266,8 +273,8 @@ class _FixedLengthIterable(Composable):
             try:
                 yield next(current_)
                 # self._started ensures that input iterable is not empty. If so we return in the except block
-                # Without this it would not be possible if `yield next(current)` raises because the end of a non-empty
-                # iterable has been reached, or the input iterable is empty.
+                # Without this it would not be possible to know if `yield next(current)` raises because the end of
+                # a non-empty iterable has been reached, or the input iterable is empty.
                 self._started = True
                 self.idx += 1
             except StopIteration:
