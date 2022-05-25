@@ -201,7 +201,7 @@ class Catalog(MutableMapping):
         cat = Catalog()
         for file in paths:
             fs = get_fs_from_url(file)
-            with fs.open(file) as fh:
+            with fs.open(file, mode="rb") as fh:
                 new_cat = Catalog.from_str(fh.read())
                 cat = cat.join(new_cat)
         return cat
@@ -220,7 +220,7 @@ class Catalog(MutableMapping):
 
         yaml = prep_yaml()
         fs = get_fs_from_url(path)
-        with fs.open(path, mode="w+") as fh:
+        with fs.open(path, mode="wb") as fh:
             ser = catalog2yamlcatalog(self)
             yaml.dump(ser, fh)
 
