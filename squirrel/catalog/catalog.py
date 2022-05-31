@@ -19,6 +19,8 @@ from typing import (
     Union,
 )
 
+import fsspec
+
 from squirrel.catalog.source import Source
 from squirrel.fsspec.fs import get_fs_from_url
 
@@ -200,8 +202,7 @@ class Catalog(MutableMapping):
         """Create a Catalog based on a list of paths to yaml files."""
         cat = Catalog()
         for file in paths:
-            fs = get_fs_from_url(file)
-            with fs.open(file) as fh:
+            with fsspec.open(file, mode="r") as fh:
                 new_cat = Catalog.from_str(fh.read())
                 cat = cat.join(new_cat)
         return cat
@@ -219,8 +220,7 @@ class Catalog(MutableMapping):
         from squirrel.catalog.yaml import catalog2yamlcatalog, prep_yaml
 
         yaml = prep_yaml()
-        fs = get_fs_from_url(path)
-        with fs.open(path, mode="w+") as fh:
+        with fsspec.open(path, mode="w") as fh:
             ser = catalog2yamlcatalog(self)
             yaml.dump(ser, fh)
 

@@ -1,3 +1,4 @@
+import fsspec
 import pytest
 
 from squirrel.catalog import Catalog, Source
@@ -93,12 +94,12 @@ def test_catalog_setapi() -> None:
 
     cat3 = cat1.filter(lambda x: x.version == 1)
     assert len(cat3) == 3
-    assert all([s.version == 1 for _, s in cat3.items()])
+    assert all(s.version == 1 for _, s in cat3.items())
 
 
-def test_catalog_saveandload(tmp_path: URL) -> None:
+def test_catalog_saveandload(test_path: URL) -> None:
     """Test Saving a catalog"""
-    fp = f"{tmp_path}/example.yaml"
+    fp = f"{test_path}/example.yaml"
 
     cat1 = Catalog()
     cat1["s"] = Source("csv", driver_kwargs={"path": "./test.csv"})
@@ -118,12 +119,12 @@ def test_catalog_loadyaml(tmp_yaml_1: URL) -> None:
 
 
 @pytest.fixture
-def tmp_yaml_1(tmp_path: URL) -> URL:
+def tmp_yaml_1(test_path: URL) -> URL:
     """Create a tmp yaml file under the path `f_path`. No need to teardown, cuz pytest will tear the entire tmp_path
     for you.
     """
-    csv_path = f"{tmp_path}/test.csv"
-    f_path = f"{tmp_path}/example.yaml"
+    csv_path = f"{test_path}/test.csv"
+    f_path = f"{test_path}/example.yaml"
     content = f"""
     !YamlCatalog
     version: 0.4.0
@@ -134,12 +135,12 @@ def tmp_yaml_1(tmp_path: URL) -> URL:
       driver_kwargs:
         path: {csv_path}
     """
-    with open(f_path, "w") as f:
+    with fsspec.open(f_path, "w") as f:
         f.write(content)
 
     # write source dummies for test catalog
     content = "a,b,c\n1,2,3"
-    with open(csv_path, "w") as f:
+    with fsspec.open(csv_path, "w") as f:
         f.write(content)
 
     return f_path
