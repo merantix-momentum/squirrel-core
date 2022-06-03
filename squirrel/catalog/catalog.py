@@ -233,7 +233,7 @@ class Catalog(MutableMapping):
         """Create a Catalog based on a list of paths to yaml files."""
         cat = Catalog()
         for file in paths:
-            with fsspec.open(file) as fh:
+            with fsspec.open(file, mode="r") as fh:
                 new_cat = Catalog.from_str(fh.read())
                 cat = cat.join(new_cat)
         return cat
@@ -247,7 +247,7 @@ class Catalog(MutableMapping):
     def to_file(self, path: str) -> None:
         """Save a Catalog to a yaml file at the specified path."""
         yaml = prep_yaml()
-        with fsspec.open(path, mode="w+") as fh:
+        with fsspec.open(path, mode="w") as fh:
             ser = catalog2yamlcatalog(self)
             yaml.dump(ser, fh)
 
