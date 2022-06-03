@@ -2,6 +2,7 @@ import fsspec
 import pytest
 
 from squirrel.catalog import Catalog, Source
+from squirrel.catalog.catalog import CatalogKey
 from squirrel.constants import URL
 from squirrel.driver import Driver
 from squirrel.framework.plugins.plugin_manager import register_driver, register_source
@@ -22,16 +23,25 @@ def test_catalog_createsimple() -> None:
 
 
 def test_catalog_versioning() -> None:
-    """Test versioning source in a Catalog"""
+    """Test versioning a source in a Catalog using all allowed identifier types."""
     cat = Catalog()
     cat["s"] = Source("csv", driver_kwargs={"path": "./test1.csv"})
     cat["s"][cat["s"].version + 1] = Source("csv", driver_kwargs={"path": "./test2.csv"})
+    cat["s", cat["s"].version + 1] = Source("csv", driver_kwargs={"path": "./test3.csv"})
+    key = CatalogKey("s", cat["s"].version + 1)
+    cat[key] = Source("csv", driver_kwargs={"path": "./test4.csv"})
 
     assert cat["s"][-1] == cat["s"]
-    assert len(cat["s"].versions) == 2
+    assert cat["s", -1] == cat["s"]
+    assert cat[key] == cat["s"]
+    assert len(cat["s"].versions) == 4
     assert cat["s"][1] != cat["s"][2]
 
     del cat["s"][1]
+    assert len(cat["s"].versions) == 3
+    del cat["s", 2]
+    assert len(cat["s"].versions) == 2
+    del cat[key]
     assert len(cat["s"].versions) == 1
 
     del cat["s"]
