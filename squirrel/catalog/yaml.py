@@ -34,25 +34,23 @@ class YamlCatalog:
 
 
 def catalog2yamlcatalog(catobj: Catalog) -> YamlCatalog:
-    """Convert a Catalog into a serializable catalog DTO"""
-    sources = []
-    # flatten version graph
-    for k, s in catobj.sources.items():
-        for sv in s.versions.values():
-            sources.append(
-                YamlSource(
-                    identifier=k,
-                    driver_name=sv.driver_name,
-                    driver_kwargs=sv.driver_kwargs,
-                    version=sv.version,
-                    metadata=sv.metadata,
-                )
-            )
+    """Convert a Catalog into a serializable catalog DTO."""
+    sources = [
+        YamlSource(
+            identifier=iden,
+            driver_name=source.driver_name,
+            driver_kwargs=source.driver_kwargs,
+            version=source.version,
+            metadata=source.metadata,
+        )
+        for iden in catobj.keys()
+        for _ver, source in catobj.get_versions(iden).items()
+    ]
     return YamlCatalog(sources=sources)
 
 
 def yamlcatalog2catalog(yamlcat: YamlCatalog) -> Catalog:
-    """Convert a serializable catalog DTO into a Catalog"""
+    """Convert a serializable catalog DTO into a Catalog."""
     yamlcat = YamlCatalog(**yamlcat.__dict__)  # recreate to set default values
 
     # check version
@@ -63,7 +61,7 @@ def yamlcatalog2catalog(yamlcat: YamlCatalog) -> Catalog:
     for s in yamlcat.sources:
         s_cp = YamlSource(**s.__dict__)  # recreate to set default values
         # flat list to version graph
-        cat[s_cp.identifier][s_cp.version] = Source(
+        cat[s_cp.identifier, s_cp.version] = Source(
             driver_name=s_cp.driver_name,
             driver_kwargs=dict(**s_cp.driver_kwargs),
             metadata=dict(**s_cp.metadata),

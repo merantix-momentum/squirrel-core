@@ -21,7 +21,6 @@ from typing import (
 import fsspec
 
 from squirrel.catalog.source import Source
-from squirrel.catalog.yaml import catalog2yamlcatalog, prep_yaml, yamlcatalog2catalog
 from squirrel.fsspec.fs import get_fs_from_url
 
 if TYPE_CHECKING:
@@ -241,11 +240,15 @@ class Catalog(MutableMapping):
     @staticmethod
     def from_str(cat: str) -> Catalog:
         """Create a Catalog based on a yaml string."""
+        from squirrel.catalog.yaml import prep_yaml, yamlcatalog2catalog
+
         yaml = prep_yaml()
         return yamlcatalog2catalog(yaml.load(cat))
 
     def to_file(self, path: str) -> None:
         """Save a Catalog to a yaml file at the specified path."""
+        from squirrel.catalog.yaml import catalog2yamlcatalog, prep_yaml
+
         yaml = prep_yaml()
         with fsspec.open(path, mode="w") as fh:
             ser = catalog2yamlcatalog(self)
