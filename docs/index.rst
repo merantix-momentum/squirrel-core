@@ -2,6 +2,13 @@
 
 Welcome to Squirrel´s documentation!
 ====================================
+.. toctree::
+   :maxdepth: 1
+   :caption: Getting Started:
+
+   getting_started/installation
+   getting_started/introduction
+   getting_started/quickstart
 
 
 .. toctree::
