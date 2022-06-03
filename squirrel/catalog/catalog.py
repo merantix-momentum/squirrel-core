@@ -2,18 +2,17 @@ from __future__ import annotations
 
 import io
 import json
+from dataclasses import field
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
     Dict,
-    Iterable,
     Iterator,
     KeysView,
     List,
     MutableMapping,
     NamedTuple,
-    Optional,
     Tuple,
     Type,
     Union,
@@ -22,6 +21,7 @@ from typing import (
 import fsspec
 
 from squirrel.catalog.source import Source
+from squirrel.catalog.yaml import catalog2yamlcatalog, prep_yaml, yamlcatalog2catalog
 from squirrel.fsspec.fs import get_fs_from_url
 
 if TYPE_CHECKING:
@@ -52,10 +52,11 @@ class CatalogKey(NamedTuple):
 class Catalog(MutableMapping):
     def __init__(self) -> None:
         """Init a Catalog object."""
-        self._sources: Dict[str, CatalogSource] = {}
+        # stores {identifier: {version: source_obj}}
+        self._sources: Dict[str, Dict[int, CatalogSource]] = {}
 
     def __repr__(self) -> str:  # noqa D105
-        return str(set(self.sources.keys()))
+        return str({iden: v for iden, vers in self._sources.items() for v in vers})
 
     def __eq__(self, other: Any) -> bool:  # noqa D105
         if not isinstance(other, Catalog):
@@ -65,19 +66,18 @@ class Catalog(MutableMapping):
             return False
 
         # deep equal
-        for k in self.keys():
-            for v in self[k].versions.keys():
-                if self[k][v] != other[k][v]:
-                    return False
-
-        return True
+        return all(
+            self[src_id, version] == other[src_id, version]
+            for src_id in self._sources
+            for version in self.get_versions(src_id)
+        )
 
     def __contains__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> bool:  # noqa D105
         if isinstance(identifier, str):
             return identifier in self._sources
 
         identifier, version = identifier
-        return identifier in self._sources and version in self._sources[identifier]
+        return identifier in self and version in self.get_versions(identifier)
 
     def __delitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> None:  # noqa D105
         if isinstance(identifier, str):
@@ -91,16 +91,18 @@ class Catalog(MutableMapping):
 
     def __setitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]], value: Source) -> None:  # noqa D105
         if isinstance(identifier, str):
-            version = 1 if identifier not in self else self._sources[identifier][-1].version + 1
+            version = 1 if identifier not in self else self._handle_negative_index(identifier, -1) + 1
         else:
             identifier, version = identifier
+            assert version > 0
+        versions = self._sources.setdefault(identifier, {})
+        versions[version] = CatalogSource.from_source(
+            source=value, identifier=identifier, catalog=self, version=version
+        )
 
-        if identifier not in self:
-            self._sources[identifier] = CatalogSource(
-                source=value, identifier=identifier, catalog=self, version=version
-            )
-        else:
-            self._sources[identifier][version] = value
+    def _handle_negative_index(self, identifier: str, index: int) -> int:
+        """Handles negative indices so that -nth version corresponds to n-th-to-last version."""
+        return sorted(self._sources[identifier].keys())[index] if index < 0 else index
 
     def __getitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> CatalogSource:  # noqa D105
         if isinstance(identifier, str):
@@ -108,33 +110,29 @@ class Catalog(MutableMapping):
             version = -1
         else:
             identifier, version = identifier
+        version = self._handle_negative_index(identifier, version)
+        return self._sources[identifier][version]
 
-        if identifier not in self:
-            if isinstance(identifier, str):
-                # return a dummy object to let the user set a version directly
-                return DummyCatalogSource(identifier, self)
-            else:
-                # DummyCatalogSource only allows setting the version after initialization, cannot set it at this point
-                raise KeyError
-
-        return self.sources[identifier][version]
-
-    def items(self) -> Iterator[Tuple[str, Source]]:  # noqa D105
+    def items(self) -> Iterator[Tuple[str, CatalogSource]]:  # noqa D105
         return self.__iter__()
 
-    def __iter__(self) -> Iterator[Tuple[str, Source]]:  # noqa D105
-        for k, v in self.sources.items():
-            yield k, v[-1]
+    def __iter__(self) -> Iterator[Tuple[str, CatalogSource]]:
+        """Only iterates through the latest versions of sources."""
+        return ((iden, self[iden]) for iden in self._sources)
 
     def keys(self) -> KeysView[str]:  # noqa D105
         return self.sources.keys()
 
-    def __len__(self) -> int:  # noqa D105
-        return len(self.keys())
+    def __len__(self) -> int:
+        """
+        Return the number of source identifiers in the catalog, which can be different than the total number of sources
+        if some sources have multiple versions.
+        """
+        return len(self._sources)
 
     def copy(self) -> Catalog:
-        """Return a deep copy of catalog"""
-        # To be 100% save, serialize to string and back
+        """Return a deep copy of catalog."""
+        # To be 100% safe, serialize to string and back
         from squirrel.catalog.yaml import catalog2yamlcatalog, prep_yaml, yamlcatalog2catalog
 
         yaml = prep_yaml()
@@ -147,12 +145,12 @@ class Catalog(MutableMapping):
         return ret
 
     def slice(self, keys: List[str]) -> Catalog:
-        """Return a deep copy of catalog were only by key specified sources get copied."""
+        """Return a deep copy of catalog that only includes sources with the specified keys."""
         cat_cp = self.copy()
         cat = Catalog()
         for k in keys:
-            for v in cat_cp[k].versions:
-                cat[k][v] = cat_cp[k][v]
+            for version, source in cat_cp.get_versions(k).items():
+                cat[k, version] = source
         return cat
 
     def join(self, other: Catalog) -> Catalog:
@@ -167,44 +165,44 @@ class Catalog(MutableMapping):
 
         new_cat = Catalog()
         for a_cat1, a_cat_2 in [(cat1, cat2), (cat2, cat1)]:
-            for k in a_cat1.keys():
-                for ver_id, version in a_cat1[k].versions.items():
-                    if k not in a_cat_2 or ver_id not in a_cat_2[k]:
-                        new_cat[k][ver_id] = version
+            for iden in a_cat1.keys():
+                for ver, source in a_cat1.get_versions(iden).items():
+                    if iden not in a_cat_2 or ver not in a_cat_2.sources[iden]:
+                        new_cat[iden, ver] = source
         return new_cat
 
     def union(self, other: Catalog) -> Catalog:
-        """Return a Catalog which consists of the union of the input Catalogs."""
+        """Return a catalog with combined sources. If there is an intersection, sources from `other` will be kept."""
         cat = self.copy()
-        oth_cp = other.copy()
+        oth_cat = other.copy()
 
-        for k in oth_cp.keys():
-            for ver_id, version in oth_cp[k].versions.items():
-                cat[k][ver_id] = version
+        for iden in oth_cat.keys():
+            for ver, source in oth_cat.get_versions(iden).items():
+                cat[iden, ver] = source
         return cat
 
     def intersection(self, other: Catalog) -> Catalog:
         """Return a Catalog which consists of the intersection of the input Catalogs."""
-        cat1 = self.copy()
-        cat2 = other.copy()
+        cat = self.copy()
+        oth_cat = other.copy()
 
         new_cat = Catalog()
-        for k in cat1.keys():
-            for ver_id, version in cat1[k].versions.items():
-                if k in cat2 and ver_id in cat2[k].versions:
-                    assert cat1[k][ver_id] == cat2[k][ver_id]
-                    new_cat[k][ver_id] = version
+        for iden in cat.keys():
+            for ver, source in cat.get_versions(iden).items():
+                if (key := (iden, ver)) in oth_cat:
+                    assert cat[key] == oth_cat[key]
+                    new_cat[key] = source
         return new_cat
 
     def filter(self: Catalog, predicate: Callable[[CatalogSource], bool]) -> Catalog:
         """Filter catalog sources based on a predicate."""
-        cat1 = self.copy()
+        cat = self.copy()
 
         new_cat = Catalog()
-        for k in cat1.keys():
-            for ver_id, version in cat1[k].versions.items():
-                if predicate(version):
-                    new_cat[k][ver_id] = version
+        for iden in cat.keys():
+            for ver, source in cat.get_versions(iden).items():
+                if predicate(source):
+                    new_cat[iden, ver] = source
         return new_cat
 
     @staticmethod
@@ -213,10 +211,10 @@ class Catalog(MutableMapping):
         from squirrel.framework.plugins.plugin_manager import squirrel_plugin_manager
 
         ret = Catalog()
-        plugins = squirrel_plugin_manager.hook.squirrel_sources()
+        plugins: List[List[Tuple[CatalogKey, Source]]] = squirrel_plugin_manager.hook.squirrel_sources()
         for plugin in plugins:
             for s_key, source in plugin:
-                ret[s_key.identifier][s_key.version] = source
+                ret[s_key.identifier, s_key.version] = source
 
         return ret
 
@@ -235,7 +233,7 @@ class Catalog(MutableMapping):
         """Create a Catalog based on a list of paths to yaml files."""
         cat = Catalog()
         for file in paths:
-            with fsspec.open(file, mode="r") as fh:
+            with fsspec.open(file) as fh:
                 new_cat = Catalog.from_str(fh.read())
                 cat = cat.join(new_cat)
         return cat
@@ -243,109 +241,83 @@ class Catalog(MutableMapping):
     @staticmethod
     def from_str(cat: str) -> Catalog:
         """Create a Catalog based on a yaml string."""
-        from squirrel.catalog.yaml import prep_yaml, yamlcatalog2catalog
-
         yaml = prep_yaml()
         return yamlcatalog2catalog(yaml.load(cat))
 
     def to_file(self, path: str) -> None:
         """Save a Catalog to a yaml file at the specified path."""
-        from squirrel.catalog.yaml import catalog2yamlcatalog, prep_yaml
-
         yaml = prep_yaml()
-        with fsspec.open(path, mode="w") as fh:
+        with fsspec.open(path, mode="w+") as fh:
             ser = catalog2yamlcatalog(self)
             yaml.dump(ser, fh)
 
     @property
-    def sources(self) -> Dict[str, CatalogSource]:
-        """Read only property"""
+    def sources(self) -> Dict[str, Dict[int, CatalogSource]]:
+        """Sources in the catalog."""
         return self._sources
+
+    def get_versions(self, identifier: str) -> Dict[int, CatalogSource]:
+        """Returns versions dictionary given a source identifier."""
+        return self._sources.get(identifier, {})
 
 
 class CatalogSource(Source):
+    """Represents a specific version of a source in a catalog."""
+
+    @classmethod
+    def from_source(cls, source: Source, identifier: str, catalog: Catalog, version: int = 1) -> CatalogSource:
+        return CatalogSource(
+            identifier=identifier,
+            catalog=catalog,
+            driver_name=source.driver_name,
+            version=version,
+            driver_kwargs=source.driver_kwargs,
+            metadata=source.metadata,
+        )
+
     def __init__(
         self,
-        source: Source,
         identifier: str,
         catalog: Catalog,
+        driver_name: str,
         version: int = 1,
-        versions: Optional[Dict[int, CatalogSource]] = None,
+        driver_kwargs: Dict[str, str] = field(default_factory=dict),
+        metadata: Dict[str, str] = field(default_factory=dict),
     ) -> None:
-        """Init a Catalog Source object which is used within a catalog to represent a source in the graph"""
+        """Initialize CatalogSource using a Source."""
+        super().__init__(driver_name, driver_kwargs, metadata)
         self._identifier = identifier
         self._version = version
-        self._versions = {version: self} if versions is None else versions
         self._catalog = catalog
-        super().__init__(driver_name=source.driver_name, driver_kwargs=source.driver_kwargs, metadata=source.metadata)
 
     def __eq__(self, other: Any) -> bool:  # noqa D105
         if not isinstance(other, CatalogSource):
             return False
         if self.identifier != other.identifier:
             return False
-        if self.driver_kwargs != other.driver_kwargs:
-            return False
         if self.version != other.version:
             return False
-        if self.metadata != other.metadata:
-            return False
-        # do not check versions or catalog
-        return True
+        return super().__eq__(other)
 
     def __repr__(self) -> str:  # noqa D105
-        dct = {
-            "identifier": self.identifier,
-            "driver_name": self.driver_name,
-            "driver_kwargs": self.driver_kwargs,
-            "metadata": self.metadata,
-            "version": self.version,
-            "versions": list(self.versions.keys()),
-        }
+        vars = ("identifier", "driver_name", "driver_kwargs", "metadata", "version")
+        dct = {k: getattr(self, k) for k in vars}
         return json.dumps(dct, indent=2, default=str)
-
-    def _handle_latest(self, index: int) -> int:
-        if index == -1:
-            return sorted(self.versions.keys())[-1]
-        return index
-
-    def __delitem__(self, index: int) -> None:  # noqa D105
-        index = self._handle_latest(index)
-        del self._versions[index]
-
-    def __setitem__(self, index: int, value: Source) -> None:  # noqa D105
-        assert index > 0
-        self._versions[index] = CatalogSource(
-            source=value, identifier=self._identifier, catalog=self._catalog, version=index, versions=self.versions
-        )
-
-    def __contains__(self, index: int) -> bool:  # noqa D105
-        return index in self.versions
-
-    def __getitem__(self, index: int) -> CatalogSource:  # noqa D105
-        index = self._handle_latest(index)
-        return self.versions[index]
-
-    def __iter__(self) -> Iterable[CatalogSource]:  # noqa D105
-        return iter(self.versions.values())
-
-    def __len__(self) -> int:  # noqa D105
-        return len(self.versions.keys())
 
     @property
     def identifier(self) -> str:
-        """Read only property"""
+        """Identifier of the source, read-only."""
         return self._identifier
 
     @property
     def version(self) -> int:
-        """Read only property"""
+        """Version of the source, read-only."""
         return self._version
 
     @property
-    def versions(self) -> Dict[int, CatalogSource]:
-        """Read only property"""
-        return self._versions
+    def catalog(self) -> Catalog:
+        """Catalog containing the source, read-only."""
+        return self._catalog
 
     def get_driver(self, **kwargs) -> Driver:
         """Returns an instance of the driver specified by the source."""
@@ -357,29 +329,4 @@ class CatalogSource(Source):
                 if driver_cls.name == self.driver_name:
                     return driver_cls(catalog=self._catalog, **{**self.driver_kwargs, **kwargs})
 
-        raise ValueError(f"driver {self.driver_name} not found")
-
-
-class DummyCatalogSource:
-    def __init__(
-        self,
-        identifier: str,
-        catalog: Catalog,
-    ) -> None:
-        """Init a dummy catalog source to assign versions even if source does not exist yet"""
-        self._identifier = identifier
-        self._catalog = catalog
-
-    def __setitem__(self, index: int, value: Source) -> None:  # noqa D105
-        assert index > 0
-        self._catalog._sources[self.identifier] = CatalogSource(
-            source=value, identifier=self.identifier, catalog=self._catalog, version=index
-        )
-
-    def __contains__(self, index: str) -> bool:  # noqa D105
-        return False
-
-    @property
-    def identifier(self) -> str:
-        """Read only property"""
-        return self._identifier
+        raise ValueError(f"Driver {self.driver_name} not found.")
