@@ -3,7 +3,7 @@
 Welcome to Squirrel´s documentation!
 ====================================
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Getting Started:
 
    getting_started/installation
@@ -12,16 +12,29 @@ Welcome to Squirrel´s documentation!
 
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+   :maxdepth: 2
+   :caption: Basic Usage:
 
-   usage/driver
-   usage/store
-   usage/catalog
-   usage/Iterstream
-   usage/code_of_conduct
-   usage/contribute
-   usage/glossary
+   basic/driver
+   basic/store
+   basic/catalog
+   basic/iterstream
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Advanced:
+
+   advanced/store
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer Guide:
+
+   developer/code_of_conduct
+   developer/contribute
+   developer/glossary
+
+
 
 
 Goal of the project
