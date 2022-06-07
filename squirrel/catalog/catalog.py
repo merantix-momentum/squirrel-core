@@ -103,19 +103,19 @@ class Catalog(MutableMapping):
             self._sources[identifier][version] = value
 
     def __getitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> CatalogSource:  # noqa D105
-        if isinstance(identifier, str):
-            # we return the latest if the version is not specified explicitly
-            version = -1
-        else:
-            identifier, version = identifier
-
         if identifier not in self:
             if isinstance(identifier, str):
                 # return a dummy object to let the user set a version directly
                 return DummyCatalogSource(identifier, self)
             else:
                 # DummyCatalogSource only allows setting the version after initialization, cannot set it at this point
-                raise KeyError(f"The catalog does not have an entry for source {identifier} and version {version}.")
+                raise KeyError(f"The catalog does not have an entry for identifier {identifier}.")
+
+        if isinstance(identifier, str):
+            # we return the latest if the version is not specified explicitly
+            version = -1
+        else:
+            identifier, version = identifier
 
         return self.sources[identifier][version]
 
@@ -320,6 +320,7 @@ class CatalogSource(Source):
         )
 
     def __contains__(self, index: int) -> bool:  # noqa D105
+        index = self._handle_latest(index)
         return index in self.versions
 
     def __getitem__(self, index: int) -> CatalogSource:  # noqa D105
