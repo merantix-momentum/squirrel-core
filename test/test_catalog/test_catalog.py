@@ -72,6 +72,23 @@ def test_catalog_versioning() -> None:
     assert "s" not in cat
 
 
+def test_wrong_identifier_type() -> None:
+    """Test against common wrong identifier types."""
+    cat = Catalog()
+    iden, ver = "s", 2
+    cat[iden, ver] = Source("csv", driver_kwargs={"path": "./test1.csv"})
+    with pytest.raises(TypeError):
+        cat[1337]
+    with pytest.raises(KeyError):
+        cat[1337, ver]
+    with pytest.raises(KeyError):
+        cat[1337, -1]
+    with pytest.raises(KeyError):
+        cat[1337, "-1"]
+    with pytest.raises(KeyError):
+        cat[iden, "-1"]
+
+
 def test_catalog_copy() -> None:
     """Test deep copying  a Catalog"""
     cat = Catalog()
