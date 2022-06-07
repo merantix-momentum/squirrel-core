@@ -2,7 +2,7 @@ import fsspec
 import pytest
 
 from squirrel.catalog import Catalog, Source
-from squirrel.catalog.catalog import CatalogKey
+from squirrel.catalog.catalog import CatalogKey, DummyCatalogSource
 from squirrel.constants import URL
 from squirrel.driver import Driver
 from squirrel.framework.plugins.plugin_manager import register_driver, register_source
@@ -30,13 +30,37 @@ def test_catalog_versioning() -> None:
     cat["s", cat["s"].version + 1] = Source("csv", driver_kwargs={"path": "./test3.csv"})
     key = CatalogKey("s", cat["s"].version + 1)
     cat[key] = Source("csv", driver_kwargs={"path": "./test4.csv"})
+    bad_id = "non-existing"
 
+    # check contains
+    assert "s" in cat
+    for ver in range(1, 5):
+        assert ("s", ver) in cat
+        assert CatalogKey("s", ver) in cat
+    assert bad_id not in cat
+    assert (bad_id, 1) not in cat
+    assert CatalogKey(bad_id, 1) not in cat
+
+    # try to get non-existing source
+    ret = cat[bad_id]
+    assert isinstance(ret, DummyCatalogSource)
+    with pytest.raises(KeyError):
+        cat[bad_id, 1]
+
+    # check getitem
+    assert len(cat["s"].versions) == 4
     assert cat["s"][-1] == cat["s"]
     assert cat["s", -1] == cat["s"]
-    assert cat[key] == cat["s"]
-    assert len(cat["s"].versions) == 4
-    assert cat["s"][1] != cat["s"][2]
+    assert cat[CatalogKey("s", -1)] == cat["s"]
+    for ver in range(1, 5):
+        assert cat["s", ver].driver_kwargs["path"] == f"./test{ver}.csv"
 
+    # check entries distinct
+    assert cat["s"][1] != cat["s"][2]
+    assert cat["s", 1] != cat["s", 2]
+    assert cat[CatalogKey("s", 1)] != cat[CatalogKey("s", 2)]
+
+    # check delete
     del cat["s"][1]
     assert len(cat["s"].versions) == 3
     del cat["s", 2]
