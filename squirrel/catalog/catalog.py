@@ -115,7 +115,7 @@ class Catalog(MutableMapping):
                 return DummyCatalogSource(identifier, self)
             else:
                 # DummyCatalogSource only allows setting the version after initialization, cannot set it at this point
-                raise KeyError
+                raise KeyError(f"The catalog does not have an entry for source {identifier} and version {version}.")
 
         return self.sources[identifier][version]
 
