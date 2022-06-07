@@ -1,4 +1,3 @@
-import itertools
 import os
 import pickle
 import random
@@ -71,13 +70,6 @@ def shuffle_(
             yield _pick(buf, rng)
     while len(buf) > 0:
         yield _pick(buf, rng)
-
-
-def loop_(iterable: t.Iterable, n: int) -> t.Iterator:
-    """Loop over the iterable n times"""
-    iterable = itertools.tee(iterable, n)
-    for iter_ in iterable:
-        yield from iter_
 
 
 def take_(iterable: t.Iterable, n: int) -> t.Iterator:

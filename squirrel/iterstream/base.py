@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import itertools
 import queue
 import typing as t
 from abc import abstractmethod
 from concurrent.futures import Executor, ThreadPoolExecutor
+from copy import deepcopy
 
 from numba import jit
 
@@ -18,7 +18,6 @@ from squirrel.iterstream.iterators import (
     monitor_,
     shuffle_,
     tqdm_,
-    loop_,
     take_,
 )
 from squirrel.iterstream.metrics import MetricsConf
@@ -89,11 +88,11 @@ class Composable:
         Args:
             n (int): Number of samples to take.
         """
-        return _FixedLengthIterable(self.source, n)
+        return _FixedLengthIterable(self, n)
 
     def loop(self, n: int) -> Composable:
         """Repeat the iterable n times"""
-        return self.to(loop_, n)
+        return _LoopIterable(self, n)
 
     def filter(self, predicate: t.Callable) -> _Iterable:
         """Filters items by `predicate` callable"""
@@ -266,9 +265,9 @@ class _FixedLengthIterable(Composable):
         self._started = False
         self.idx = 0
 
-    def __iter__(self):
+    def __iter__(self) -> t.Iterator:
         """Iterate over the iterable until *exactly* n elements are yielded"""
-        current_, next_ = itertools.tee(self.source, 2)
+        current_ = iter(deepcopy(self.source))
         while self.idx < self.n:
             try:
                 yield next(current_)
@@ -280,7 +279,19 @@ class _FixedLengthIterable(Composable):
             except StopIteration:
                 if not self._started:
                     return
-                current_, next_ = itertools.tee(next_, 2)
+                current_ = iter(deepcopy(self.source))
+
+
+class _LoopIterable(Composable):
+    def __init__(self, source: t.Iterable, n: int):
+        """Init"""
+        super(_LoopIterable, self).__init__(source=source)
+        self.n = n
+
+    def __iter__(self) -> t.Iterator:
+        """Iterate over the iterable n times"""
+        for _ in range(self.n):
+            yield from deepcopy(self.source)
 
 
 class _AsyncMap(Composable):
