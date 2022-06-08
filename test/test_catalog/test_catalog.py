@@ -2,6 +2,7 @@ import fsspec
 import pytest
 
 from squirrel.catalog import Catalog, Source
+from squirrel.catalog.catalog import CatalogKey, DummyCatalogSource
 from squirrel.constants import URL
 from squirrel.driver import Driver
 from squirrel.framework.plugins.plugin_manager import register_driver, register_source
@@ -22,20 +23,70 @@ def test_catalog_createsimple() -> None:
 
 
 def test_catalog_versioning() -> None:
-    """Test versioning source in a Catalog"""
+    """Test versioning a source in a Catalog using all allowed identifier types."""
     cat = Catalog()
     cat["s"] = Source("csv", driver_kwargs={"path": "./test1.csv"})
     cat["s"][cat["s"].version + 1] = Source("csv", driver_kwargs={"path": "./test2.csv"})
+    cat["s", cat["s"].version + 1] = Source("csv", driver_kwargs={"path": "./test3.csv"})
+    key = CatalogKey("s", cat["s"].version + 1)
+    cat[key] = Source("csv", driver_kwargs={"path": "./test4.csv"})
+    bad_id = "non-existing"
 
+    # check contains
+    assert "s" in cat
+    for ver in range(1, 5):
+        assert ("s", ver) in cat
+        assert CatalogKey("s", ver) in cat
+    assert bad_id not in cat
+    assert (bad_id, 1) not in cat
+    assert CatalogKey(bad_id, 1) not in cat
+
+    # try to get non-existing source
+    ret = cat[bad_id]
+    assert isinstance(ret, DummyCatalogSource)
+    with pytest.raises(KeyError):
+        cat[bad_id, 1]
+
+    # check getitem
+    assert len(cat["s"].versions) == 4
     assert cat["s"][-1] == cat["s"]
-    assert len(cat["s"].versions) == 2
-    assert cat["s"][1] != cat["s"][2]
+    assert cat["s", -1] == cat["s"]
+    assert cat[CatalogKey("s", -1)] == cat["s"]
+    for ver in range(1, 5):
+        assert cat["s", ver].driver_kwargs["path"] == f"./test{ver}.csv"
 
+    # check entries distinct
+    assert cat["s"][1] != cat["s"][2]
+    assert cat["s", 1] != cat["s", 2]
+    assert cat[CatalogKey("s", 1)] != cat[CatalogKey("s", 2)]
+
+    # check delete
     del cat["s"][1]
+    assert len(cat["s"].versions) == 3
+    del cat["s", 2]
+    assert len(cat["s"].versions) == 2
+    del cat[key]
     assert len(cat["s"].versions) == 1
 
     del cat["s"]
     assert "s" not in cat
+
+
+def test_wrong_identifier_type() -> None:
+    """Test against common wrong identifier types."""
+    cat = Catalog()
+    iden, ver = "s", 2
+    cat[iden, ver] = Source("csv", driver_kwargs={"path": "./test1.csv"})
+    with pytest.raises(TypeError):
+        cat[1337]
+    with pytest.raises(KeyError):
+        cat[1337, ver]
+    with pytest.raises(KeyError):
+        cat[1337, -1]
+    with pytest.raises(KeyError):
+        cat[1337, "-1"]
+    with pytest.raises(KeyError):
+        cat[iden, "-1"]
 
 
 def test_catalog_copy() -> None:
