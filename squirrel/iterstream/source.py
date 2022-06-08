@@ -4,10 +4,10 @@ from concurrent.futures import ThreadPoolExecutor
 
 from squirrel.fsspec.fs import get_fs_from_url, get_protocol
 from squirrel.iterstream.base import AsyncContent, Composable
+from squirrel.iterstream.iterators import get_random_range
+
 
 __all__ = ["IterableSource", "FilePathGenerator", "IterableSamplerSource"]
-
-from squirrel.iterstream.iterators import get_random_range
 
 
 class IterableSource(Composable):
@@ -23,17 +23,21 @@ class IterableSource(Composable):
     For the detailed description of each, please refer to the corresponding docstring in :py:class:`Composable`.
     """
 
-    def __init__(self, source: t.Iterable = ()):
+    def __init__(self, source: t.Optional[t.Union[t.Iterable, t.Callable]] = ()):
         """Initialize IterableSource.
 
         Args:
-            source (Iterable): An Iterable that the IterableSource is built based on.
+            source (Union[Iterable, Callable], Optional): An Iterable that the IterableSource is
+                built based on, or a callable that generates items when called.
         """
         super().__init__(source=source)
 
     def __iter__(self) -> t.Iterator:
         """Iterates over the items in the iterable"""
-        yield from self.source
+        if isinstance(self.source, t.Callable):
+            yield from self.source()
+        else:
+            yield from self.source
 
 
 class FilePathGenerator(IterableSource):

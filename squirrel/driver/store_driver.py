@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Optional
+from typing import TYPE_CHECKING, Any, Iterable
 
 from squirrel.driver.driver import MapDriver
+from squirrel.serialization import SquirrelSerializer
+from squirrel.store import SquirrelStore
 
 if TYPE_CHECKING:
     from squirrel.iterstream import Composable
@@ -17,15 +19,18 @@ class StoreDriver(MapDriver):
 
     name = "store_driver"
 
-    def __init__(self, store: Optional[AbstractStore] = None, **kwargs) -> None:
+    def __init__(self, url: str, serializer: SquirrelSerializer, **kwargs) -> None:
         """Initializes StoreDriver.
 
         Args:
-            store (AbstractStore, optional): Store to be used to access items. Defaults to None.
+            url (str): the url of the store
+            serializer (SquirrelSerializer): serializer to be passed to SquirrelStore
             **kwargs: Keyword arguments to pass to the super class initializer.
         """
         super().__init__(**kwargs)
-        self._store = store
+        self.url = url
+        self.serializer = serializer
+        self._store = None
 
     def get_iter(self, flatten: bool = True, **kwargs) -> Composable:
         """Returns an iterable of items in the form of a :py:class:`squirrel.iterstream.Composable`, which allows
@@ -77,4 +82,6 @@ class StoreDriver(MapDriver):
     @property
     def store(self) -> AbstractStore:
         """Store that is used by the driver."""
+        if self._store is None:
+            self._store = SquirrelStore(url=self.url, serializer=self.serializer)
         return self._store
