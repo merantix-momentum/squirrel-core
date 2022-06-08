@@ -19,7 +19,7 @@ import pytest
 import random_name
 from pytest import FixtureRequest
 
-from squirrel.constants import URL, SQUIRREL_BUCKET
+from squirrel.constants import URL, SQUIRREL_TMP_DATA_BUCKET
 from squirrel.fsspec.fs import get_fs_from_url
 from squirrel.integration_test.helpers import create_torch_mock
 
@@ -48,7 +48,7 @@ def test_gcs_url() -> str:
     random.seed(os.getpid() + time.time())
     # Use random name as the tmp dataset to avoid reading and writing the same dataset from two endpoints,
     # when there are two users run squirrel tests at the same time.
-    tmp_gcs_path = f"{SQUIRREL_BUCKET}/test-data/tmp/{random_name.generate_name()}"
+    tmp_gcs_path = f"{SQUIRREL_TMP_DATA_BUCKET}/test-data/tmp/{random_name.generate_name()}"
     yield tmp_gcs_path
     # teardown
     fs = get_fs_from_url(tmp_gcs_path)

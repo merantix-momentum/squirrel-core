@@ -19,6 +19,8 @@ from typing import (
     Union,
 )
 
+import fsspec
+
 from squirrel.catalog.source import Source
 from squirrel.fsspec.fs import get_fs_from_url
 
@@ -31,7 +33,8 @@ __all__ = ["Catalog", "CatalogKey"]
 
 
 class CatalogKey(NamedTuple):
-    # Defines a key in a catalog consisting of the identifier and the version of a source
+    """Defines a key in a catalog consisting of the identifier and the version of a source."""
+
     identifier: str
     version: int = -1
 
@@ -48,8 +51,8 @@ class CatalogKey(NamedTuple):
 
 class Catalog(MutableMapping):
     def __init__(self) -> None:
-        """Init a Catalog object"""
-        self._sources = dict()
+        """Init a Catalog object."""
+        self._sources: Dict[str, CatalogSource] = {}
 
     def __repr__(self) -> str:  # noqa D105
         return str(set(self.sources.keys()))
@@ -69,22 +72,54 @@ class Catalog(MutableMapping):
 
         return True
 
-    def __contains__(self, identifier: str) -> bool:  # noqa D105
-        return identifier in self._sources.keys()
+    def __contains__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> bool:  # noqa D105
+        if isinstance(identifier, str):
+            return identifier in self._sources
 
-    def __delitem__(self, identifier: Union[str, CatalogKey]) -> None:  # noqa D105
-        del self._sources[identifier]
+        identifier, version = identifier
+        return identifier in self._sources and version in self._sources[identifier]
 
-    def __setitem__(self, identifier: str, value: Source) -> None:  # noqa D105
-        self._sources[identifier] = CatalogSource(source=value, identifier=identifier, catalog=self)
+    def __delitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> None:  # noqa D105
+        if isinstance(identifier, str):
+            # if not given a specific version, we remove all versions of the identifier
+            del self._sources[identifier]
+        else:
+            identifier, version = identifier
+            del self._sources[identifier][version]
+            if len(self._sources[identifier]) == 0:
+                del self._sources[identifier]
 
-    def __getitem__(self, identifier: str) -> CatalogSource:  # noqa D105
+    def __setitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]], value: Source) -> None:  # noqa D105
+        if isinstance(identifier, str):
+            version = 1 if identifier not in self else self._sources[identifier][-1].version + 1
+        else:
+            identifier, version = identifier
+
         if identifier not in self:
-            # return a dummy object to let the user set a version directly
-            return DummyCatalogSource(identifier, self)
-        return self.sources[identifier][-1]
+            self._sources[identifier] = CatalogSource(
+                source=value, identifier=identifier, catalog=self, version=version
+            )
+        else:
+            self._sources[identifier][version] = value
 
-    def items(self) -> Tuple[str, Source]:  # noqa D105
+    def __getitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> CatalogSource:  # noqa D105
+        if identifier not in self:
+            if isinstance(identifier, str):
+                # return a dummy object to let the user set a version directly
+                return DummyCatalogSource(identifier, self)
+            else:
+                # DummyCatalogSource only allows setting the version after initialization, cannot set it at this point
+                raise KeyError(f"The catalog does not have an entry for identifier {identifier}.")
+
+        if isinstance(identifier, str):
+            # we return the latest if the version is not specified explicitly
+            version = -1
+        else:
+            identifier, version = identifier
+
+        return self.sources[identifier][version]
+
+    def items(self) -> Iterator[Tuple[str, Source]]:  # noqa D105
         return self.__iter__()
 
     def __iter__(self) -> Iterator[Tuple[str, Source]]:  # noqa D105
@@ -200,8 +235,7 @@ class Catalog(MutableMapping):
         """Create a Catalog based on a list of paths to yaml files."""
         cat = Catalog()
         for file in paths:
-            fs = get_fs_from_url(file)
-            with fs.open(file) as fh:
+            with fsspec.open(file, mode="r") as fh:
                 new_cat = Catalog.from_str(fh.read())
                 cat = cat.join(new_cat)
         return cat
@@ -219,8 +253,7 @@ class Catalog(MutableMapping):
         from squirrel.catalog.yaml import catalog2yamlcatalog, prep_yaml
 
         yaml = prep_yaml()
-        fs = get_fs_from_url(path)
-        with fs.open(path, mode="w+") as fh:
+        with fsspec.open(path, mode="w") as fh:
             ser = catalog2yamlcatalog(self)
             yaml.dump(ser, fh)
 
@@ -287,6 +320,7 @@ class CatalogSource(Source):
         )
 
     def __contains__(self, index: int) -> bool:  # noqa D105
+        index = self._handle_latest(index)
         return index in self.versions
 
     def __getitem__(self, index: int) -> CatalogSource:  # noqa D105
