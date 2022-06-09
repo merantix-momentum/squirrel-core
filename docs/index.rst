@@ -8,6 +8,7 @@ Welcome to Squirrel´s documentation!
    :maxdepth: 1
    :caption: Contents:
 
+   usage/architecture_overview
    usage/driver
    usage/store
    usage/catalog
