@@ -50,7 +50,7 @@ In the UML diagram below we show how the SquirrelStore connects to its abstract 
 
 Serialization
 --------------
-:py:class:`squirrel.store.SquirrelStore` uses a Serializer to store shards of samples as singular files onto the storage backend (e.g. filesytem, object store, etc.).
+:py:class:`squirrel.store.SquirrelStore` uses a Serializer to store shards of samples as singular files onto the storage backend (e.g. filesystem, object store, etc.).
 Squirrel provides two serializers: :py:class:`MessagepackSerializer` and :py:class:`JsonSerializer`.
 While JSONL might be preferable for interoperability or being human-readable, Messagepack is
 faster to encode and decode and produces smaller files. Messagepack is the recommended format,
