@@ -161,7 +161,7 @@ Here we can see that the concepts of sharding and serialization are not inherent
     # We create the SQLite db and insert key-value pairs into it
     N = 100_000
     with tempfile.TemporaryDirectory() as temp_dir:
-      store = SQLiteStore('temp.db')
+      store = SQLiteStore(f'{temp_dir}/temp.db')
       it = IterableSource(get_key_value() for _ in range(N)).map(lambda x: store.set(*x)).join()
       some_key = next(store.keys()) # retrieve from db using keys
       some_value = store.get(some_key)
