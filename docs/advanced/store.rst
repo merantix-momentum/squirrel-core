@@ -106,7 +106,8 @@ There are several considerations for deciding appropriate shard size:
 
 Custom Stores
 --------------
-:py:class:`AbstractStore` defines an abstraction to provide a key/value api on top of any storage.
+:py:class:`AbstractStore` defines an abstraction to provide a key/value API on top of any storage.
+All stores are expected to obey this API.
 You may optionally use or implement a :py:class:`SquirrelSerializer` if you need to serialize your data before persisting.
 If you have a specific use-case which is not natively supported
 such as reading data via HTTP requests or retrieving from a database, you may need to implement your own Store.
