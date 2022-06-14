@@ -7,7 +7,7 @@ Squirrel is a data catalog library that provides you with an efficient data infr
 
 #. :doc:`driver <../usage/driver>` to learn about data loading functionalities for various formats.
 
-#. :doc:`catalog <../usage/catalog>` to learn more about how to use Squirrel catalog in your project
+#. :doc:`catalog <../usage/catalog>` to learn more about how to use Squirrel catalog in your project.
 
 #. :doc:`stream data with Iterstream <../usage/Iterstream>` to learn about streaming capabilities of squirrel
 
