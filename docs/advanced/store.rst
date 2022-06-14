@@ -53,7 +53,7 @@ Serialization
 :py:class:`squirrel.store.SquirrelStore` uses a Serializer to store shards of samples as singular files onto the storage backend (e.g. filesytem, object store, etc.).
 Squirrel provides two serializers: :py:class:`MessagepackSerializer` and :py:class:`JsonSerializer`.
 While JSONL might be preferable for interoperability or being human-readable, Messagepack is
-faster to encode and decode and produces smaller files. Messegepack is the recommended format,
+faster to encode and decode and produces smaller files. Messagepack is the recommended format,
 unless you have specific constraints or requirements. To demonstrate that Messagepack produces smaller files, we included the code
 snippet below. We see that the files are around ~20% smaller compared to JSONL.
 
