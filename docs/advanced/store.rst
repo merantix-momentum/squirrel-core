@@ -54,7 +54,7 @@ Serialization
 Squirrel provides two serializers: :py:class:`MessagepackSerializer` and :py:class:`JsonSerializer`.
 While JSONL might be preferable for interoperability or being human-readable, Messagepack is
 faster to encode and decode and produces smaller files. Messagepack is the recommended format,
-unless you have specific constraints or requirements. To demonstrate that Messagepack produces smaller files, we included the code
+unless you have specific constraints or requirements. To demonstrate that Messagepack produces smaller files, we include the code
 snippet below. We see that the files are around ~20% smaller compared to JSONL.
 
 .. code-block:: python
