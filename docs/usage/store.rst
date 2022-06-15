@@ -65,7 +65,7 @@ This is the recommended approach, unless low-level control is needed.
     driver = MessagepackDriver(tmpdir.name)
     store = driver.store
 
-Sharding
+Sample and Shard
 --------
 :py:class:`squirrel.store.SquirrelStore` uses a concept called sharding to efficiently store and load data.
 Shards stores a predetermined amount of samples given through the shard size in a fixed order.
