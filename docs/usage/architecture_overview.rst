@@ -39,7 +39,7 @@ a method :py:meth:`get_iter` which returns an object of type :py:class:`Composab
 streaming way for minimal memory footprint.
 
 .. note::
-      To access available datasets using `Catalog.from_plugins()`, checkout `squirrel-dataset-core repository <https://github.com/merantix-momentum/squirrel-datasets-core>`_.
+      To access available datasets using `Catalog.from_plugins()`, check out `squirrel-dataset-core repository <https://github.com/merantix-momentum/squirrel-datasets-core>`_.
 
 The following diagram illustrating (a simplified and slightly idealized) view on the relationships between these
 classes through one concrete implementation provided by squirrel. Note that here we assume
