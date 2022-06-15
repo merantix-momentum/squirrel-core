@@ -9,7 +9,7 @@ There are four modules in squirrel which are instrumental in understanding the a
 * :ref:`store`: a key/value abstraction for reading data from and writing data to arbitrary storage backends such as filesystem, object store, database, etc.
 
 These modules are designed in a way that `can` be
-used together, but it is not enforced in order to maximize flexibility. This may make it difficult to realize the
+used together, but this is not enforced in order to maximize flexibility. This may make it difficult to realize the
 intended and recommended way of combining squirrel primitives. Although there are many such ways already provided (and many more
 that can be implemented for specific use-cases), here we focus on one concrete example that captures the most common
 and most widely applicable pattern through a code snippet and its equivalent UML diagram.
