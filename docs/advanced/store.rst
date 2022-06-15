@@ -23,9 +23,6 @@ In the UML diagram below we show how the SquirrelStore connects to its abstract 
        class SquirrelStore {
            serializer: SquirrelSerializer
 
-           set(key, value)
-           get(key) Iterable~Dict~
-           keys() Iterable~str~
        }
         <<abstract>> SquirrelSerializer
        class SquirrelSerializer {
