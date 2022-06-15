@@ -32,7 +32,7 @@ here is a complete data loading pipeline:
 
 
 A :py:class:`Catalog` contains zero to many :py:class:`CatalogSource`\s, each of which may be retrieved by an
-identifier (or a tuple of and identifier and the version, see :ref:`catalog` for more details). :py:class:`CatalogSource`
+identifier (or a tuple of an identifier and the version, see :ref:`catalog` for more details). :py:class:`CatalogSource`
 contains all necessary information to instantiate an abject of type :py:class:`Driver`. :py:class:`Driver` may have
 a method :py:meth:`get_iter` which returns an object of type :py:class:`Composable`
 (which belongs to :ref:`iterstream` module). `train_data` is an iterable that generates items lazily in a
