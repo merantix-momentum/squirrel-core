@@ -102,7 +102,7 @@ that the data is in messagepack format (see :ref:`store` for information about d
 
 The relationships between these components and the methods they provide depends on the particular implementation of
 the abstract classes (i.e. :py:class:`Drive`, :py:class:`AbstractStore`, :py:class:`SquirrelSerializer`).
-For instance, an implementation of the :py:class:`Drive` may not need or choose to not use :py:class:`SquirrelStore`
+For instance, an implementation of the :py:class:`Drive` may not need to or may choose not to use :py:class:`SquirrelStore`
 or :py:class:`Composable` at all.
 
 .. note::
