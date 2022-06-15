@@ -12,5 +12,5 @@ To install Squirrel with support for a specific package, use e.g.:
 
   pip install "squirrel-core[gcp, torch]"
 
-The supported packages are: `gcp`, `s3`, `parquet`, `zarr`, `dask`, `torch`, `dev`, `doc`
+The supported packages are: `gcp`, `s3`, `azure`, `zarr`, `dask`, `torch`, `dev`, `doc`
 

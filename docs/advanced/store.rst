@@ -39,6 +39,8 @@ In the UML diagram below we show how the SquirrelStore connects to its abstract 
 
            serialize(obj) bytes
            deserialize(bytes) Any
+           serialize_shard_to_file(obj, filepath)
+           deserialize_shard_from_file(filepath)
        }
 
 
@@ -87,9 +89,10 @@ Sharding
 There are several considerations for deciding appropriate shard size:
 
     #. Parallelizing read and write operation: the higher the number of shards, the bigger the opportunity for parallelizing
-       read and write operations.Parallel write may be done with e.g.
-       `Spark <https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/09.Spark_Preprocessing.ipynb/>`_
-
+       read and write operations. Parallel write may be done with e.g. with Spark. For examples, please see:
+       `preprocessing with Spark <https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/09.Spark_Preprocessing.ipynb/>`_
+        or
+        `SquirrelStore with Spark <https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/07.SquirrelStore_with_Spark.ipynb>`_.
     #. Limit on the memory of the process when writing the shard. The :py:meth:`squirrel.store.Store.set` accept a shard.
        This means that the whole shard has to be in memory for writing it. While technically shards of any size could have
        been created by incrementally writing to a single shard, we opted for this approach as it makes parallel and distributed write operations easier.

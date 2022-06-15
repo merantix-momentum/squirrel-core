@@ -66,10 +66,11 @@ This is the recommended approach, unless low-level control is needed.
     store = driver.store
 
 Sample and Shard
---------
+----------------
 :py:class:`squirrel.store.SquirrelStore` uses a concept called sharding to efficiently store and load data.
-Shard is a collection of samples, it stores a predetermined number of samples in a fixed order.
-Each shard is then identified through a unique key. A sample is of type :py:class:`Dict[str, Any]` and a shard is a
+A Shard is a collection of samples, it stores a predetermined number of samples in a fixed order. Samples can be any
+Python object. They represent a single training sample for model training and can be for example a Dictionary containing
+a numpy array. Each shard is then identified through a unique key. A sample is of type :py:class:`Dict[str, Any]` and a shard is a
 list thereof i.e. :py:class:`List[Dict[str, Any]]`.
 
 Writing samples as shards using SquirrelStore
