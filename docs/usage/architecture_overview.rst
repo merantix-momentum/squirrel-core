@@ -19,9 +19,9 @@ Here is a complete data loading pipeline:
 
     from squirrel.catalog import Catalog
 
-    catalog = Catalog.from_plugins() # Catalog
+    catalog = Catalog.from_plugins()  # Catalog
     train_data = (
-        catalog["imagenet"] # CatalogSource
+        catalog["imagenet"]  # CatalogSource
         .get_driver()  # Driver
         .get_iter()  # Composable
         .map(lambda x: transform(x))  # Composable
