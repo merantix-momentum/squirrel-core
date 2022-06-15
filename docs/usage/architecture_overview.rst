@@ -6,7 +6,7 @@ There are four modules in squirrel which are instrumental in understanding the a
 * :ref:`catalog`: organizing, accessing, and sharing datasets.
 * :ref:`driver`: performant and convenient read.
 * :ref:`iterstream`: :py:class:`Composable` is the foundational building block in the :ref:`iterstream` module which provides a mechanism to chain iterables, and a fluent api that includes methods such as `map`, `filter`, and `async_map`.
-* :ref:`store`: a key/value abstraction for reading and writing data to and arbitrary storage backend such as filesystem, object store, database, etc.
+* :ref:`store`: a key/value abstraction for reading data from and writing data to arbitrary storage backends such as filesystem, object store, database, etc.
 
 These modules are designed in a way that `can` be
 used together, but it is not enforced in order to maximize flexibility. This may make it difficult to realize the
