@@ -94,7 +94,8 @@ There are several considerations for deciding appropriate shard size:
        This means that the whole shard has to be in memory for writing it. While technically shards of any size could have
        been created by incrementally writing to a single shard, we opted for this approach as it makes parallel and distributed write operations easier.
 
-    #. Randomizing during deep learning training: To shuffle the shards, one simply can shuffle the shard keys.
+#. Randomizing during deep learning training: When training deep learning models, for each epoch the order of samples should be randomized. Shards are an important mechanism to achieve semi-random retrieval of samples. To do so, one can simply shuffle the shard keys and then load the content of each.  
+
        That means, the more shards we have, the closer the shuffling process approaches a fully random shuffling.
        Internally there is another mechanism to shuffle samples within the shards (:py:meth:`squirrel.base.Composable.shuffle`).
        However, the main idea of increasing the “degree” of randomness, with increasing shard counts remains.
