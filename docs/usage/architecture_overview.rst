@@ -71,7 +71,7 @@ that the data is in messagepack format (see :ref:`store` for information about d
             get_iter() Composable
         }
 
-        %% realiazation
+        %% realization
         CatalogSource ..|> MessagepackDriver
 
         MessagepackDriver ..> Composable
