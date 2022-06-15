@@ -68,7 +68,7 @@ This is the recommended approach, unless low-level control is needed.
 Sample and Shard
 --------
 :py:class:`squirrel.store.SquirrelStore` uses a concept called sharding to efficiently store and load data.
-Shards stores a predetermined amount of samples given through the shard size in a fixed order.
+Shard is a collection of samples, it stores a predetermined number of samples in a fixed order.
 Each shard is then identified through a unique key. A sample is of type :py:class:`Dict[str, Any]` and a shard is a
 list thereof i.e. :py:class:`List[Dict[str, Any]]`.
 
