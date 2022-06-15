@@ -41,7 +41,7 @@ streaming way for minimal memory footprint.
 .. note::
       To access available datasets using `Catalog.from_plugins()`, check out `squirrel-dataset-core repository <https://github.com/merantix-momentum/squirrel-datasets-core>`_.
 
-The following diagram illustrating (a simplified and slightly idealized) view on the relationships between these
+The following diagram illustrates a (simplified and slightly idealized) view of the relationships between these
 classes through one concrete implementation provided by squirrel. Note that here we assume
 that the data is in messagepack format (see :ref:`store` for information about different types of store).
 
