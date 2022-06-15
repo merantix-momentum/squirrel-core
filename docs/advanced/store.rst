@@ -29,18 +29,14 @@ In the UML diagram below we show how the SquirrelStore connects to its abstract 
 
         serialize(obj)
         deserialize(obj)
+        serialize_shard_to_file(obj, filepath)
+        deserialize_shard_from_file(filepath)
        }
 
        class MessagepackSerializer {
-
        }
 
        class JSONSerializer {
-
-           serialize(obj) bytes
-           deserialize(bytes) Any
-           serialize_shard_to_file(obj, filepath)
-           deserialize_shard_from_file(filepath)
        }
 
 
