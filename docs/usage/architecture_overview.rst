@@ -13,11 +13,10 @@ used together, but this is not enforced in order to maximize flexibility. This m
 intended and recommended way of combining squirrel primitives. Although there are many such ways already provided (and many more
 that can be implemented for specific use-cases), here we focus on one concrete example that captures the most common
 and most widely applicable pattern through a code snippet and its equivalent UML diagram.
-here is a complete data loading pipeline:
+Here is a complete data loading pipeline:
 
 .. code-block:: python
 
-    from torch.utils.data import DataLoader
     from squirrel.catalog import Catalog
 
     catalog = Catalog.from_plugins() # Catalog
@@ -28,12 +27,12 @@ here is a complete data loading pipeline:
         .map(lambda x: transform(x)) # Composable
         .filter(lambda x: filter_func(x)) # Composable
     )
-    train_loader = DataLoader(train_data, batch_size=None)
+    model = YourModelTrainer(train_data).fit()  # e.g. PyTorch DataLoader, XGBoost, etc.
 
 
 A :py:class:`Catalog` contains zero to many :py:class:`CatalogSource`\s, each of which may be retrieved by an
 identifier (or a tuple of an identifier and the version, see :ref:`catalog` for more details). :py:class:`CatalogSource`
-contains all necessary information to instantiate an abject of type :py:class:`Driver`. :py:class:`Driver` may have
+contains all necessary information to instantiate an object of type :py:class:`Driver`. :py:class:`Driver` may have
 a method :py:meth:`get_iter` which returns an object of type :py:class:`Composable`
 (which belongs to :ref:`iterstream` module). `train_data` is an iterable that generates items lazily in a
 streaming way for minimal memory footprint.
@@ -101,7 +100,7 @@ that the data is in messagepack format (see :ref:`store` for information about d
 
 
 The relationships between these components and the methods they provide depends on the particular implementation of
-the abstract classes (i.e. :py:class:`Drive`, :py:class:`AbstractStore`, :py:class:`SquirrelSerializer`).
+the abstract classes (i.e. :py:class:`Driver`, :py:class:`AbstractStore`, :py:class:`SquirrelSerializer`).
 For instance, an implementation of the :py:class:`Drive` may not need to or may choose not to use :py:class:`SquirrelStore`
 or :py:class:`Composable` at all.
 
