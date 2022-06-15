@@ -31,7 +31,7 @@ here is a complete data loading pipeline:
     train_loader = DataLoader(train_data, batch_size=None)
 
 
-A :py:class:`Catalog` contains zero to many :py:class:`CatalogSource`, each of which may be retrieved by a an
+A :py:class:`Catalog` contains zero to many :py:class:`CatalogSource`\s, each of which may be retrieved by an
 identifier (or a tuple of and identifier and the version, see :ref:`catalog` for more details). :py:class:`CatalogSource`
 contains all necessary information to instantiate an abject of type :py:class:`Driver`. :py:class:`Driver` may have
 a method :py:meth:`get_iter` which returns an object of type :py:class:`Composable`
