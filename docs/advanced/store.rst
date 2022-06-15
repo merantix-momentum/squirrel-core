@@ -33,8 +33,6 @@ In the UML diagram below we show how the SquirrelStore connects to its abstract 
 
        class MessagepackSerializer {
 
-           serialize(obj) bytes
-           deserialize(bytes) Any
        }
 
        class JSONSerializer {
