@@ -24,9 +24,9 @@ Here is a complete data loading pipeline:
         catalog["imagenet"] # CatalogSource
         .get_driver()  # Driver
         .get_iter()  # Composable
-        .map(lambda x: transform(x)) # Composable
-        .filter(lambda x: filter_func(x)) # Composable
-    )
+        .map(lambda x: transform(x))  # Composable
+        .filter(lambda x: filter_func(x))  # Composable
+    )  # Composable
     model = YourModelTrainer(train_data).fit()  # e.g. PyTorch DataLoader, XGBoost, etc.
 
 
