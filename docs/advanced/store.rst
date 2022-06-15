@@ -37,8 +37,6 @@ In the UML diagram below we show how the SquirrelStore connects to its abstract 
 
        class JSONSerializer {
 
-           serialize(obj) bytes
-           deserialize(bytes) Any
        }
 
 
