@@ -19,13 +19,14 @@ Welcome to Squirrel´s documentation!
    usage/driver
    usage/store
    usage/catalog
-   usage/Iterstream
+   usage/iterstream
 
 .. toctree::
    :maxdepth: 1
    :caption: Advanced:
 
    advanced/store
+   advanced/iterstream
 
 .. toctree::
    :maxdepth: 1
