@@ -7,4 +7,4 @@ pytest-xdist
 wandb
 mlflow
 pre-commit==2.16.0
-pip-tools
+pip-tools>=6.6.2
