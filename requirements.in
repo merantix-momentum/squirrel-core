@@ -8,4 +8,4 @@ random-name
 ruamel.yaml
 tqdm
 numba>=0.55.2
-numpy==1.22 # Numba needs NumPy 1.22
+numpy>=1.22 # Numba needs NumPy 1.22
