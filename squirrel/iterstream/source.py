@@ -142,6 +142,7 @@ class IterableSamplerSource(Composable):
 
 
 class IterableZipSource(Composable):
+    """Makes it possible to zip items from several iterables and use it as a source."""
 
     def __init__(self, iterables: t.List[t.Iterable]):
         super().__init__(source=iterables)
