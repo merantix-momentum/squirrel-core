@@ -139,3 +139,12 @@ class IterableSamplerSource(Composable):
                     self.probs = [p / s for p in probs]
             if len(self.iterators) == 0:
                 break
+
+
+class IterableZipSource(Composable):
+
+    def __init__(self, iterables: t.List[t.Iterable]):
+        super().__init__(source=iterables)
+
+    def __iter__(self):
+        yield from zip(*self.source)
