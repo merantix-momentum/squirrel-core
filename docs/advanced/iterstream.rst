@@ -1,6 +1,6 @@
 IterStream
 ==========
-The IterStream module provides functionalities to chain operations on iterables. This functionality
+The IterStream module provides functionalities to chain iterables. This functionality
 is provided through the mix-in class :py:class:`Composable`, which implements methods such as map or filter.
 The nice thing about it is that all operations are done lazily, that is no computation is executed until we ask for it.
 
