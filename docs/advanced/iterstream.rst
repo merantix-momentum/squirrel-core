@@ -174,9 +174,9 @@ In the non-exhaustive UML diagram below, we show how the IterStream module is st
         class _AsyncMap {
             source: Iterable
             callback: Callable
-            buffer: int
-            max_workers: int
-            executor: Executor
+            int buffer
+            int max_workers
+            Executor executor
 
             __iter__() Iterator
        }

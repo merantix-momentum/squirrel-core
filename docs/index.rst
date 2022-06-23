@@ -36,4 +36,8 @@ Welcome to Squirrel´s documentation!
    developer/contribute
    developer/glossary
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Integration:
 
+   integration/integration.rst
