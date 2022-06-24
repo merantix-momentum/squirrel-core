@@ -2,7 +2,15 @@ IterStream
 ==========
 
 Squirrel provides an API for chaining iterables.
-The functionality is provided by **IterableSource** (:code:`squirrel.iterstream.source.IterableSource`).
+The functionality is provided through the :py:class:`Composable`.
+
+Stream Processing Methods
+-------------------------
+The :py:class:`Composable` class offers three kinds of methods for processing streams.
+
+* *Source*: The first node in the stream that generates items or wraps an iterable, for instance :py:class:`IterableSource`.
+* *Transformations* : Provide a way to apply transformations on items in the stream, such as :py:meth:`map` and :py:meth:`filter`, or manipulate the stream itself, such as :py:meth:`shuffle`, :py:meth:`batched`.
+* *Terminal* : :py:meth:`join`, py:meth:`collect`. These methods are used to consume the stream.
 
 Example Workflow
 ----------------

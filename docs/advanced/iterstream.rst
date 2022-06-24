@@ -135,15 +135,6 @@ that the iterators are called from right to left.
     can't have a non-pickable object such as a `fssepc` object. A solution is to create the object in the `__iter__` method
     instead of inside the constructor.
 
-Stream Processing Methods
--------------------------
-The :py:class:`Composable` class offers three kinds of methods for processing streams.
-
-* *Source*: The first node in the stream that generates items or wraps an iterable, for instance :py:class:`IterableSource`.
-
-* *Transformations* : Provide a way to apply transformations on items in the stream, such as :py:meth:`map` and :py:meth:`filter`, or manipulate the stream itself, such as :py:meth:`shuffle`, :py:meth:`batched`. 
-* *Terminal* : :py:meth:`join`, py:meth:`collect`. These methods are used to consume the stream.
-
 Source in a Stream
 ------------------------
 In a stream, each `Composable` in the chain stores the iterable it operates on in the `source` attribute. That is if we
@@ -170,6 +161,16 @@ Output::
     x: [0, 1, 2]
     x + 1: [1, 2, 3]
     (x + 1) * 10: [10, 20, 30]
+
+
+Asynchronous execution
+----------------------
+We have seen in :ref:`usage/iterstream` how to apply functions on streams asynchronously with :py:meth:`async_map`.
+Internally, a :py:class:`_AsyncMap` object is constructed when calling :py:meth:`async_map`.
+:py:class:`_AsyncMap` maintains an internal queue and creates :py:class:`AsyncContent` that are inserted to the queue.
+:py:class:`AsyncContent` objects are created by specifying a function callback, the item it operates on, and an executor.
+When :py:class:`AsyncContent` object is created, the function callback is scheduled for asynchronous execution. We can simply fetch results
+from the queue by iterating over the :py:class:`_AsyncMap` object.
 
 Architecture
 --------------------
