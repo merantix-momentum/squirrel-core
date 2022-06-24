@@ -32,7 +32,10 @@ Welcome to Squirrel´s documentation!
    :maxdepth: 1
    :caption: Integration:
 
-   integration/integration.rst
+   integration/PyTorch.rst
+   integration/Monitoring_MLFlow_wandb.rst
+   integration/spark.rst
+   integration/dask.rst
 
 .. toctree::
    :maxdepth: 1
