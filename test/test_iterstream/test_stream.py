@@ -94,19 +94,19 @@ def test_take_exact(samples: t.List[SampleType], num_samples: int) -> None:
     """Test take_exact"""
 
     # take all elements in iterator
-    it = IterableSource(samples).take_exact(len(samples)).collect()
+    it = IterableSource(samples).loop().take(len(samples)).collect()
     assert len(list(it)) == len(samples)
 
     for n in np.random.choice(range(0, 100), 10, replace=False):
-        it = IterableSource(samples).take_exact(n).collect()
+        it = IterableSource(samples).loop().take(n).collect()
         assert len(list(it)) == n
 
     # take 0 elements
-    it = IterableSource(samples).take_exact(0).collect()
+    it = IterableSource(samples).loop().take(0).collect()
     assert len(list(it)) == 0
 
     # ensure that empty iterable works as expected
-    it = IterableSource([]).take_exact(2).collect()
+    it = IterableSource([]).loop().take(2).collect()
     assert len(list(it)) == 0
 
 

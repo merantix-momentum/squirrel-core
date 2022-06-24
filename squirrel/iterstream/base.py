@@ -80,18 +80,15 @@ class Composable:
             return self
         return self.to(take_, n)
 
-    def take_exact(self, n: int) -> Composable:
-        """Yield the first n elements from the iterable. Less elements can be yielded if the iterable does not have
-        enough elements. If n is bigger than the number of items in the iterable, this method will loop until
-        *exactly* n items are yielded.
+    def loop(self, n: t.Optional[int] = None) -> Composable:
+        """Repeat the iterable n times.
 
         Args:
-            n (int): Number of samples to take.
-        """
-        return _FixedLengthIterable(self, n)
+            n (int, Optional): number of times that the iterable is looped over. If None (the default), it loops forever
 
-    def loop(self, n: int) -> Composable:
-        """Repeat the iterable n times"""
+        Note: this method creates a deepcopy of the `source` attribute, i.e. all steps in the chain of Composables
+        `before` the loop itself, which must be picklable.
+        """
         return _LoopIterable(self, n)
 
     def filter(self, predicate: t.Callable) -> _Iterable:
@@ -290,8 +287,20 @@ class _LoopIterable(Composable):
 
     def __iter__(self) -> t.Iterator:
         """Iterate over the iterable n times"""
-        for _ in range(self.n):
-            yield from deepcopy(self.source)
+        _started = False
+        if self.n is None:
+            current_ = iter(deepcopy(self.source))
+            while True:
+                try:
+                    yield next(current_)
+                    _started = True
+                except StopIteration:
+                    if not _started:
+                        return
+                current_ = iter(deepcopy(self.source))
+        else:
+            for _ in range(self.n):
+                yield from iter(deepcopy(self.source))
 
 
 class _AsyncMap(Composable):
