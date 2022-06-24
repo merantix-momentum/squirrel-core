@@ -30,14 +30,14 @@ Welcome to Squirrel´s documentation!
 
 .. toctree::
    :maxdepth: 1
+   :caption: Integration:
+
+   integration/integration.rst
+
+.. toctree::
+   :maxdepth: 1
    :caption: Developer Guide:
 
    developer/code_of_conduct
    developer/contribute
    developer/glossary
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Integration:
-
-   integration/integration.rst
