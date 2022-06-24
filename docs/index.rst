@@ -33,7 +33,7 @@ Welcome to Squirrel´s documentation!
    :caption: Integration:
 
    integration/pytorch.rst
-   integration/monitoring_mlflow_wandb.rst
+   integration/monitoring.rst
    integration/spark.rst
    integration/dask.rst
 

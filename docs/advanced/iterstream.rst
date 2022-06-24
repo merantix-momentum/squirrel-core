@@ -1,7 +1,7 @@
 IterStream
 ==========
 The IterStream module provides functionalities to chain iterables. The core principle behind IterStream is
-similar to chaining generators, which allows for lazy execution.
+similar to chaining generators: **lazy execution**.
 
 .. code-block:: python
 
@@ -39,7 +39,7 @@ Output::
     multiply 10 to 1
 
 
-In the example above we see how `Composable`s are chained. We also call this chain of `Composable`s a *stream*. The executions are
+In the example above we see how `Composable`s are chained. We also call this chain of `Composable`s a **stream**. The executions are
 done lazily, that is the transformation is only executed when the iterator fetches the next item.
 
 Custom Composable
@@ -129,7 +129,7 @@ that the iterators are called from right to left.
 .. admonition:: PyTorch
 
     There are already special Composables implemented for interfacing with PyTorch such as :py:class:`TorchIterable` or
-    :py:class:`SplitByWorker`. Examples are given in :ref:`usage/iterstream:PyTorch Distributed Dataloading`.
+    :py:class:`SplitByWorker`. Examples are given in :ref:`usage/iterstream`.
 ..
     Note that PyTorch Dataloader requires the iterable passed to be pickable when using multi-processing. That is, our custom Composable
     can't have a non-pickable object such as a `fssepc` object. A solution is to create the object in the `__iter__` method
