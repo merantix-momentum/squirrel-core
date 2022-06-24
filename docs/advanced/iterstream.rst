@@ -129,7 +129,7 @@ from the queue by iterating over the :py:class:`_AsyncMap` object.
 
 Stream Processing Methods
 -------------------------
-The :py:class:`Composable` class offers roughly three groups of methods for processing streams.
+The :py:class:`Composable` class offers three kinds of methods for processing streams.
 
 * *Transformations* : :py:meth:`map`, :py:meth:`filter`. These methods can be used to apply a transformation over the stream.
 * *Terminal* : :py:meth:`join`, py:meth:`collect`. These methods are used to materialize the stream.
