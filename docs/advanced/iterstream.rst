@@ -128,7 +128,7 @@ When :py:class:`AsyncContent` object is created, the function callback is schedu
 from the queue by iterating over the :py:class:`_AsyncMap` object.
 
 Stream Processing Methods
---------------------
+-------------------------
 The :py:class:`Composable` class offers roughly three groups of methods for processing streams.
 
 * *Transformations* : :py:meth:`map`, :py:meth:`filter`. These methods can be used to apply a transformation over the stream.
