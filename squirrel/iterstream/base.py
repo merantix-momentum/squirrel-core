@@ -17,8 +17,8 @@ from squirrel.iterstream.iterators import (
     map_,
     monitor_,
     shuffle_,
-    tqdm_,
     take_,
+    tqdm_,
 )
 from squirrel.iterstream.metrics import MetricsConf
 
@@ -254,33 +254,8 @@ class _Iterable(Composable):
         return self.f(iter(self.source), *self.args, **self.kw)
 
 
-class _FixedLengthIterable(Composable):
-    def __init__(self, source: t.Iterable, n: int):
-        """Init"""
-        super(_FixedLengthIterable, self).__init__(source=source)
-        self.n = n
-        self._started = False
-        self.idx = 0
-
-    def __iter__(self) -> t.Iterator:
-        """Iterate over the iterable until *exactly* n elements are yielded"""
-        current_ = iter(deepcopy(self.source))
-        while self.idx < self.n:
-            try:
-                yield next(current_)
-                # self._started ensures that input iterable is not empty. If so we return in the except block
-                # Without this it would not be possible to know if `yield next(current)` raises because the end of
-                # a non-empty iterable has been reached, or the input iterable is empty.
-                self._started = True
-                self.idx += 1
-            except StopIteration:
-                if not self._started:
-                    return
-                current_ = iter(deepcopy(self.source))
-
-
 class _LoopIterable(Composable):
-    def __init__(self, source: t.Iterable, n: int):
+    def __init__(self, source: t.Iterable, n: t.Optional[int]):
         """Init"""
         super(_LoopIterable, self).__init__(source=source)
         self.n = n
