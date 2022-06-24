@@ -141,7 +141,7 @@ The :py:class:`Composable` class offers three kinds of methods for processing st
 
 * *Source*: The first node in the stream that generates items or wraps an iterable, for instance :py:class:`IterableSource`.
 
-* *Transformations* : :py:meth:`map`, :py:meth:`filter`, :py:meth:`shuffle`, :py:meth:`batch`. These methods can be used to apply a transformation over the stream.
+* *Transformations* : Provide a way to apply transformations on items in the stream, such as :py:meth:`map` and :py:meth:`filter`, or manipulate the stream itself, such as :py:meth:`shuffle`, :py:meth:`batched`. 
 * *Terminal* : :py:meth:`join`, py:meth:`collect`. These methods are used to consume the stream.
 
 Source in a Stream
