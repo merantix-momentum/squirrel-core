@@ -32,8 +32,8 @@ Welcome to Squirrel´s documentation!
    :maxdepth: 1
    :caption: Integration:
 
-   integration/PyTorch.rst
-   integration/Monitoring_MLFlow_wandb.rst
+   integration/pytorch.rst
+   integration/monitoring_mlflow_wandb.rst
    integration/spark.rst
    integration/dask.rst
 

@@ -1,7 +1,7 @@
 IterStream
 ==========
-The IterStream module provides functionalities to chain iterables. This functionality
-is provided through the :py:class:`Composable` class, which forms the base class for most classes in IterStream.
+The IterStream module provides functionalities to chain iterables. The core principle behind IterStream is
+similar to chaining generators, which allows for lazy execution.
 
 .. code-block:: python
 
@@ -15,6 +15,21 @@ is provided through the :py:class:`Composable` class, which forms the base class
         print(f'multiply 10 to {x}')
         return x * 10
 
+    g1 = (add_1(i) for i in range(3))
+    g2 = (mult_10(i) for i in g1)
+    next(iter(g2))
+
+Output::
+
+    add 1 to 0
+    multiply 10 to 1
+
+
+
+This functionality is provided through the :py:class:`Composable` class, which forms the base class for most classes in IterStream.
+
+.. code-block:: python
+
     it = IterableSource(range(3)).map(add_1).map(mult_10)
     next(iter(it))
 
@@ -24,8 +39,8 @@ Output::
     multiply 10 to 1
 
 
-In the example above we show how Composables are chained. We also call this chain of Composables a *stream*. We can see from the examples that
-the transformations are executed lazily, that is the transformation is only executed when the iterator fetches the next item.
+In the example above we see how `Composable`s are chained. We also call this chain of `Composable`s a *stream*. The executions are
+done lazily, that is the transformation is only executed when the iterator fetches the next item.
 
 Custom Composable
 --------------------
@@ -63,9 +78,11 @@ Output::
     multiply 10 to 1
 
 Similar as before, the execution is done lazily. The only difference is that we wrap the function inside a custom `Composable`
-class. Writing custom Composable classes allows us to modify the iteration process. One use-case is for example when
-we want to instantiate a expensive resource only once in the constructor e.g. a database connection
-or a R-CNN feature extractor.
+class. Writing custom Composable classes allows us to modify the iteration process. Some use-cases for custom `Composable`s include:
+
+    #. We need to instantiate a expensive resource only once in the constructor e.g. a database connection or a R-CNN feature extractor.
+
+    #. When a very complex  stream processing is needed that is hard to achieve with standard methods.
 
 When using `compose()` note that the order of calling the `__iter__` method is from right ot left.
 
@@ -113,27 +130,45 @@ that the iterators are called from right to left.
 
     There are already special Composables implemented for interfacing with PyTorch such as :py:class:`TorchIterable` or
     :py:class:`SplitByWorker`. Examples are given in :ref:`usage/iterstream:PyTorch Distributed Dataloading`.
-
-    Note that PyTorch Dataloader requires the iterable passed to be pickable. That is, our custom Composable
+..
+    Note that PyTorch Dataloader requires the iterable passed to be pickable when using multi-processing. That is, our custom Composable
     can't have a non-pickable object such as a `fssepc` object. A solution is to create the object in the `__iter__` method
     instead of inside the constructor.
-
-Asynchronous Execution
------------------------
-The documentation in :ref:`usage/iterstream:IterStream` explain how asynchronous execution is performed with :py:meth:`async_map`.
-Internally, a :py:class:`_AsyncMap` object is constructed when calling :py:meth:`async_map`.
-:py:class:`_AsyncMap` maintains an internal queue and creates :py:class:`AsyncContent` that are inserted to the queue.
-:py:class:`AsyncContent` objects are created by specifying a function callback, the item it operates on, and an executor.
-When :py:class:`AsyncContent` object is created, the function callback is scheduled for asynchronous execution. We can simply fetch results
-from the queue by iterating over the :py:class:`_AsyncMap` object.
 
 Stream Processing Methods
 -------------------------
 The :py:class:`Composable` class offers three kinds of methods for processing streams.
 
-* *Transformations* : :py:meth:`map`, :py:meth:`filter`. These methods can be used to apply a transformation over the stream.
-* *Terminal* : :py:meth:`join`, py:meth:`collect`. These methods are used to materialize the stream.
-* *Organization*: :py:meth:`shuffle`, py:meth:`batch`, py:meth:`take`. THe methods are used to order and organize the stream.
+* *Source*: :py:meth:`source_``. Source defines the source iterable on which transformations are applied.
+* *Transformations* : :py:meth:`map`, :py:meth:`filter`, :py:meth:`shuffle`, :py:meth:`batch`. These methods can be used to apply a transformation over the stream.
+* *Terminal* : :py:meth:`join`, py:meth:`collect`. These methods are used to consume the stream.
+
+Source in a Stream
+------------------------
+In a stream, each `Composable` in the chain stores the iterable it operates on in the `source` attribute. That is if we
+get the `source` from the *n*-th `Composable` in the chain, we can retrieve the intermediate
+results up until the *n-1*-th `Composable` (including). However, note that after repeatedly calling
+`source` we will end up with the original iterable, which will not have a `source` attribute.
+
+.. code-block:: python
+
+    def add_1(x):
+        return x + 1
+
+    def mult_10(x):
+        return x * 10
+
+    it = IterableSource(range(3)).map(add_1).map(mult_10)
+
+    print(f'x: {it.source.source.collect()}')
+    print(f'x + 1: {it.source.collect()}')
+    print(f'(x + 1) * 10: {it.collect()}')
+
+Output::
+
+    x: [0, 1, 2]
+    x + 1: [1, 2, 3]
+    (x + 1) * 10: [10, 20, 30]
 
 Architecture
 --------------------
