@@ -123,7 +123,7 @@ Asynchronous Execution
 The documentation in :ref:`usage/iterstream:IterStream` explain how asynchronous execution is performed with :py:meth:`async_map`.
 Internally, a :py:class:`_AsyncMap` object is constructed when calling :py:meth:`async_map`.
 :py:class:`_AsyncMap` maintains an internal queue and creates :py:class:`AsyncContent` that are inserted to the queue.
-:py:class:`AsyncContent` objects are created by specifying a function callback, the item it operates on and an executor.
+:py:class:`AsyncContent` objects are created by specifying a function callback, the item it operates on, and an executor.
 When :py:class:`AsyncContent` object is created, the function callback is scheduled for asynchronous execution. We can simply fetch results
 from the queue by iterating over the :py:class:`_AsyncMap` object.
 
