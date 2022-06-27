@@ -192,7 +192,7 @@ In the non-exhaustive UML diagram below, we show how the IterStream module is st
             __iter__() Iterator
             compose(constructor, *args, **kwargs) Composable
             map(callback) _Iterable
-            async_map(callback, buffer, max_workers, executor) _Iterable
+            async_map(callback, buffer, max_workers, executor) _AsyncMap
         }
 
        class _Iterable {
