@@ -173,7 +173,8 @@ from the queue by iterating over the :py:class:`_AsyncMap` object.
 
 Architecture
 --------------------
-Most classes inherit from :py:class:`Composable` to implement methods for stream processing.
+Most classes inherit from :py:class:`Composable`, which provides many concrete stream processing methods such as :py:meth:`map` and :py:meth:`filter`, and one abstract method `__iter__` which must be implemented by all sub classes. 
+
 In the non-exhaustive UML diagram below, we show how the IterStream module is structured.
 
 .. mermaid::
