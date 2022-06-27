@@ -2,7 +2,7 @@ IterStream
 ==========
 
 Squirrel provides an API for chaining iterables.
-The functionality is provided through the :py:class:`Composable`.
+The functionality is provided through the :py:class:`Composable` class, which acts as a base class for most classes in IterStream.
 
 Stream Processing Methods
 -------------------------
@@ -24,7 +24,7 @@ Example Workflow
     for item in it:
         print(item)
 
-:py:class:`IterableSource` has several methods to conveniently load data, given an iterable as the input:
+:py:class:`IterableSource` is a :py:class:`Composable` and has several methods to conveniently load data, given an iterable as the input:
 
 .. code-block:: python
 
@@ -64,7 +64,7 @@ Items in `IterableSource` can be composed by providing a Composable in the `comp
         print(item)
 
 
-To see how you can chain custom Composables with `compose()`, see the advanced section :ref:`Driver <advanced/iterstream>`.
+To see how you can chain custom Composables with `compose()`, see the advanced section for :ref:`IterStream <advanced/iterstream:IterStream>`.
 
 Combining multiple iterables can be achieved using `IterableSamplerSource`:
 
@@ -102,10 +102,6 @@ Part of the fast speed from iterstream thanks to :py:meth:`squirrel.iterstream.b
         print(i)
     print(time.time() - t1)
 
-`async_map` instantiates a :code:`concurrent.futures.ThreadPoolExecutor` if the argument `executor` is `None` (default). It also accepts :code:`concurrent.futures.ProcessPoolExecutor`, which is a good choice when performing cpu-bound operations on a single machine.
+`async_map` instantiates a :code:`concurrent.futures.ThreadPoolExecutor` if the argument `executor` is `None` (default).
+It also accepts :code:`concurrent.futures.ProcessPoolExecutor`, which is a good choice when performing cpu-bound operations on a single machine.
 
-Internally, a :py:class:`_AsyncMap` object is constructed when calling :py:meth:`async_map`.
-:py:class:`_AsyncMap` maintains an internal queue and creates :py:class:`AsyncContent` that are inserted to the queue.
-:py:class:`AsyncContent` objects are created by specifying a function callback, the item it operates on, and an executor.
-When :py:class:`AsyncContent` object is created, the function callback is scheduled for asynchronous execution. We can simply fetch results
-from the queue by iterating over the :py:class:`_AsyncMap` object.

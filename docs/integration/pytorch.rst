@@ -2,6 +2,7 @@ PyTorch
 ===========
 The Squirrel api is designed to support fast streaming of datasets to a multi-rank, distributed system, as often encountered in modern deep learning applications involving multiple GPUs. To this end, we can use the `SplitByWorker` and `SplitByRank` composables and wrap the final iterator in a torch `Dataloader` object
 
+.. _pytorch_example:
 .. code-block:: python
 
     import torch.utils.data as tud

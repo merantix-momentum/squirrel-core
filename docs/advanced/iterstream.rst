@@ -1,7 +1,7 @@
 IterStream
 ==========
 The IterStream module provides functionalities to chain iterables. The core principle behind IterStream is
-similar to chaining generators: **lazy execution**.
+similar to chaining generators, that is lazy execution.
 
 .. code-block:: python
 
@@ -39,7 +39,7 @@ Output::
     multiply 10 to 1
 
 
-In the example above we see how `Composable`s are chained. We also call this chain of `Composable`s a **stream**. The executions are
+In the example above we see how Composables are chained. We also call this chain of Composables **stream**. The executions are
 done lazily, that is the transformation is only executed when the iterator fetches the next item.
 
 Custom Composable
@@ -77,8 +77,8 @@ Output::
     add 1 to 0
     multiply 10 to 1
 
-Similar as before, the execution is done lazily. The only difference is that we wrap the function inside a custom `Composable`
-class. Writing custom Composable classes allows us to modify the iteration process. Some use-cases for custom `Composable`s include:
+Similar as before, the execution is done lazily. The only difference is that we wrap the function inside a custom :py:class:`Composable`
+class. Writing custom Composable classes allows us to modify the iteration process. Some use-cases for custom Composables include:
 
     #. We need to instantiate a expensive resource only once in the constructor e.g. a database connection or a R-CNN feature extractor.
 
@@ -129,7 +129,7 @@ that the iterators are called from right to left.
 .. admonition:: PyTorch
 
     There are already special Composables implemented for interfacing with PyTorch such as :py:class:`TorchIterable` or
-    :py:class:`SplitByWorker`. Examples are given in :ref:`usage/iterstream`.
+    :py:class:`SplitByWorker`. Examples are given in the :ref:`PyTorch integration section <pytorch_example>`.
 ..
     Note that PyTorch Dataloader requires the iterable passed to be pickable when using multi-processing. That is, our custom Composable
     can't have a non-pickable object such as a `fssepc` object. A solution is to create the object in the `__iter__` method
