@@ -87,7 +87,8 @@ Output::
 Similar as before, the execution is done lazily. The only difference is that we wrap the function inside a custom :py:class:`Composable`
 class. Writing custom Composable classes allows us to modify the iteration process. Some use-cases for custom Composables include:
 
-    #. We need to instantiate a expensive resource only once in the constructor e.g. a database connection or a R-CNN feature extractor.
+    #. We need to instantiate an expensive resource such as a database connection or a R-CNN feature extractor only once for the entire stream instead of once per item. In this case it is advisable to instantiate this resource in the `__iter__` method of your custom class. One advantage is that the object is only instantiated once iterating over the stream starts. Additionally, if this resource is a non-picklable object, the stream can still be pickled before the iteration starts (e.g. in the multiprocessing context). 
+
 
     #. When a very complex  stream processing is needed that is hard to achieve with standard methods.
 
