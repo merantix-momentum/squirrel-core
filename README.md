@@ -1,11 +1,11 @@
 <div align="center">
-  
+
 # <img src="https://raw.githubusercontent.com/merantix-momentum/squirrel-core/main/docs/_static/logo.png" width="150px"> Squirrel Core
-  
+
 **Share, load, and transform data in a collaborative, flexible, and efficient way**
 
 [![Python](https://img.shields.io/pypi/pyversions/squirrel-core.svg?style=plastic)](https://badge.fury.io/py/squirrel-core)
-[![PyPI](https://img.shields.io/pypi/v/squirrel-core?label=pypi%20package)](https://pypi.org/project/squirrel-core/)  
+[![PyPI](https://img.shields.io/pypi/v/squirrel-core?label=pypi%20package)](https://pypi.org/project/squirrel-core/)
 [![Conda](https://img.shields.io/conda/vn/conda-forge/squirrel-core)](https://anaconda.org/conda-forge/squirrel-core)
 [![Documentation Status](https://readthedocs.org/projects/squirrel-core/badge/?version=latest)](https://squirrel-core.readthedocs.io/en/latest)
 [![Downloads](https://static.pepy.tech/personalized-badge/squirrel-core?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/squirrel-core)
@@ -22,7 +22,7 @@
 
 Squirrel is a Python library that enables ML teams to share, load, and transform data in a collaborative, flexible, and efficient way.
 
-1. **SPEED:** Avoid data stall, i.e. the expensive GPU will not be idle while waiting for the data. 
+1. **SPEED:** Avoid data stall, i.e. the expensive GPU will not be idle while waiting for the data.
 
 2. **COSTS:** First, avoid GPU stalling, and second allow to shard & cluster your data and store & load it in bundles, decreasing the cost for your data bucket cloud storage.
 
@@ -41,7 +41,7 @@ it = (Catalog.from_plugins()["imagenet"].get_driver()
 Check out our full [getting started](https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/01.Getting_Started.ipynb) tutorial notebook. If you have any questions or would like to contribute, join our [Slack community](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw).
 
 # Installation
-You can install `squirrel-core` by 
+You can install `squirrel-core` by
 ```shell
 pip install "squirrel-core[all]"
 ```
@@ -56,7 +56,7 @@ Check out the [Squirrel-datasets repository](https://github.com/merantix-momentu
 # Contributing
 Squirrel is open source and community contributions are welcome!
 
-Check out the [contribution guide](https://squirrel-core.readthedocs.io/en/latest/usage/contribute.html) to learn how to get involved.
+Check out the [contribution guide](https://squirrel-core.readthedocs.io/en/latest/developer/contribute.html) to learn how to get involved.
 
 # The humans behind Squirrel
 We are [Merantix Momentum](https://merantix-momentum.com/), a team of ~30 machine learning engineers, developing machine learning solutions for industry and research. Each project comes with its own challenges, data types and learnings, but one issue we always faced was scalable data loading, transforming and sharing. We were looking for a solution that would allow us to load the data in a fast and cost-efficient way, while keeping the flexibility to work with any possible dataset and integrate with any API. That's why we build Squirrel – and we hope you'll find it as useful as we do! By the way, [we are hiring](https://merantix-momentum.com/about#jobs)!
