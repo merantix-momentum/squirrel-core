@@ -6,6 +6,12 @@ Scaling out to a dask cluster only requires changing a single line of code:
 .. code-block:: python
 
     from dask.distributed import Client
+
+    def io_bound(item):
+        print(f"{item} io_bound")
+        time.sleep(1)
+        return item
+
     client = Client()
 
     it = IterableSource([1, 2, 3]).async_map(io_bound, executor=client)

@@ -5,8 +5,6 @@ similar to chaining generators, that is lazy execution.
 
 .. code-block:: python
 
-    from squirrel.iterstream import IterableSource
-
     def add_1(x):
         print(f'add 1 to {x}')
         return x + 1
@@ -29,9 +27,18 @@ Output::
 This functionality is provided through the :py:class:`Composable` class, which forms the base class for most classes in IterStream.
 
 .. code-block:: python
+    from squirrel.iterstream import IterableSource
+    from squirrel.iterstream import Composable
 
-    it = IterableSource(range(3)).map(add_1).map(mult_10)
-    next(iter(it))
+    it = IterableSource(range(3))
+    it1 = it.map(add_1)
+    it2 = it.map(add_1).map(mult_10)
+
+    assert isinstance(it, Composable)
+    assert isinstance(it1, Composable)
+    assert isinstance(it2, Composable)
+
+    next(iter(it2))
 
 Output::
 
@@ -39,8 +46,8 @@ Output::
     multiply 10 to 1
 
 
-In the example above we see how Composables are chained. We also call this chain of Composables **stream**. The executions are
-done lazily, that is the transformation is only executed when the iterator fetches the next item.
+In the example above we see how Composables are chained. Each transformation again returns a Composable object. We also call this chain of Composables **stream**.
+The executions are done lazily, that is the transformation is only executed when the iterator fetches the next item.
 
 Custom Composable
 --------------------
@@ -52,13 +59,13 @@ An alternative way of constructing streams is via :py:meth:`squirrel.iterstream.
     from squirrel.iterstream import Composable
 
     class Add_1(Composable):
-    def __init__(self):
-        pass
+        def __init__(self):
+            pass
 
-    def __iter__(self):
-        for x in self.source:
-            print(f'add 1 to {x}')
-            yield x + 1
+        def __iter__(self):
+            for x in self.source:
+                print(f'add 1 to {x}')
+                yield x + 1
 
     class Mult_10(Composable):
         def __init__(self):
@@ -84,7 +91,7 @@ class. Writing custom Composable classes allows us to modify the iteration proce
 
     #. When a very complex  stream processing is needed that is hard to achieve with standard methods.
 
-When using `compose()` note that the order of calling the `__iter__` method is from right ot left.
+The following example illustrates the control flow when chaining Composables. Note that the order of calling the `__iter__` method is from right ot left.
 
 .. code-block:: python
 
@@ -125,15 +132,6 @@ Output::
 
 The constructors are called from left to right, as is the execution of the transformations. However, we can see
 that the iterators are called from right to left.
-
-.. admonition:: PyTorch
-
-    There are already special Composables implemented for interfacing with PyTorch such as :py:class:`TorchIterable` or
-    :py:class:`SplitByWorker`. Examples are given in the :ref:`PyTorch integration section <pytorch_example>`.
-..
-    Note that PyTorch Dataloader requires the iterable passed to be pickable when using multi-processing. That is, our custom Composable
-    can't have a non-pickable object such as a `fssepc` object. A solution is to create the object in the `__iter__` method
-    instead of inside the constructor.
 
 Source in a Stream
 ------------------------
