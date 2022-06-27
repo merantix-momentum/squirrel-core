@@ -73,7 +73,8 @@ Note that you can pass the probabilities of sampling from each iterator. When an
 
 Asynchronous execution
 ----------------------
-Part of the fast speed from iterstream thanks to :py:meth:`squirrel.iterstream.base.Composable.async_map`. This method carries out the callback function you specified to each item in the stream asynchronously, therefore offers a large speed-up.
+Part of the fast speed from iterstream thanks to :py:meth:`squirrel.iterstream.base.Composable.async_map`.
+This method carries out the callback function you specified to each item in the stream asynchronously, therefore offers a large speed-up.
 
 .. code-block:: python
 
@@ -86,14 +87,23 @@ Part of the fast speed from iterstream thanks to :py:meth:`squirrel.iterstream.b
         time.sleep(1)
         return item
 
-    it = IterableSource([1, 2, 3]).async_map(io_bound, executor=tpool).async_map(io_bound)
+    it = IterableSource([1, 2, 3]).async_map(io_bound, executor=tpool, max_workers=4).async_map(io_bound)
     t1 = time.time()
     for i in it:
         print(i)
     print(time.time() - t1)
 
-`async_map` instantiates a :code:`concurrent.futures.ThreadPoolExecutor` if the argument `executor` is `None` (default). It also accepts :code:`concurrent.futures.ProcessPoolExecutor`, which is a good choice when performing cpu-bound operations on a single machine.
+:py:meth:`async_map <squirrel.iterstream.base.Composable.async_map>`
+instantiates a :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
+if the argument `executor` is `None` (default).
+It also accepts :py:class:`ProcessPoolExecutor <concurrent.futures.ProcessPoolExecutor>`,
+which is a good choice when performing cpu-bound operations on a single machine.
 
+The argument `max_workers` defines the maximum number of workers of the selected
+`executor`. By default, `max_workers=None` relies on an internal heuristic of
+the `executor` to select a reasonable upper bound.
+This may differ between Python versions.
+See the documentation of the `executor` for more details.
 
 Cluster-mode
 ------------
@@ -120,7 +130,7 @@ In this example, a task is submitted and the result is gathered. An alternative 
         print(item)
     print(time.time() - t1)
 
-Note that after calling :code:`dask_map` for the first time, you can chain more :code:`dask_map`s, which are then operating on the :code:`dask.delayed.Delayed` objects, so that the data and the operations live on the dask cluster until :code:`materialize_dask` is called.
+Note that after calling :code:`dask_map` for the first time, you can chain more :code:`dask_map`\'s, which are then operating on the :code:`dask.delayed.Delayed` objects, so that the data and the operations live on the dask cluster until :code:`materialize_dask` is called.
 
 Just-in-time compilation with numba
 -----------------------------------
