@@ -90,6 +90,34 @@ def test_take(samples: t.List[SampleType]) -> None:
     assert len(res) == len(samples)
 
 
+def test_take_exact(samples: t.List[SampleType]) -> None:
+    """Test take_exact"""
+
+    # take all elements in iterator
+    it = IterableSource(samples).loop().take(len(samples)).collect()
+    assert len(it) == len(samples)
+
+    for n in np.random.choice(range(0, 100), 10, replace=False):
+        it = IterableSource(samples).loop().take(n).collect()
+        assert len(it) == n
+
+    # take 0 elements
+    it = IterableSource(samples).loop().take(0).collect()
+    assert len(it) == 0
+
+    # ensure that empty iterable works as expected
+    it = IterableSource([]).loop().take(2).collect()
+    assert len(it) == 0
+
+
+@pytest.mark.parametrize("n", [0, 2, 4])
+def test_loop(samples: t.List[SampleType], n: int) -> None:
+    """Test loop"""
+    it = IterableSource(samples).loop(n).collect()
+    assert len(it) == n * len(samples)
+    assert IterableSource([1, 2, 3]).loop(3).collect() == [1, 2, 3, 1, 2, 3, 1, 2, 3]
+
+
 def test_take_side_effect() -> None:
     """Test that take_ fetches correct number of elements from an iterator."""
     lst = [1, 2, 3, 4]

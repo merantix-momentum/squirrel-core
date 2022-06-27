@@ -81,7 +81,7 @@ def take_(iterable: t.Iterable, n: int) -> t.Iterator:
 
     Yields:
         Any: First `n` elements of `iterable`. Less elements can be yielded if the iterable does not have enough
-        elements.
+            elements.
     """
     yield from islice(iterable, 0, n, 1)
 
