@@ -115,6 +115,7 @@ def test_loop(samples: t.List[SampleType], n: int) -> None:
     """Test loop"""
     it = IterableSource(samples).loop(n).collect()
     assert len(it) == n * len(samples)
+    assert IterableSource([1, 2, 3]).loop(3).collect() == [1, 2, 3, 1, 2, 3, 1, 2, 3]
 
 
 def test_take_side_effect() -> None:
@@ -123,6 +124,11 @@ def test_take_side_effect() -> None:
     it = iter(lst)
     assert list(take_(it, 2)) == [1, 2]
     assert list(take_(it, 2)) == [3, 4]
+
+
+def test_take_less_elements() -> None:
+    """Check that trying to take more elements than possible does not lead to errors."""
+    assert list(take_([1, 2, 3], 10)) == [1, 2, 3]
 
 
 def test_batched(samples: t.List[SampleType]) -> None:
