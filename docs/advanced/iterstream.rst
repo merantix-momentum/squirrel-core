@@ -186,6 +186,7 @@ In the non-exhaustive UML diagram below, we show how the IterStream module is st
         Composable <|-- _AsyncMap
         AsyncContent <.. _AsyncMap
 
+         <<abstract>> Composable
         class Composable {
             source: Iterable or Callable
 
