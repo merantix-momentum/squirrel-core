@@ -130,6 +130,8 @@ def skip_util_classes(
         skip = True
     if name.startswith("squirrel.integration_test"):
         skip = True
+    if name.startswith("test_"):
+        skip = True
     return skip
 
 
