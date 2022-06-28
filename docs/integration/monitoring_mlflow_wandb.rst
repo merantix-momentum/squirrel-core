@@ -1,5 +1,5 @@
 Monitoring with MLflow and WandB
-==============
+================================
 In squirrel, performance in :code:`iterstream` can be calculated and logged. This is done by applying an extra method
 :py:func:`monitor()` into the original chaining iterstream. It can be added into any step in the above example where
 :code:`it` is defined. For example, you can add :code:`.monitor(callback=wandb.log)` right after
