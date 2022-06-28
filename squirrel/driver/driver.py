@@ -105,10 +105,10 @@ class MapDriver(IterDriver):
                 In this case, the `max_workers` argument refers to the maximum number of
                 workers in the :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
                 Pool of :py:meth:`~squirrel.iterstream.Composable.async_map`.
-                `None` has a special meaning in this context and uses an internal heuristicZ for the number of workers.
+                `None` has a special meaning in this context and uses an internal heuristic for the number of workers.
                 The exact number of workers with `max_workers=None` depends on the specific Python version.
                 See :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>` for details.
-                Defaults to None.rea
+                Defaults to None.
             prefetch_buffer (int): Size of the buffer used for prefetching items if `async_map` is used. See
                 `max_workers` for more details. Please be aware of the memory footprint when setting this parameter.
             shuffle_item_buffer (int): Size of the buffer used to shuffle items after being fetched. Please be aware of
