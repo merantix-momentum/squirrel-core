@@ -119,7 +119,7 @@ the information and the `executor` has to be manually closed.
 
 
     from concurrent.futures import ThreadPoolExecutor
-    tpool =  ThreadPoolExecutor(max_workers=4)
+    tpool = ThreadPoolExecutor(max_workers=4)
 
     def io_bound(item):
         print(f"{item} io_bound")
@@ -138,9 +138,10 @@ the information and the `executor` has to be manually closed.
 
 In the above example, a
 :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>` is created with
-a maximum number of 4 workers.
+a maximum of 4 workers.
 This pool of workers is shared among both
 :py:meth:`async_map <squirrel.iterstream.base.Composable.async_map>` calls.
+After exhausting the iterator, the `tpool` is shutdown.
 
 
 
