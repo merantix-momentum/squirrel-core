@@ -9,7 +9,7 @@ Squirrel is a data catalog library that provides you with an efficient data infr
 
 #. :doc:`catalog <../usage/catalog>` to learn more about how to use Squirrel catalog in your project.
 
-#. :doc:`stream data with Iterstream <../usage/Iterstream>` to learn about streaming capabilities of squirrel.
+#. :doc:`stream data with Iterstream <../usage/iterstream>` to learn about streaming capabilities of squirrel.
 
 #. what is possible by looking at some `examples <https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples>`_.
 

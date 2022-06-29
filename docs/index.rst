@@ -10,7 +10,6 @@ Welcome to Squirrel´s documentation!
    getting_started/introduction
    getting_started/tutorials
 
-
 .. toctree::
    :maxdepth: 1
    :caption: Basic Usage:
@@ -19,13 +18,23 @@ Welcome to Squirrel´s documentation!
    usage/driver
    usage/store
    usage/catalog
-   usage/Iterstream
+   usage/iterstream
 
 .. toctree::
    :maxdepth: 1
    :caption: Advanced:
 
    advanced/store
+   advanced/iterstream
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Integration:
+
+   integration/pytorch.rst
+   integration/monitoring_mlflow_wandb.rst
+   integration/spark.rst
+   integration/dask.rst
 
 .. toctree::
    :maxdepth: 1
@@ -34,5 +43,3 @@ Welcome to Squirrel´s documentation!
    developer/code_of_conduct
    developer/contribute
    developer/glossary
-
-
