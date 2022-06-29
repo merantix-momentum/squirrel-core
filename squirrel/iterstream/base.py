@@ -159,16 +159,20 @@ class Composable:
             callback (Callable): a callable to be applied to items in the stream
             buffer (int): the size of the buffer
             max_workers (int): number of workers in the :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
-                `max_workers` is only used when `executor` is not provided.
+                `max_workers` is only used when `executor` is not provided, as the `executor`
+                already includes the number of `max_workers`.
             executor (concurrent.futures.Executor, dask.distributed.Client): an optional executor to be used.
                 By default a :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
                 is created, if no executor is provided. If you need a
                 :py:class:`ProcessPoolExecutor <concurrent.futures.ProccessPoolExecutor>`,
                 you can explicitly provide it here. It is also useful when chaining multiple
-                async_map; you can pass the same executor to each async_map to share resources. If
-                dask.distributed.Client is passes, tasks will be executed with the provided client (local or remote).
+                `async_map`; you can pass the same `executor` to each `async_map` to share resources. If
+                `dask.distributed.Client` is passed, tasks will be executed with the provided client (local or remote).
+
                 **Note** if the executor is provided, it will not be closed in this function even after the iterator
-                is exhausted. **Note** if executor is provided, the arguments `max_worker` will be ignored. You should
+                is exhausted.
+
+                **Note** if executor is provided, the arguments `max_worker` will be ignored. You should
                 specify this in the executor that is being passed.
 
         Returns (_AsyncMap)
