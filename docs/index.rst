@@ -8,6 +8,7 @@ Welcome to Squirrel´s documentation!
 
    getting_started/installation
    getting_started/introduction
+   getting_started/tutorials
 
 
 .. toctree::
