@@ -41,11 +41,11 @@ class MessagepackSerializer(SquirrelSerializer):
             fs (AbstractFileSystem, optional): Filesystem to use for opening the file. If not provided, `fsspec` will
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "wb".
-            **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`. `open_kwargs` will always have
-                `compression="gzip"` set.
+            **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`.
+                `open_kwargs` will always have `compression="infer"` set.
         """
         open_kwargs["mode"] = mode
-        open_kwargs["compression"] = "gzip"
+        open_kwargs["compression"] = "infer"
 
         if fs is None:
             fs = fsspec
@@ -65,20 +65,21 @@ class MessagepackSerializer(SquirrelSerializer):
         """Reads a shard from file and returns an iterable over its samples.
 
         Args:
-            fp (str): Path to the file to write.
+            fp (str): Path to the file to read.
             fs (AbstractFileSystem, optional): Filesystem to use for opening the file. If not provided, `fsspec` will
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "rb".
             unpacker_kwargs (Dict, optional): Kwargs to be passed to `msgpack.Unpacker()`.
                 If `use_list` not given, it will be set to False.
-            **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`. `open_kwargs` will always have
-                `compression="gzip"` set.
+            **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`.
+                `open_kwargs` will always have `compression="infer"` set.
 
         Yields:
             (Any) Values of the samples of the shard.
         """
         open_kwargs["mode"] = mode
-        open_kwargs["compression"] = "gzip"
+        open_kwargs["compression"] = "infer"
+
         unpacker_kwargs = {} if unpacker_kwargs is None else unpacker_kwargs
         if "use_list" not in unpacker_kwargs:
             unpacker_kwargs["use_list"] = False

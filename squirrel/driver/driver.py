@@ -110,6 +110,7 @@ class MapDriver(IterDriver):
             flatten (bool): Whether to flatten the returned iterable. Defaults to False.
             keys_kwargs (Dict, optional): Keyword arguments passed to :py:meth:`keys` when getting the keys in the
                 store. Not used if `keys_iterable` is provided. Defaults to None.
+                If the data was compressed in a different format, set the `compression` here.
             get_kwargs (Dict, optional): Keyword arguments passed to :py:meth:`get` when fetching items. Defaults to
                 None.
             key_shuffle_kwargs (Dict, optional): Keyword arguments passed to :py:meth:`shuffle` when shuffling keys.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing as t
+import fsspec
 
 from squirrel.store.filesystem import FilesystemStore, get_random_key
 
@@ -37,10 +38,16 @@ class SquirrelStore(FilesystemStore):
         Yields:
             (Any) Item with the given key.
         """
-        fp = f"{self.url}/{key}.gz"
+        fp = f"{self.url}/{key}"  # Now key includes compression suffix
         yield from self.serializer.deserialize_shard_from_file(fp, fs=self.fs, **kwargs)
 
-    def set(self, value: t.Union[SampleType, ShardType], key: t.Optional[str] = None, **kwargs) -> None:
+    def set(
+        self,
+        value: t.Union[SampleType, ShardType],
+        key: t.Optional[str] = None,
+        compression: t.Union[str, None] = "gzip",
+        **kwargs,
+    ) -> None:
         """Persists a shard or sample with the given key.
 
         Data item will be serialized before writing to a file.
@@ -56,12 +63,15 @@ class SquirrelStore(FilesystemStore):
 
         if key is None:
             key = get_random_key()
-        fp = f"{self.url}/{key}.gz"
-        self.serializer.serialize_shard_to_file(value, fp, fs=self.fs, **kwargs)
+        # mapping created lazily to ensure that fsspec compressions can be registered during execution
+        compression_to_ext = {v: k for k, v in fsspec.utils.compressions.items()}
+        full_key = f"{key}.{compression_to_ext[compression]}" if compression is not None else f"{key}"
+        fp = f"{self.url}/{full_key}"
+        self.serializer.serialize_shard_to_file(value, fp, fs=self.fs, compression=compression, **kwargs)
 
-    def keys(self, nested: bool = False, **kwargs) -> t.Iterator[str]:
+    def keys(self, nested: bool = False, compression: t.Union[str, None] = "gzip", **kwargs) -> t.Iterator[str]:
         """Yields all shard keys in the store."""
         for k in super().keys(nested=nested, **kwargs):
-            # we only set .gz files, so we only read .gz files
-            if k.endswith(".gz"):
-                yield k.rsplit(".gz", 1)[0]
+            # only return those that have valid and supported compression extension
+            if fsspec.utils.infer_compression(k) == compression:
+                yield k

@@ -1,4 +1,5 @@
 import tempfile
+import pytest
 
 import torch.utils.data as tud
 
@@ -41,7 +42,8 @@ def test_clean_store() -> None:
         assert len(list(store.keys())) == 0
 
 
-def test_shard_no_key() -> None:
+@pytest.mark.parametrize("compression", ["gzip", "zip", "xz", None])
+def test_shard_no_key(compression) -> None:
     """Test if samples and shards are correctly written to and retrieved from SquirrelStore when key is not given"""
     num = 15
     num_shards = 5
@@ -53,11 +55,11 @@ def test_shard_no_key() -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         store = SquirrelStore(tmp_dir, serializer=MessagepackSerializer())
         for k, sh in enumerate(shards):
-            store.set(value=sh, key=str(k))
+            store.set(value=sh, key=str(k), compression=compression)
 
         keys_ = []
         samples_ = []
-        for k in store.keys():
+        for k in store.keys(compression=compression):
             keys_.append(k)
             for sample in store.get(k):
                 samples_.append(sample)

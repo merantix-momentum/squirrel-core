@@ -93,11 +93,11 @@ class JsonSerializer(SquirrelSerializer):
             fs (AbstractFileSystem, optional): Filesystem to use for opening the file. If not provided, `fsspec` will
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "wb".
-            **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`. `open_kwargs` will always have
-                `compression="gzip"` set.
+            **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`.
+                `open_kwargs` will always have `compression="infer"` set.
         """
         open_kwargs["mode"] = mode
-        open_kwargs["compression"] = "gzip"
+        open_kwargs["compression"] = "infer"
 
         if fs is None:
             fs = fsspec
@@ -118,14 +118,14 @@ class JsonSerializer(SquirrelSerializer):
             fs (AbstractFileSystem, optional): Filesystem to use for opening the file. If not provided, `fsspec` will
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "rb".
-            **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`. `open_kwargs` will always have
-                `compression="gzip"` set.
+            **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`.
+                `open_kwargs` will always have `compression="infer"` set.
 
         Yields:
             (Any) Values of the samples of the shard.
         """
         open_kwargs["mode"] = mode
-        open_kwargs["compression"] = "gzip"
+        open_kwargs["compression"] = "infer"
 
         if fs is None:
             fs = fsspec
