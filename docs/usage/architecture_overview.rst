@@ -3,10 +3,10 @@ Architecture overview
 
 There are four modules in squirrel which are instrumental in understanding the architecture and the overall design:
 
-* :ref:`usage/catalog`: organizing, accessing, and sharing datasets.
-* :ref:`usage/driver`: performant and convenient read.
-* :ref:`usage/iterstream`: :py:class:`Composable` is the foundational building block in the :ref:`iterstream` module which provides a mechanism to chain iterables, and a fluent api that includes methods such as `map`, `filter`, and `async_map`.
-* :ref:`usage/store`: a key/value abstraction for reading data from and writing data to arbitrary storage backends such as filesystem, object store, database, etc.
+* :doc:`./catalog`: organizing, accessing, and sharing datasets.
+* :doc:`./driver`: performant and convenient read.
+* :doc:`./Iterstream`: :py:class:`Composable` is the foundational building block in the :ref:`iterstream` module which provides a mechanism to chain iterables, and a fluent api that includes methods such as `map`, `filter`, and `async_map`.
+* :doc:`./store`: a key/value abstraction for reading data from and writing data to arbitrary storage backends such as filesystem, object store, database, etc.
 
 These modules are designed in a way that `can` be
 used together, but this is not enforced in order to maximize flexibility. This may make it difficult to realize the
