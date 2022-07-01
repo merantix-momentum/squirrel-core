@@ -3,10 +3,10 @@ Architecture overview
 
 There are four modules in squirrel which are instrumental in understanding the architecture and the overall design:
 
-* :ref:`catalog`: organizing, accessing, and sharing datasets.
-* :ref:`driver`: performant and convenient read.
-* :ref:`iterstream`: :py:class:`Composable` is the foundational building block in the :ref:`iterstream` module which provides a mechanism to chain iterables, and a fluent api that includes methods such as `map`, `filter`, and `async_map`.
-* :ref:`store`: a key/value abstraction for reading data from and writing data to arbitrary storage backends such as filesystem, object store, database, etc.
+* :ref:`usage/catalog:Catalog`: organizing, accessing, and sharing datasets.
+* :ref:`usage/driver:Driver`: performant and convenient read.
+* :ref:`usage/iterstream:IterStream`: :py:class:`Composable` is the foundational building block in the :ref:`usage/iterstream:IterStream` module which provides a mechanism to chain iterables, and a fluent api that includes methods such as `map`, `filter`, and `async_map`.
+* :ref:`usage/store:Store`: a key/value abstraction for reading data from and writing data to arbitrary storage backends such as filesystem, object store, database, etc.
 
 These modules are designed in a way that `can` be
 used together, but this is not enforced in order to maximize flexibility. This may make it difficult to realize the
@@ -31,10 +31,10 @@ Here is a complete data loading pipeline:
 
 
 A :py:class:`Catalog` contains zero to many :py:class:`CatalogSource`\s, each of which may be retrieved by an
-identifier (or a tuple of an identifier and the version, see :ref:`catalog` for more details). :py:class:`CatalogSource`
+identifier (or a tuple of an identifier and the version, see :ref:`usage/catalog:Catalog` for more details). :py:class:`CatalogSource`
 contains all necessary information to instantiate an object of type :py:class:`Driver`. :py:class:`Driver` may have
 a method :py:meth:`get_iter` which returns an object of type :py:class:`Composable`
-(which belongs to :ref:`iterstream` module). `train_data` is an iterable that generates items lazily in a
+(which belongs to :ref:`usage/iterstream:IterStream` module). `train_data` is an iterable that generates items lazily in a
 streaming way for minimal memory footprint.
 
 .. note::
@@ -42,7 +42,7 @@ streaming way for minimal memory footprint.
 
 The following diagram illustrates a (simplified and slightly idealized) view of the relationships between these
 classes through one concrete implementation provided by squirrel. Note that here we assume
-that the data is in messagepack format (see :ref:`store` for information about different types of store).
+that the data is in messagepack format (see :ref:`usage/store:Store` for information about different types of store).
 
 .. mermaid::
 
@@ -107,4 +107,4 @@ or :py:class:`Composable` at all.
 .. note::
 
     :py:class:`CatalogSource` is an internal representation of a :py:class:`Source`. For more information on how to
-    add a :py:class:`Source` to a catalog, please refer to :ref:`catalog`.
+    add a :py:class:`Source` to a catalog, please refer to :ref:`usage/catalog:Catalog`.

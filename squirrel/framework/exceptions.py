@@ -1,7 +1,3 @@
-class EmptyQueueException(Exception):
-    pass
-
-
 class SourceExistsError(Exception):
     pass
 

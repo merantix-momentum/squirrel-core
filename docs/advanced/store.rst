@@ -1,7 +1,8 @@
 Store
 =====
-Architecture
-____________
+
+Architectural Overview
+----------------------
 In the UML diagram below we show how the SquirrelStore connects to its abstract class and different serializers.
 
 .. mermaid::
@@ -38,8 +39,6 @@ In the UML diagram below we show how the SquirrelStore connects to its abstract 
 
        class JSONSerializer {
        }
-
-
 
 Serialization
 --------------
