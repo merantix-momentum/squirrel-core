@@ -97,7 +97,7 @@ which is a good choice when performing cpu-bound operations on a single machine.
 
 The argument `max_workers` defines the maximum number of workers/threads the
 :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
-uses when `exectuor=None`.
+uses when `executor=None`.
 By default, `max_workers=None` relies on an internal heuristic of
 the :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
 to select a reasonable upper bound.
@@ -105,7 +105,7 @@ This may differ between Python versions.
 See the documentation of
 :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>` for details.
 
-In the above example, two :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`'s
+In the above example, two :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`\s
 are created, one with an upper bound of 4 threads and the other with a *smart* upper bound.
 After the iterator is exhausted, both of these pools will be closed.
 
