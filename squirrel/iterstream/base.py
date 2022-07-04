@@ -158,7 +158,8 @@ class Composable:
         Args:
             callback (Callable): a callable to be applied to items in the stream
             buffer (int): the size of the buffer
-            max_workers (int): number of workers in the :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`.
+            max_workers (int): number of workers in the
+                :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`.
                 `max_workers` is only used when `executor` is not provided, as the `executor`
                 already includes the number of `max_workers`.
             executor (concurrent.futures.Executor, dask.distributed.Client): an optional executor to be used.
@@ -190,7 +191,8 @@ class Composable:
 
         Args:
             buffer (int): size of the buffer that retrieves the data in parallel from dask
-            max_workers (int): parameter passed to the :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
+            max_workers (int): parameter passed to the
+                :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
 
         Returns (_Iterable)
         """

@@ -98,8 +98,8 @@ class MapDriver(IterDriver):
                     depending on whether `func` is a subclass of :py:meth:`~squirrel.iterstream.Composable` or a
                     `Callable`, one of the above cases will happen, with the only difference that arguments are passed
                     too. This is useful for passing arguments.
-            max_workers (int, optional): If `max_workers` is equal to 0 or 1, :py:meth:`~squirrel.iterstream.Composable.map`
-                is called to fetch the items iteratively.
+            max_workers (int, optional): If `max_workers` is equal to 0 or 1,
+                :py:meth:`~squirrel.iterstream.Composable.map` is called to fetch the items iteratively.
                 If `max_workers` is bigger than 1 or equal to `None`,
                 :py:meth:`~squirrel.iterstream.Composable.async_map` is called to fetch multiple items simultaneously.
                 In this case, the `max_workers` argument refers to the maximum number of
