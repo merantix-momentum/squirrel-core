@@ -42,10 +42,10 @@ class MessagepackSerializer(SquirrelSerializer):
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "wb".
             **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`.
-                `open_kwargs` will always have `compression="infer"` set.
+                By default, `open_kwargs` will have `compression="infer"`.
         """
         open_kwargs["mode"] = mode
-        open_kwargs["compression"] = "infer"
+        open_kwargs.setdefault("compression", "infer")
 
         if fs is None:
             fs = fsspec
@@ -72,13 +72,13 @@ class MessagepackSerializer(SquirrelSerializer):
             unpacker_kwargs (Dict, optional): Kwargs to be passed to `msgpack.Unpacker()`.
                 If `use_list` not given, it will be set to False.
             **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`.
-                `open_kwargs` will always have `compression="infer"` set.
+                By default, `open_kwargs` will have `compression="infer"`.
 
         Yields:
             (Any) Values of the samples of the shard.
         """
         open_kwargs["mode"] = mode
-        open_kwargs["compression"] = "infer"
+        open_kwargs.setdefault("compression", "infer")
 
         unpacker_kwargs = {} if unpacker_kwargs is None else unpacker_kwargs
         if "use_list" not in unpacker_kwargs:

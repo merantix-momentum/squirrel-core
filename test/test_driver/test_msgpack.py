@@ -53,13 +53,13 @@ def test_shard_no_key(compression) -> None:
     assert len(shards) == num_shards
     assert all(len(i) == num_samples_in_shard for i in shards)
     with tempfile.TemporaryDirectory() as tmp_dir:
-        store = SquirrelStore(tmp_dir, serializer=MessagepackSerializer())
+        store = SquirrelStore(tmp_dir, serializer=MessagepackSerializer(), compression=compression)
         for k, sh in enumerate(shards):
-            store.set(value=sh, key=str(k), compression=compression)
+            store.set(value=sh, key=str(k))
 
         keys_ = []
         samples_ = []
-        for k in store.keys(compression=compression):
+        for k in store.keys():
             keys_.append(k)
             for sample in store.get(k):
                 samples_.append(sample)

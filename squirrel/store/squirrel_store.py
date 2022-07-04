@@ -13,7 +13,14 @@ if t.TYPE_CHECKING:
 class SquirrelStore(FilesystemStore):
     """FilesystemStore that persist samples (Dict objects) or shards (i.e. list of samples)."""
 
-    def __init__(self, url: str, serializer: SquirrelSerializer, clean: bool = False, **storage_options) -> None:
+    def __init__(
+        self,
+        url: str,
+        serializer: SquirrelSerializer,
+        clean: bool = False,
+        compression: t.Union[str, None] = "gzip",
+        **storage_options,
+    ) -> None:
         """Initializes SquirrelStore.
 
         Args:
@@ -22,9 +29,14 @@ class SquirrelStore(FilesystemStore):
                 :py:meth:`set`) and to deserialize data after reading (see :py:meth:`get`). If not specified, data will
                 not be (de)serialized. Defaults to None.
             clean (bool): If true, all files in the store will be removed recursively
+            compression (Union[str, None]): Compression method used during (de-)serialization.
+                Use `None` to use no compression at all. The supported compression algorithms
+                are given by :py:`fsspec.available_compressions`.
+                Defaults to "gzip".
             **storage_options: Keyword arguments passed to filesystem initializer.
         """
         super().__init__(url=url, serializer=serializer, clean=clean, **storage_options)
+        self.compression = compression
 
     def get(self, key: str, **kwargs) -> t.Iterator[SampleType]:
         """Yields the item with the given key.
@@ -45,19 +57,16 @@ class SquirrelStore(FilesystemStore):
         self,
         value: t.Union[SampleType, ShardType],
         key: t.Optional[str] = None,
-        compression: t.Union[str, None] = "gzip",
         **kwargs,
     ) -> None:
         """Persists a shard or sample with the given key.
 
-        Data item will be serialized before writing to a file.
+        Data item will be serialized and compressed before writing to a file.
 
         Args:
             value (Any): Shard or sample to be persisted. If `value` is a sample (i.e. not a list), it will be wrapped
                 around with a list before persisting.
             key (Optional[str]): Optional key corresponding to the item to persist.
-            compression (Union[str, None]): Compression that will be used. By defualt `gzip` compression is used.
-                Other variants are possible, including disabling compressing with `None`.
             **kwargs: Keyword arguments forwarded to :py:meth:`self.serializer.serialize_shard_to_file`.
         """
         if not isinstance(value, t.List):
@@ -67,13 +76,13 @@ class SquirrelStore(FilesystemStore):
             key = get_random_key()
         # mapping created lazily to ensure that fsspec compressions can be registered during execution
         compression_to_ext = {v: k for k, v in fsspec.utils.compressions.items()}
-        full_key = f"{key}.{compression_to_ext[compression]}" if compression is not None else f"{key}"
+        full_key = f"{key}.{compression_to_ext[self.compression]}" if self.compression is not None else f"{key}"
         fp = f"{self.url}/{full_key}"
         self.serializer.serialize_shard_to_file(value, fp, fs=self.fs, **kwargs)
 
-    def keys(self, nested: bool = False, compression: t.Union[str, None] = "gzip", **kwargs) -> t.Iterator[str]:
+    def keys(self, nested: bool = False, **kwargs) -> t.Iterator[str]:
         """Yields all shard keys in the store."""
         for k in super().keys(nested=nested, **kwargs):
             # only return those that have valid and supported compression extension
-            if fsspec.utils.infer_compression(k) == compression:
+            if fsspec.utils.infer_compression(k) == self.compression:
                 yield k

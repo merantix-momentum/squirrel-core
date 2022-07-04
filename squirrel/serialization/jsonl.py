@@ -94,10 +94,10 @@ class JsonSerializer(SquirrelSerializer):
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "wb".
             **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`.
-                `open_kwargs` will always have `compression="infer"` set.
+                By default, `open_kwargs` will have `compression="infer"`.
         """
         open_kwargs["mode"] = mode
-        open_kwargs["compression"] = "infer"
+        open_kwargs.setdefault("compression", "infer")
 
         if fs is None:
             fs = fsspec
@@ -119,13 +119,13 @@ class JsonSerializer(SquirrelSerializer):
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "rb".
             **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`.
-                `open_kwargs` will always have `compression="infer"` set.
+                By default, `open_kwargs` will have `compression="infer"`.
 
         Yields:
             (Any) Values of the samples of the shard.
         """
         open_kwargs["mode"] = mode
-        open_kwargs["compression"] = "infer"
+        open_kwargs.setdefault("compression", "infer")
 
         if fs is None:
             fs = fsspec
