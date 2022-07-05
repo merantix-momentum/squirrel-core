@@ -12,6 +12,7 @@ The :py:class:`Composable` class offers three kinds of methods for processing st
 * *Transformations* : Provide a way to apply transformations on items in the stream, such as :py:meth:`map` and :py:meth:`filter`, or manipulate the stream itself, such as :py:meth:`shuffle`, :py:meth:`batched`.
 * *Terminal* : :py:meth:`join`, py:meth:`collect`. These methods are used to consume the stream.
 
+
 Example Workflow
 ----------------
 
@@ -63,7 +64,6 @@ Items in `IterableSource` can be composed by providing a Composable in the `comp
     for item in it:
         print(item)
 
-
 To see how you can chain custom Composables with `compose()`, see the advanced section for :ref:`IterStream <advanced/iterstream:IterStream>`.
 
 Combining multiple iterables can be achieved using `IterableSamplerSource`:
@@ -83,25 +83,72 @@ Note that you can pass the probabilities of sampling from each iterator. When an
 
 Asynchronous execution
 ----------------------
-Part of the fast speed from iterstream thanks to :py:meth:`squirrel.iterstream.base.Composable.async_map`. This method carries out the callback function you specified to each item in the stream asynchronously, therefore offers a large speed-up.
+Part of the fast speed from iterstream thanks to :py:meth:`squirrel.iterstream.base.Composable.async_map`.
+This method carries out the callback function you specified to each item in the stream asynchronously, therefore offers a large speed-up.
 
 .. code-block:: python
-
-
-    from concurrent.futures import ThreadPoolExecutor
-    tpool =  ThreadPoolExecutor()
 
     def io_bound(item):
         print(f"{item} io_bound")
         time.sleep(1)
         return item
 
-    it = IterableSource([1, 2, 3]).async_map(io_bound, executor=tpool).async_map(io_bound)
+    it = IterableSource([1, 2, 3]).async_map(io_bound, max_workers=4).async_map(io_bound, max_workers=None)
     t1 = time.time()
     for i in it:
         print(i)
     print(time.time() - t1)
 
-`async_map` instantiates a :code:`concurrent.futures.ThreadPoolExecutor` if the argument `executor` is `None` (default).
-It also accepts :code:`concurrent.futures.ProcessPoolExecutor`, which is a good choice when performing cpu-bound operations on a single machine.
 
+By default, :py:meth:`async_map <squirrel.iterstream.base.Composable.async_map>`
+instantiates a :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>` (`executor=None`).
+It also accepts :py:class:`ProcessPoolExecutor <concurrent.futures.ProcessPoolExecutor>`,
+which is a good choice when performing cpu-bound operations on a single machine.
+
+The argument `max_workers` defines the maximum number of workers/threads the
+:py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
+uses when `executor=None`.
+By default, `max_workers=None` relies on an internal heuristic of
+the :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
+to select a reasonable upper bound.
+This may differ between Python versions.
+See the documentation of
+:py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>` for details.
+
+In the above example, two :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`\s
+are created, one with an upper bound of 4 threads and the other with a *smart* upper bound.
+After the iterator is exhausted, both of these pools will be closed.
+
+If `executor` is provided, no internal
+:py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>` is
+created and managed.
+As a result, `max_workers` is *ignored* since the provided `executor` already includes
+the information and the `executor` has to be manually closed.
+
+.. code-block:: python
+
+
+    from concurrent.futures import ThreadPoolExecutor
+    tpool = ThreadPoolExecutor(max_workers=4)
+
+    def io_bound(item):
+        print(f"{item} io_bound")
+        time.sleep(1)
+        return item
+
+    it = IterableSource([1, 2, 3]).async_map(io_bound, executor=tpool).async_map(io_bound, executor=tpool)
+    t1 = time.time()
+    for i in it:
+        print(i)
+    print(time.time() - t1)
+
+    # now the external pool needs to be manually closed
+    tpool.shutdown()
+
+
+In the above example, a
+:py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>` is created with
+a maximum of 4 workers.
+This pool of workers is shared among both
+:py:meth:`async_map <squirrel.iterstream.base.Composable.async_map>` calls.
+After exhausting the iterator, the `tpool` is shutdown.
