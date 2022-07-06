@@ -58,6 +58,19 @@ def test_map(samples: t.List[t.Dict]) -> None:
     assert all(i == 3 for i in res_1)
 
 
+def test_compose() -> None:
+    """Test composing without init method"""
+
+    class Add1(Composable):
+        def __iter__(self):
+            for i in self.source:
+                yield i + 1
+
+    lis = [1, 2, 3]
+    it = IterableSource(lis).compose(Add1).collect()
+    assert it == [2, 3, 4]
+
+
 def test_async_map(samples: t.List[SampleType]) -> None:
     """Test async_map"""
     res = (
