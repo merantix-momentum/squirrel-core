@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import squirrel
+import inspect
+import subprocess
 import queue
 import typing as t
 from abc import abstractmethod
@@ -226,6 +229,41 @@ class Composable:
             monitor_, callback=callback, prefix=prefix, metrics_conf=metrics_conf, window_size=window_size, **kw
         )
 
+    def _add_to_steps(self) -> None:
+        """Store the history of processing steps"""
+
+        def get_callable_name(obj: t.Any) -> str:
+            """Obtain the name of a callable with the module it is in"""
+            return f"{inspect.getmodule(obj).__name__}.{obj.__name__}" if callable(obj) else obj
+
+        class_args = dict()
+        for k, v in self.__dict__.items():
+            if k in ["source", "_steps"]:
+                continue
+            if k == "args":
+                class_args[k] = [get_callable_name(obj) for obj in v]
+            else:
+                class_args[k] = get_callable_name(v)
+
+        step = {
+            "class": get_callable_name(self.__class__),
+            "class_args": class_args,
+            "git_version": subprocess.check_output(["git", "describe"]).strip().decode(),
+            "squirrel_version": squirrel.__version__,
+        }
+
+        self._steps = self.source._steps + [step] if isinstance(self.source, Composable) else [step]
+
+    @property
+    def steps(self) -> t.List[t.Dict[str, t.Union[str, t.Dict]]]:
+        """Getter for logged steps"""
+        return self._steps
+
+    @abstractmethod
+    def __iter__(self) -> t.Iterator:
+        """Abstract iter"""
+        pass
+
 
 class _Iterable(Composable):
     """
@@ -243,11 +281,11 @@ class _Iterable(Composable):
             *args: Arguments being passed to `f`.
             **kw: Kwargs passed to `f`.
         """
-        super().__init__(source)
         assert callable(f)
         self.f = f
         self.args = args
         self.kw = kw
+        super().__init__(source)
 
     def __iter__(self) -> t.Iterator:
         """Returns the iterator that is obtained by applying `self.f` to `self.source`."""

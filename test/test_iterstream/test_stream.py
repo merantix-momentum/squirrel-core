@@ -13,11 +13,32 @@ import pytest
 import wandb
 
 from squirrel.iterstream import Composable, FilePathGenerator, IterableSamplerSource, IterableSource
+from squirrel.iterstream.torch_composables import TorchIterable
 from squirrel.iterstream.iterators import take_
 from squirrel.iterstream.metrics import MetricsConf
 
 if t.TYPE_CHECKING:
     from squirrel.constants import SampleType
+
+
+def test_streamsteps() -> None:
+    """Test logging steps when chaining Composables using map"""
+
+    def add_1(x: float) -> float:
+        """Add 1 to x"""
+        return x + 1
+
+    def mult_10(x: int) -> float:
+        """Mult 10 to x"""
+        return x * 10
+
+    it = IterableSource(samples).map(add_1).map(mult_10)
+    it1 = it.source
+    it2 = it.compose(TorchIterable).tqdm().loop()
+    assert len(it.steps) == 3
+    assert len(it1.steps) == 2
+    assert len(it2.steps) == 6
+    assert "TorchIterable" in it2.steps[3]["class"]
 
 
 def test_iterablesource() -> None:
