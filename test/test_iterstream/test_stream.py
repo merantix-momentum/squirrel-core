@@ -32,13 +32,23 @@ def test_streamsteps() -> None:
         """Mult 10 to x"""
         return x * 10
 
+    # test steps length
     it = IterableSource(samples).map(add_1).map(mult_10)
     it1 = it.source
     it2 = it.compose(TorchIterable).tqdm().loop()
     assert len(it.steps) == 3
     assert len(it1.steps) == 2
     assert len(it2.steps) == 6
-    assert "TorchIterable" in it2.steps[3]["class"]
+
+    # test composable subclasses
+    it3 = IterableSource(samples).async_map(add_1)
+    it4 = IterableSamplerSource([it, it1])
+    it5 = IterableSource(samples).loop(n=2)
+    it6 = IterableSource(samples).compose(TorchIterable)
+    assert "_AsyncMap" in it3.steps[1]['class']
+    assert "IterableSamplerSource" in it4.steps[0]['class']
+    assert "_LoopIterable" in it5.steps[1]['class']
+    assert "TorchIterable" in it6.steps[1]["class"]
 
 
 def test_iterablesource() -> None:

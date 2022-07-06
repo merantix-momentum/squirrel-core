@@ -34,7 +34,7 @@ class Composable:
     def __init__(self, source: t.Optional[t.Union[t.Iterable, t.Callable]] = None):
         """Init"""
         self.source = source
-        self._add_to_steps()
+        self._steps = None
 
     @abstractmethod
     def __iter__(self) -> t.Iterator:
@@ -61,11 +61,11 @@ class Composable:
         return self.to(filter_, predicate)
 
     def async_map(
-        self,
-        callback: t.Callable,
-        buffer: int = 100,
-        max_workers: t.Optional[int] = None,
-        executor: t.Optional[Executor] = None,
+            self,
+            callback: t.Callable,
+            buffer: int = 100,
+            max_workers: t.Optional[int] = None,
+            executor: t.Optional[Executor] = None,
     ) -> "_AsyncMap":
         """
         Applies the `callback` to the item in the self and returns the result.
@@ -131,7 +131,7 @@ class Composable:
         return self.to(flatten_)
 
     def batched(
-        self, batchsize: int, collation_fn: t.Optional[t.Callable] = None, drop_last_if_not_full: bool = True
+            self, batchsize: int, collation_fn: t.Optional[t.Callable] = None, drop_last_if_not_full: bool = True
     ) -> _Iterable:
         """Batch items in the stream.
 
@@ -199,12 +199,12 @@ class Composable:
         return self.to(tqdm_, **kw)
 
     def monitor(
-        self,
-        callback: t.Callable[[MetricsType], t.Any],
-        prefix: t.Optional[str] = None,
-        metrics_conf: MetricsConf = MetricsConf,
-        window_size: int = 5,
-        **kw,
+            self,
+            callback: t.Callable[[MetricsType], t.Any],
+            prefix: t.Optional[str] = None,
+            metrics_conf: MetricsConf = MetricsConf,
+            window_size: int = 5,
+            **kw,
     ) -> _Iterable:
         """Iterate through an iterable and calculate the metrics based on a rolling window. Notice that you can
         configure metrics to output only IOPS or throughput or None. All metrics are by default turned on and
@@ -258,17 +258,14 @@ class Composable:
             "squirrel_version": squirrel.__version__,
         }
 
-        self._steps = self.source._steps + [step] if isinstance(self.source, Composable) else [step]
+        self._steps = self.source.steps + [step] if isinstance(self.source, Composable) else [step]
 
     @property
     def steps(self) -> t.List[t.Dict[str, t.Union[str, t.Dict]]]:
         """Getter for logged steps"""
+        if self._steps is None:
+            self._add_to_steps()
         return self._steps
-
-    @abstractmethod
-    def __iter__(self) -> t.Iterator:
-        """Abstract iter"""
-        pass
 
 
 class _Iterable(Composable):
@@ -288,10 +285,10 @@ class _Iterable(Composable):
             **kw: Kwargs passed to `f`.
         """
         assert callable(f)
+        super().__init__(source)
         self.f = f
         self.args = args
         self.kw = kw
-        super().__init__(source)
 
     def __iter__(self) -> t.Iterator:
         """Returns the iterator that is obtained by applying `self.f` to `self.source`."""
@@ -326,12 +323,12 @@ class _LoopIterable(Composable):
 
 class _AsyncMap(Composable):
     def __init__(
-        self,
-        source: t.Iterable,
-        callback: t.Callable,
-        buffer: int = 100,
-        max_workers: t.Optional[int] = None,
-        executor: t.Optional[Executor] = None,
+            self,
+            source: t.Iterable,
+            callback: t.Callable,
+            buffer: int = 100,
+            max_workers: t.Optional[int] = None,
+            executor: t.Optional[Executor] = None,
     ):
         """A class that applies a `callback` asynchronously to the items in the `dataset`, using thread pool executor"""
         super().__init__(source)
