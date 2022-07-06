@@ -340,7 +340,7 @@ class _AsyncMap(Composable):
                 break
 
             # yield sample
-            yield self.queue.get().result()
+            yield self.queue.get().value()
 
     def _dask_iter(self, it: t.Iterator) -> t.Iterator:
         sentinel = object()
@@ -398,7 +398,7 @@ class AsyncContent:
         self.stack = 1
         self.future = executor.submit(func, item)
 
-    def result(self, timeout: int = None) -> t.Any:
+    def value(self, timeout: int = None) -> t.Any:
         """Get the value asynchronously.
 
         Args:

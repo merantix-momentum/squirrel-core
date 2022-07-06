@@ -40,7 +40,7 @@ class IterableSource(Composable):
             yield from self.source
 
 
-class FilePathGenerator(IterableSource):
+class FilePathGenerator(Composable):
     """
     A specialized version of IterableSource that accepts a url without instantiating it eagerly. It simply generates
     directories under the given `url` by instantiating a fsspec filesystem and yielding the result of fs.ls(url).
