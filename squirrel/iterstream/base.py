@@ -61,11 +61,11 @@ class Composable:
         return self.to(filter_, predicate)
 
     def async_map(
-            self,
-            callback: t.Callable,
-            buffer: int = 100,
-            max_workers: t.Optional[int] = None,
-            executor: t.Optional[Executor] = None,
+        self,
+        callback: t.Callable,
+        buffer: int = 100,
+        max_workers: t.Optional[int] = None,
+        executor: t.Optional[Executor] = None,
     ) -> "_AsyncMap":
         """
         Applies the `callback` to the item in the self and returns the result.
@@ -131,7 +131,7 @@ class Composable:
         return self.to(flatten_)
 
     def batched(
-            self, batchsize: int, collation_fn: t.Optional[t.Callable] = None, drop_last_if_not_full: bool = True
+        self, batchsize: int, collation_fn: t.Optional[t.Callable] = None, drop_last_if_not_full: bool = True
     ) -> _Iterable:
         """Batch items in the stream.
 
@@ -199,12 +199,12 @@ class Composable:
         return self.to(tqdm_, **kw)
 
     def monitor(
-            self,
-            callback: t.Callable[[MetricsType], t.Any],
-            prefix: t.Optional[str] = None,
-            metrics_conf: MetricsConf = MetricsConf,
-            window_size: int = 5,
-            **kw,
+        self,
+        callback: t.Callable[[MetricsType], t.Any],
+        prefix: t.Optional[str] = None,
+        metrics_conf: MetricsConf = MetricsConf,
+        window_size: int = 5,
+        **kw,
     ) -> _Iterable:
         """Iterate through an iterable and calculate the metrics based on a rolling window. Notice that you can
         configure metrics to output only IOPS or throughput or None. All metrics are by default turned on and
@@ -249,7 +249,7 @@ class Composable:
         try:
             git_version = subprocess.check_output(["git", "describe"]).strip().decode()
         except subprocess.SubprocessError:
-            git_version = 'git unavailable'
+            git_version = "git unavailable"
 
         step = {
             "class": get_callable_name(self.__class__),
@@ -323,12 +323,12 @@ class _LoopIterable(Composable):
 
 class _AsyncMap(Composable):
     def __init__(
-            self,
-            source: t.Iterable,
-            callback: t.Callable,
-            buffer: int = 100,
-            max_workers: t.Optional[int] = None,
-            executor: t.Optional[Executor] = None,
+        self,
+        source: t.Iterable,
+        callback: t.Callable,
+        buffer: int = 100,
+        max_workers: t.Optional[int] = None,
+        executor: t.Optional[Executor] = None,
     ):
         """A class that applies a `callback` asynchronously to the items in the `dataset`, using thread pool executor"""
         super().__init__(source)
