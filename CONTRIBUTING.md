@@ -1,1 +1,1 @@
-Check out [contribution guide](https://squirrel-core.readthedocs.io/en/latest/usage/contribute.html) in the official documentation.
+Check out [contribution guide](https://squirrel-core.readthedocs.io/en/latest/developer/contribute.html) in the official documentation.

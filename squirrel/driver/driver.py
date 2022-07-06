@@ -98,10 +98,16 @@ class MapDriver(IterDriver):
                     depending on whether `func` is a subclass of :py:meth:`~squirrel.iterstream.Composable` or a
                     `Callable`, one of the above cases will happen, with the only difference that arguments are passed
                     too. This is useful for passing arguments.
-            max_workers (int, Optional): If larger than 1 or None, :py:meth:`~squirrel.iterstream.Composable.async_map`
-                is called to fetch multiple items simultaneously and `max_workers` refers to the maximum number of
-                workers in the ThreadPoolExecutor used by `async_map`.
-                Otherwise, :py:meth:`~squirrel.iterstream.Composable.map` is called and `max_workers` is not used.
+            max_workers (int, optional): If `max_workers` is equal to 0 or 1,
+                :py:meth:`~squirrel.iterstream.Composable.map` is called to fetch the items iteratively.
+                If `max_workers` is bigger than 1 or equal to `None`,
+                :py:meth:`~squirrel.iterstream.Composable.async_map` is called to fetch multiple items simultaneously.
+                In this case, the `max_workers` argument refers to the maximum number of
+                workers in the :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
+                Pool of :py:meth:`~squirrel.iterstream.Composable.async_map`.
+                `None` has a special meaning in this context and uses an internal heuristic for the number of workers.
+                The exact number of workers with `max_workers=None` depends on the specific Python version.
+                See :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>` for details.
                 Defaults to None.
             prefetch_buffer (int): Size of the buffer used for prefetching items if `async_map` is used. See
                 `max_workers` for more details. Please be aware of the memory footprint when setting this parameter.

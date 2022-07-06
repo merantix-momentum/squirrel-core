@@ -158,14 +158,22 @@ class Composable:
         Args:
             callback (Callable): a callable to be applied to items in the stream
             buffer (int): the size of the buffer
-            max_workers (int): number of workers in the ThreadPoolExecutor
+            max_workers (int): number of workers in the
+                :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`.
+                `max_workers` is only used when `executor` is not provided, as the `executor`
+                already includes the number of `max_workers`.
             executor (concurrent.futures.Executor, dask.distributed.Client): an optional executor to be used.
-                By default a ThreadPoolExecutor is created, if no executor is provided. If you need a
-                ProcessPoolExecutor, you can explicitly provide it here. It is also useful when chaining multiple
-                async_map; you can pass the same executor to each async_map to share resources. If
-                dask.distributed.Client is passes, tasks will be executed with the provided client (local or remote).
+                By default a :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
+                is created, if no executor is provided. If you need a
+                :py:class:`ProcessPoolExecutor <concurrent.futures.ProccessPoolExecutor>`,
+                you can explicitly provide it here. It is also useful when chaining multiple
+                `async_map`; you can pass the same `executor` to each `async_map` to share resources. If
+                `dask.distributed.Client` is passed, tasks will be executed with the provided client (local or remote).
+
                 **Note** if the executor is provided, it will not be closed in this function even after the iterator
-                is exhausted. **Note** if executor is provided, the arguments `max_worker` will be ignored. You should
+                is exhausted.
+
+                **Note** if executor is provided, the argument `max_workers` will be ignored. You should
                 specify this in the executor that is being passed.
 
         Returns (_AsyncMap)
@@ -183,7 +191,8 @@ class Composable:
 
         Args:
             buffer (int): size of the buffer that retrieves the data in parallel from dask
-            max_workers (int): parameter passed to the ThreadPoolExecutor
+            max_workers (int): parameter passed to the
+                :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`
 
         Returns (_Iterable)
         """
@@ -193,7 +202,8 @@ class Composable:
         """
         The iterator will be wrapped inside a `numba.jit` decorator to speed up the iteration.
         However, this is quite different from the standard asynchronous speed-up and does not always guarantee
-        a better performance than the normal `ThreadPoolExecutor`, so please use with caution.
+        a better performance than the normal :py:class:`ThreadPoolExecutor <concurrent.futures.ThreadPoolExecutor>`,
+        so please use with caution.
 
         Args:
             callback (Callable): a callback to be applied to each item in the stream
