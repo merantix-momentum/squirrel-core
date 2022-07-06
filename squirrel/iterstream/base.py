@@ -34,6 +34,7 @@ class Composable:
     def __init__(self, source: t.Optional[t.Union[t.Iterable, t.Callable]] = None):
         """Init"""
         self.source = source
+        self._add_to_steps()
 
     @abstractmethod
     def __iter__(self) -> t.Iterator:
@@ -245,10 +246,15 @@ class Composable:
             else:
                 class_args[k] = get_callable_name(v)
 
+        try:
+            git_version = subprocess.check_output(["git", "describe"]).strip().decode()
+        except subprocess.SubprocessError:
+            git_version = 'git unavailable'
+
         step = {
             "class": get_callable_name(self.__class__),
             "class_args": class_args,
-            "git_version": subprocess.check_output(["git", "describe"]).strip().decode(),
+            "git_version": git_version,
             "squirrel_version": squirrel.__version__,
         }
 
