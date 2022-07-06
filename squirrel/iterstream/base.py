@@ -241,7 +241,6 @@ class _Iterable(Composable):
             f (Callable): A callable to be applied to the iterator, which is built from `source`. Must return an
                 iterator.
             *args: Arguments being passed to `f`.
-            _kwa (Dict): Dictionary of arguments, which can be used to update the kwargs (i.e. **kw).
             **kw: Kwargs passed to `f`.
         """
         super().__init__(source)
