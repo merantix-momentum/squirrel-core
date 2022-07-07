@@ -18,7 +18,6 @@ class SquirrelStore(FilesystemStore):
         url: str,
         serializer: SquirrelSerializer,
         clean: bool = False,
-        compression_set_default: t.Union[str, None] = "gzip",
         **storage_options,
     ) -> None:
         """Initializes SquirrelStore.
@@ -29,14 +28,9 @@ class SquirrelStore(FilesystemStore):
                 :py:meth:`set`) and to deserialize data after reading (see :py:meth:`get`). If not specified, data will
                 not be (de)serialized. Defaults to None.
             clean (bool): If true, all files in the store will be removed recursively
-            compression_set_default (Union[str, None]): Default compression method used during `set` (serialization).
-                Use `None` to use no compression at all. The supported compression algorithms
-                are given by :py:`fsspec.available_compressions`.
-                Defaults to "gzip".
             **storage_options: Keyword arguments passed to filesystem initializer.
         """
         super().__init__(url=url, serializer=serializer, clean=clean, **storage_options)
-        self.compression_set_default = compression_set_default
 
     def get(self, key: str, **kwargs) -> t.Iterator[SampleType]:
         """Yields the item with the given key.
@@ -57,12 +51,11 @@ class SquirrelStore(FilesystemStore):
         self,
         value: t.Union[SampleType, ShardType],
         key: t.Optional[str] = None,
+        compression: t.Optional[str] = "gzip",
         **kwargs,
-    ) -> None:
+    ) -> str:
         """Persists a shard or sample with the given key.
         The provided key will be extended by the extension of the selected compression method.
-        By default, the compression method defined in `self.compression_set_default` is used.
-        To use a different compression method, provide `compression` as a keyword argument.
 
         Data item will be serialized and compressed before writing to a file.
 
@@ -70,7 +63,16 @@ class SquirrelStore(FilesystemStore):
             value (Any): Shard or sample to be persisted. If `value` is a sample (i.e. not a list), it will be wrapped
                 around with a list before persisting.
             key (Optional[str]): Optional key corresponding to the item to persist.
+                `key` may not contain `.` (dot) in the filename!
+            compression (Union[str, None]): Default compression method.
+                Use `None` to use no compression at all. The supported compression algorithms
+                are given by :py:`fsspec.available_compressions`.
+                Forwarded as keyword argument to :py:meth:`self.serializer.serialize_shard_to_file`.
+                Defaults to "gzip".
             **kwargs: Keyword arguments forwarded to :py:meth:`self.serializer.serialize_shard_to_file`.
+
+        Returns:
+            (str) full key; key with the inferred compression extension
         """
         if not isinstance(value, t.List):
             value = [value]
@@ -78,17 +80,18 @@ class SquirrelStore(FilesystemStore):
         if key is None:
             key = get_random_key()
 
-        # TODO: Discuss restriction that key is not allowed to contain `.`
-        # otherwise there is no way to guarantee that `compression=None` can be
-        # retrieved from this key after setting it.
-        compression = kwargs.get("compression", self.compression_set_default)
+        if "." in key:
+            # otherwise there is no way to guarantee that `compression=None` can be
+            # retrieved from this key after setting it.
+            raise ValueError("`key` contains the illegal character `.`")
         # mapping created lazily to ensure that fsspec compressions can be registered during execution
         compression_to_ext = {v: k for k, v in fsspec.utils.compressions.items()}
         full_key = f"{key}.{compression_to_ext[compression]}" if compression is not None else f"{key}"
         fp = f"{self.url}/{full_key}"
-        self.serializer.serialize_shard_to_file(value, fp, fs=self.fs, **kwargs)
+        self.serializer.serialize_shard_to_file(value, fp, fs=self.fs, compression=compression, **kwargs)
         # TODO: Discuss if we would like to return the full-key
         # As this would make it probably easier to test the functionality
+        return full_key
 
     def keys(self, nested: bool = False, **kwargs) -> t.Iterator[str]:
         """Yields all shard keys in the store."""
