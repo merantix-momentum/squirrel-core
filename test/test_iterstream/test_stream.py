@@ -21,7 +21,7 @@ if t.TYPE_CHECKING:
     from squirrel.constants import SampleType
 
 
-def test_streamsteps(samples) -> None:
+def test_streamsteps(samples: t.List[t.Dict]) -> None:
     """Test logging steps when chaining Composables using map"""
 
     def add_1(x: float) -> float:
