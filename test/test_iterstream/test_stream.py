@@ -45,9 +45,9 @@ def test_streamsteps(samples) -> None:
     it4 = IterableSamplerSource([it, it1])
     it5 = IterableSource(samples).loop(n=2)
     it6 = IterableSource(samples).compose(TorchIterable)
-    assert "_AsyncMap" in it3.steps[1]["class"]
-    assert "IterableSamplerSource" in it4.steps[0]["class"]
-    assert "_LoopIterable" in it5.steps[1]["class"]
+    assert "_AsyncMap" in (step := it3.steps[1])["class"] and "buffer" in step["class_args"]
+    assert "IterableSamplerSource" in (step := it4.steps[0])["class"] and "probs" in step["class_args"]
+    assert "_LoopIterable" in (step := it5.steps[1])["class"] and "n" in step["class_args"]
     assert "TorchIterable" in it6.steps[1]["class"]
 
 
