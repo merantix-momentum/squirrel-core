@@ -29,7 +29,7 @@ def test_streamsteps(samples) -> None:
         return x + 1
 
     def mult_10(x: int) -> float:
-        """Mult 10 to x"""
+        """Mult x with 10"""
         return x * 10
 
     # test steps length
