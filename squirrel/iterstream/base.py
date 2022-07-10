@@ -233,26 +233,29 @@ class Composable:
     def _add_to_steps(self) -> t.List[t.Dict[str, t.Any]]:
         """Store the history of processing steps"""
 
-        def get_callable_name(obj: t.Any) -> str:
-            """Obtain the name of a callable with the module it is in"""
-            return f"{inspect.getmodule(obj).__name__}.{obj.__name__}" if callable(obj) else obj
-
-        class_args = dict()
-        for k, v in self.__dict__.items():
-            if k in ["source", "_steps"]:
-                continue
-            if k == "args":
-                class_args[k] = [get_callable_name(obj) for obj in v]
+        def get_obj_info(obj: t.Any, info: t.Dict) -> str:
+            if isinstance(callable(obj)):
+                return f"{inspect.getmodule(obj).__name__}.{obj.__name__}"
+            elif hasattr(obj, "__len__"):
+                return f"Collection of length {len(obj)}"
             else:
-                class_args[k] = get_callable_name(v)
+                return str(obj)
 
-        step = {"class": get_callable_name(self.__class__), "class_args": class_args}
+        self._step = [
+            {
+                "class": get_obj_info(self.__class__),
+                "args": [get_obj_info(arg) for arg in self.__dict__["args"]],
+                "kwargs": {k: get_obj_info(arg) for k, arg in self.__dict__["kwargs"].items()},
+            }
+        ]
+
         if isinstance(self.source, Composable):
-            self._steps = self.source._add_to_steps() + [step]
+            self._steps += self.source._add_to_steps()
         else:
             source_info = {
                 "type": type(self.source).__name__,
                 "length": len(self.source) if hasattr(self.source, "__len__") else None,
+                "callable": get_obj_info(self.source),
             }
             self._steps["source_info"] = source_info
         return self._steps
