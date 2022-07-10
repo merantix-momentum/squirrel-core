@@ -230,7 +230,7 @@ class Composable:
             monitor_, callback=callback, prefix=prefix, metrics_conf=metrics_conf, window_size=window_size, **kw
         )
 
-    def _add_to_steps(self) -> None:
+    def _add_to_steps(self) -> t.List[t.Dict[str, t.Any]]:
         """Store the history of processing steps"""
 
         def get_callable_name(obj: t.Any) -> str:
@@ -246,26 +246,27 @@ class Composable:
             else:
                 class_args[k] = get_callable_name(v)
 
+        step = {"class": get_callable_name(self.__class__), "class_args": class_args}
+        if isinstance(self.source, Composable):
+            self._steps = self.source._add_to_steps() + [step]
+        else:
+            source_info = {
+                "type": type(self.source).__name__,
+                "length": len(self.source) if hasattr(self.source, "__len__") else None,
+            }
+            self._steps["source_info"] = source_info
+        return self._steps
+
+    @property
+    def steps(self) -> t.Dict[str, t.Any]:
+        """Getter for logged steps"""
+        if self._steps is None:
+            self._add_to_steps()
         try:
             git_version = subprocess.check_output(["git", "describe"]).strip().decode()
         except subprocess.SubprocessError:
             git_version = "git unavailable"
-
-        step = {
-            "class": get_callable_name(self.__class__),
-            "class_args": class_args,
-            "git_version": git_version,
-            "squirrel_version": squirrel.__version__,
-        }
-
-        self._steps = self.source.steps + [step] if isinstance(self.source, Composable) else [step]
-
-    @property
-    def steps(self) -> t.List[t.Dict[str, t.Union[str, t.Dict]]]:
-        """Getter for logged steps"""
-        if self._steps is None:
-            self._add_to_steps()
-        return self._steps
+        return {"steps": self._steps, "git_version": git_version, "squirrel_version": squirrel.__version__}
 
 
 class _Iterable(Composable):
