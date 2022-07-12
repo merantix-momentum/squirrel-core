@@ -59,16 +59,39 @@ def test_map(samples: t.List[t.Dict]) -> None:
 
 
 def test_compose() -> None:
-    """Test composing without init method"""
+    """Test composing with different init methods"""
 
     class Add1(Composable):
+        # use default constructor, supported by compose
         def __iter__(self):
             for i in self.source:
                 yield i + 1
 
+    class Add2(Composable):
+        # use constructor without source, supported by compose
+        def __init__(self):
+            super().__init__()
+
+        def __iter__(self):
+            for i in self.source:
+                yield i + 2
+
+    class Add3(Composable):
+        # use constructor with source, not supported by compose
+        def __init__(self, source: t.Union[t.Iterable, t.Callable]):
+            super().__init__(source)
+
+        def __iter__(self):
+            for i in self.source:
+                yield i + 3
+
     lis = [1, 2, 3]
     it = IterableSource(lis).compose(Add1).collect()
+    it1 = IterableSource(lis).compose(Add2).collect()
+    with pytest.raises(AssertionError):
+        IterableSource(lis).compose(Add3).collect()
     assert it == [2, 3, 4]
+    assert it1 == [3, 4, 5]
 
 
 def test_async_map(samples: t.List[SampleType]) -> None:
