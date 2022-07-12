@@ -245,18 +245,26 @@ class Composable:
                 info = str(obj)
             return info
 
-        step = {
-            "class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}",
-        }
+        step = {"class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}", "param": dict()}
+        for att_key, att in self.__dict__.items():
+            if att_key in ["source", "_steps"]:
+                continue
+            elif isinstance(att, list):
+                step["param"]["args"] = [get_obj_info(arg) for arg in self.__dict__[att_key]]
+            elif isinstance(att, dict):
+                step["param"]["kw"] = {k: get_obj_info(v) for k, v in self.__dict__[att_key].items()}
+            else:
+                step["param"][att_key] = get_obj_info(self.__dict__[att_key])
+
         if isinstance(self.source, Composable):
-            self._steps += self.source._add_to_steps() + [step]
+            self._steps = self.source._add_to_steps() + [step]
         else:
             step["source"] = get_obj_info(self.source)
             self._steps = [step]
         return self._steps
 
     @property
-    def steps(self) -> t.Dict[str, t.Any]:
+    def info(self) -> t.Dict[str, t.Any]:
         """Getter for logged steps"""
         if self._steps is None:
             self._add_to_steps()

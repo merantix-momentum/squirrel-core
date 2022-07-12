@@ -38,26 +38,25 @@ def test_streamsteps(samples: t.List[t.Dict]) -> None:
         return x * 10
 
     # test steps length
-    it1 = IterableSource(samples)
-    it1.steps
     it = IterableSource(samples).map(add_1).map(mult_10)
     it1 = it.source
     it2 = it.compose(TorchIterable).tqdm().loop()
-    assert len(it.steps) == 3
-    assert len(it1.steps) == 2
-    assert len(it2.steps) == 6
+    assert len(it.info["steps"]) == 3
+    assert len(it1.info["steps"]) == 2
+    assert len(it2.info["steps"]) == 6
 
     # test composable subclasses
     it3 = IterableSource(samples).async_map(add_1)
+    it3.info
     it4 = IterableSamplerSource([it, it1])
     it5 = IterableSource(samples).loop(n=2)
     it6 = IterableSource(samples).compose(TorchIterable)
     it7 = IterableSource(samples).compose(Add1)
-    assert len(it7.steps) == 2
-    assert "_AsyncMap" in (step := it3.steps[1])["class"] and "buffer" in step["class_args"]
-    assert "IterableSamplerSource" in (step := it4.steps[0])["class"] and "probs" in step["class_args"]
-    assert "_LoopIterable" in (step := it5.steps[1])["class"] and "n" in step["class_args"]
-    assert "TorchIterable" in it6.steps[1]["class"]
+    assert len(it7.info["steps"]) == 2
+    assert "_AsyncMap" in (step := it3.info["steps"][1])["class"] and "buffer" in step["param"]
+    assert "IterableSamplerSource" in (step := it4.info["steps"][0])["class"] and "probs" in step["param"]
+    assert "_LoopIterable" in (step := it5.info["steps"][1])["class"] and "n" in step["param"]
+    assert "TorchIterable" in it6.info["steps"][1]["class"]
 
 
 def test_iterablesource() -> None:
