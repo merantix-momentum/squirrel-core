@@ -246,13 +246,13 @@ class Composable:
             return info
 
         step = {"class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}", "param": dict()}
-        for att_key, att in self.__dict__.items():
+        for att_key in self.__dict__:
             if att_key in ["source", "_steps"]:
                 continue
-            elif isinstance(att, list):
-                step["param"]["args"] = [get_obj_info(arg) for arg in self.__dict__[att_key]]
-            elif isinstance(att, dict):
-                step["param"]["kw"] = {k: get_obj_info(v) for k, v in self.__dict__[att_key].items()}
+            elif att_key == "args":
+                step["param"][att_key] = [get_obj_info(arg) for arg in self.__dict__[att_key]]
+            elif att_key in ["kwargs", "kw"]:
+                step["param"][att_key] = {k: get_obj_info(v) for k, v in self.__dict__[att_key].items()}
             else:
                 step["param"][att_key] = get_obj_info(self.__dict__[att_key])
 
