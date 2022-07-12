@@ -24,6 +24,11 @@ if t.TYPE_CHECKING:
 def test_streamsteps(samples: t.List[t.Dict]) -> None:
     """Test logging steps when chaining Composables using map"""
 
+    class Add1(Composable):
+        def __iter__(self):
+            for i in self.source:
+                yield i + 1
+
     def add_1(x: float) -> float:
         """Add 1 to x"""
         return x + 1
@@ -45,6 +50,8 @@ def test_streamsteps(samples: t.List[t.Dict]) -> None:
     it4 = IterableSamplerSource([it, it1])
     it5 = IterableSource(samples).loop(n=2)
     it6 = IterableSource(samples).compose(TorchIterable)
+    it7 = IterableSource(samples).compose(Add1)
+    assert len(it7.steps) == 2
     assert "_AsyncMap" in (step := it3.steps[1])["class"] and "buffer" in step["class_args"]
     assert "IterableSamplerSource" in (step := it4.steps[0])["class"] and "probs" in step["class_args"]
     assert "_LoopIterable" in (step := it5.steps[1])["class"] and "n" in step["class_args"]

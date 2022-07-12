@@ -233,17 +233,21 @@ class Composable:
     def _add_to_steps(self) -> t.List[t.Dict[str, t.Any]]:
         """Store the history of processing steps"""
 
-        def get_obj_info(obj: t.Any, info: t.Dict) -> str:
-            if isinstance(callable(obj)):
-                return f"{inspect.getmodule(obj).__name__}.{obj.__name__}"
+        def get_obj_info(obj: t.Any) -> t.Union[str, t.Dict[str, t.Any]]:
+            if callable(obj):
+                info = {
+                    "function": f"{inspect.getmodule(obj).__name__}.{obj.__name__}",
+                    "args": inspect.signature(obj).parameters,
+                }
             elif hasattr(obj, "__len__"):
-                return f"Collection of length {len(obj)}"
+                info = f"Collection of length {len(obj)}"
             else:
-                return str(obj)
+                info = str(obj)
+            return info
 
         self._step = [
             {
-                "class": get_obj_info(self.__class__),
+                "class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}",
                 "args": [get_obj_info(arg) for arg in self.__dict__["args"]],
                 "kwargs": {k: get_obj_info(arg) for k, arg in self.__dict__["kwargs"].items()},
             }
@@ -252,12 +256,7 @@ class Composable:
         if isinstance(self.source, Composable):
             self._steps += self.source._add_to_steps()
         else:
-            source_info = {
-                "type": type(self.source).__name__,
-                "length": len(self.source) if hasattr(self.source, "__len__") else None,
-                "callable": get_obj_info(self.source),
-            }
-            self._steps["source_info"] = source_info
+            self._steps["source"] = get_obj_info(self.source)
         return self._steps
 
     @property
