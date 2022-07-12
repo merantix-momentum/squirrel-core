@@ -85,13 +85,36 @@ def test_compose() -> None:
             for i in self.source:
                 yield i + 3
 
+    class Add4(Composable):
+        # use constructor with source as None, supported by compose
+        def __init__(self, source: t.Optional[t.Union[t.Iterable, t.Callable]] = None):
+            super().__init__(source)
+
+        def __iter__(self):
+            for i in self.source:
+                yield i + 4
+
+    class AddX(Composable):
+        # use constructor with other arguments , supported by compose
+        def __init__(self, x: int):
+            super().__init__()
+            self.x = x
+
+        def __iter__(self):
+            for i in self.source:
+                yield i + self.x
+
     lis = [1, 2, 3]
     it = IterableSource(lis).compose(Add1).collect()
     it1 = IterableSource(lis).compose(Add2).collect()
-    with pytest.raises(AssertionError):
+    it2 = IterableSource(lis).compose(Add4).collect()
+    it3 = IterableSource(lis).compose(AddX, 5).collect()
+    with pytest.raises(ValueError):
         IterableSource(lis).compose(Add3).collect()
     assert it == [2, 3, 4]
     assert it1 == [3, 4, 5]
+    assert it2 == [5, 6, 7]
+    assert it3 == [6, 7, 8]
 
 
 def test_async_map(samples: t.List[SampleType]) -> None:
