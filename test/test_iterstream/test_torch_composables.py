@@ -47,7 +47,7 @@ def test_torch_iterable(samples: List[int]) -> None:
     num_workers = 4
     batch_size = 5
 
-    it = SplitByWorker(samples).batched(batch_size).compose(TorchIterable)
+    it = IterableSource(samples).compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
 
     dl = tud.DataLoader(it, num_workers=num_workers)
 
@@ -67,7 +67,7 @@ def test_multi_worker_torch_iterable_map(samples: List[int]) -> None:
     batch_size = 5
 
     it = IterableSource(samples).map(_times_two)
-    it = SplitByWorker(it).batched(batch_size).compose(TorchIterable)
+    it = it.compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
 
     dl = tud.DataLoader(it, num_workers=num_workers)
 
@@ -82,7 +82,7 @@ def test_multi_worker_torch_iterable_async_map(samples: List[int]) -> None:
     batch_size = 5
 
     it = IterableSource(samples).async_map(_times_two)
-    it = SplitByWorker(it).batched(batch_size).compose(TorchIterable)
+    it = it.compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
 
     dl = tud.DataLoader(it, num_workers=num_workers)
 
@@ -103,7 +103,7 @@ def test_multi_rank_torch_iterable(mock_get_rank: int, mock_get_world_size: int,
 
     for rank in range(world_size):
         mock_get_rank.return_value = rank
-        out = SplitByRank(samples).collect()
+        out = IterableSource(samples).compose(SplitByRank).collect()
         assert out == samples[rank::world_size]
 
 
@@ -127,7 +127,12 @@ def test_multi_rank_multi_worker_torch_iterable(
     for rank in range(world_size):
         mock_get_rank.return_value = rank
         it = (
-            SplitByRank(samples).async_map(_times_two).compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
+            IterableSource(samples)
+            .compose(SplitByRank)
+            .async_map(_times_two)
+            .compose(SplitByWorker)
+            .batched(batch_size)
+            .compose(TorchIterable)
         )
         dl = tud.DataLoader(it, num_workers=num_workers)
         out = torch.Tensor(list(dl))
