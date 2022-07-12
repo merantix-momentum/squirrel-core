@@ -165,7 +165,7 @@ Output::
 
 Asynchronous execution
 ----------------------
-We have seen in :ref:`usage/iterstream` how to apply functions on streams asynchronously with :py:meth:`async_map`.
+We have seen in :ref:`usage/iterstream:IterStream` how to apply functions on streams asynchronously with :py:meth:`async_map`.
 Internally, a :py:class:`_AsyncMap` object is constructed when calling :py:meth:`async_map`.
 :py:class:`_AsyncMap` maintains an internal queue and creates :py:class:`AsyncContent` that are inserted to the queue.
 :py:class:`AsyncContent` objects are created by specifying a function callback, the item it operates on, and an executor.

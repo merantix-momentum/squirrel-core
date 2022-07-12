@@ -66,6 +66,11 @@ Items in `IterableSource` can be composed by providing a Composable in the `comp
 
 To see how you can chain custom Composables with `compose()`, see the advanced section for :ref:`IterStream <advanced/iterstream:IterStream>`.
 
+.. note::
+
+    Note that when defining a custom Composable, you have to omit the `source` argument in the constructor signature.
+    This is because the `source` argument is automatically set to the current `Composable` instance when using `compose()`.
+
 Combining multiple iterables can be achieved using `IterableSamplerSource`:
 
 .. code-block:: python
