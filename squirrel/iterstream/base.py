@@ -236,7 +236,7 @@ class Composable:
         def get_obj_info(obj: t.Any) -> t.Union[str, t.Dict[str, t.Any]]:
             if callable(obj):
                 info = {
-                    "function": f"{inspect.getmodule(obj).__name__}.{obj.__name__}",
+                    "callable": f"{inspect.getmodule(obj).__name__}.{obj.__name__}",
                     "args": inspect.signature(obj).parameters,
                 }
             elif hasattr(obj, "__len__"):
@@ -245,18 +245,14 @@ class Composable:
                 info = str(obj)
             return info
 
-        self._step = [
-            {
-                "class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}",
-                "args": [get_obj_info(arg) for arg in self.__dict__["args"]],
-                "kwargs": {k: get_obj_info(arg) for k, arg in self.__dict__["kwargs"].items()},
-            }
-        ]
-
+        step = {
+            "class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}",
+        }
         if isinstance(self.source, Composable):
-            self._steps += self.source._add_to_steps()
+            self._steps += self.source._add_to_steps() + [step]
         else:
-            self._steps["source"] = get_obj_info(self.source)
+            step["source"] = get_obj_info(self.source)
+            self._steps = [step]
         return self._steps
 
     @property

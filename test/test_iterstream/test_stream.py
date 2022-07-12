@@ -38,6 +38,8 @@ def test_streamsteps(samples: t.List[t.Dict]) -> None:
         return x * 10
 
     # test steps length
+    it1 = IterableSource(samples)
+    it1.steps
     it = IterableSource(samples).map(add_1).map(mult_10)
     it1 = it.source
     it2 = it.compose(TorchIterable).tqdm().loop()
