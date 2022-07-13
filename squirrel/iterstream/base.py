@@ -248,7 +248,7 @@ class Composable:
 
         step = {"class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}", "param": dict()}
         for att_key in self.__dict__:
-            if att_key in ["source", "_steps"]:
+            if att_key in ["source", "_steps"] or att_key.startswith("_"):
                 continue
             elif att_key == "args":
                 step["param"][att_key] = [get_obj_info(arg) for arg in self.__dict__[att_key]]
