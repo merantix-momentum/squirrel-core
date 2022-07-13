@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import squirrel
+import warnings
 import inspect
 import subprocess
 import queue
@@ -265,14 +266,21 @@ class Composable:
 
     @property
     def info(self) -> t.Dict[str, t.Any]:
-        """Getter for logged steps"""
+        """Get the info of the Composable"""
+
+        def get_git_info() -> t.Dict[str, str]:
+            try:
+                git_version = subprocess.check_output(["git", "describe"]).strip().decode()
+                remote = subprocess.check_output(["git", "config", "--get", "remote.origin.url"]).strip().decode()
+            except subprocess.SubprocessError:
+                warnings.warn("Could not find installed git")
+                git_version = "git unavailable"
+                remote = "git unavailable"
+            return {"git_version": git_version, "remote": remote}
+
         if self._steps is None:
             self._add_to_steps()
-        try:
-            git_version = subprocess.check_output(["git", "describe"]).strip().decode()
-        except subprocess.SubprocessError:
-            git_version = "git unavailable"
-        return {"steps": self._steps, "git_version": git_version, "squirrel_version": squirrel.__version__}
+        return {"steps": self._steps, "git_info": get_git_info(), "squirrel_version": squirrel.__version__}
 
 
 class _Iterable(Composable):
