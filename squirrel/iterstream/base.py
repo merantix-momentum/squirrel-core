@@ -248,7 +248,7 @@ class Composable:
 
         step = {"class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}", "param": dict()}
         for att_key in self.__dict__:
-            if att_key in ["source", "_steps"] or att_key.startswith("_"):
+            if att_key == "source" or att_key.startswith("_"):
                 continue
             elif att_key == "args":
                 step["param"][att_key] = [get_obj_info(arg) for arg in self.__dict__[att_key]]
@@ -266,7 +266,7 @@ class Composable:
 
     @property
     def info(self) -> t.Dict[str, t.Any]:
-        """Get the info of the Composable"""
+        """Get the version info and the history of processing steps"""
 
         def get_git_info() -> t.Dict[str, str]:
             try:

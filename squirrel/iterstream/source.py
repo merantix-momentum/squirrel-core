@@ -6,7 +6,6 @@ from squirrel.fsspec.fs import get_fs_from_url, get_protocol
 from squirrel.iterstream.base import AsyncContent, Composable
 from squirrel.iterstream.iterators import get_random_range
 
-
 __all__ = ["IterableSource", "FilePathGenerator", "IterableSamplerSource"]
 
 
@@ -67,7 +66,7 @@ class FilePathGenerator(Composable):
             max_dirs (int): maximum number of parallel ls operation.
         """
         super().__init__()
-        self.url = url
+        self._url = url
         self.protocol = get_protocol(self.url)
         self.nested = nested
         self.max_workers = max_workers
@@ -96,6 +95,11 @@ class FilePathGenerator(Composable):
         else:
             for url in urls:
                 yield f"{self.protocol}{url}"
+
+    @property
+    def url(self) -> str:
+        """Returns the url of the filesystem"""
+        return self._url
 
 
 class IterableSamplerSource(Composable):

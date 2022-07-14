@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import tempfile
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
@@ -47,16 +48,18 @@ def test_streamsteps(samples: t.List[t.Dict]) -> None:
 
     # test composable subclasses
     it3 = IterableSource(samples).async_map(add_1)
-    it3.info
     it4 = IterableSamplerSource([it, it1])
     it5 = IterableSource(samples).loop(n=2)
     it6 = IterableSource(samples).compose(TorchIterable)
     it7 = IterableSource(samples).compose(Add1)
+    it8 = FilePathGenerator(str(pathlib.Path.cwd()))
     assert len(it7.info["steps"]) == 2
+    assert len(it8.info["steps"]) == 1
     assert "_AsyncMap" in (step := it3.info["steps"][1])["class"] and "buffer" in step["param"]
     assert "IterableSamplerSource" in (step := it4.info["steps"][0])["class"] and "probs" in step["param"]
     assert "_LoopIterable" in (step := it5.info["steps"][1])["class"] and "n" in step["param"]
     assert "TorchIterable" in it6.info["steps"][1]["class"]
+    assert "FilePathGenerator" in (step := it8.info["steps"][0])["class"] and "url" not in step["param"]
 
 
 def test_iterablesource() -> None:
