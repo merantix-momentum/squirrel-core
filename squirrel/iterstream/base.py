@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import collections
+
 import squirrel
 import warnings
+import functools
 import inspect
 import subprocess
 import queue
@@ -236,26 +239,25 @@ class Composable:
 
         def get_obj_info(obj: t.Any) -> t.Union[str, t.Dict[str, t.Any]]:
             if callable(obj):
-                info = {
-                    "callable": f"{inspect.getmodule(obj).__name__}.{obj.__name__}",
-                    "args": inspect.signature(obj).parameters,
-                }
-            elif hasattr(obj, "__len__"):
+                func = obj.func if isinstance(obj, functools.partial) else obj
+                info = (f"{inspect.getmodule(func).__name__}.{func.__name__}",)
+            elif isinstance(obj, collections.Sequence) and not isinstance(obj, str):
                 info = f"Collection of length {len(obj)}"
             else:
                 info = str(obj)
             return info
 
-        step = {"class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}", "param": dict()}
+        step = {"class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}", "args": {}}
         for att_key in self.__dict__:
             if att_key == "source" or att_key.startswith("_"):
                 continue
             elif att_key == "args":
-                step["param"][att_key] = [get_obj_info(arg) for arg in self.__dict__[att_key]]
+                step["args"]["positional_args"] = [get_obj_info(arg) for arg in self.__dict__[att_key]]
             elif att_key in ["kwargs", "kw"]:
-                step["param"][att_key] = {k: get_obj_info(v) for k, v in self.__dict__[att_key].items()}
+                kw = {k: get_obj_info(v) for k, v in self.__dict__[att_key].items()}
+                step["args"].update(kw)
             else:
-                step["param"][att_key] = get_obj_info(self.__dict__[att_key])
+                step["args"][att_key] = get_obj_info(self.__dict__[att_key])
 
         if isinstance(self.source, Composable):
             self._steps = self.source._add_to_steps() + [step]
