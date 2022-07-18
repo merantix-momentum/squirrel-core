@@ -236,6 +236,9 @@ class Composable:
 
     def _add_to_steps(self) -> t.List[t.Dict[str, t.Any]]:
         """Store the history of processing steps"""
+        # TODO 0: simplify info output
+        #  1: scan through and check what else needs to be private,
+        #  3: don't save memory adresses for example for local functions and generators
 
         def get_obj_info(obj: t.Any) -> t.Union[str, t.Dict[str, t.Any]]:
             if callable(obj):
