@@ -236,31 +236,28 @@ class Composable:
 
     def _add_to_steps(self) -> t.List[t.Dict[str, t.Any]]:
         """Store the history of processing steps"""
-        # TODO 0: simplify info output
-        #  1: scan through and check what else needs to be private,
-        #  3: don't save memory adresses for example for local functions and generators
 
         def get_obj_info(obj: t.Any) -> t.Union[str, t.Dict[str, t.Any]]:
             if callable(obj):
                 func = obj.func if isinstance(obj, functools.partial) else obj
-                info = (f"{inspect.getmodule(func).__name__}.{func.__name__}",)
+                info = f"{inspect.getmodule(func).__name__}.{func.__name__}"
             elif isinstance(obj, collections.Sequence) and not isinstance(obj, str):
                 info = f"Collection of length {len(obj)}"
             else:
                 info = str(obj)
             return info
 
-        step = {"class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}", "args": {}}
+        step = {"class": f"{inspect.getmodule(self.__class__).__name__}.{self.__class__.__name__}", "parameters": {}}
         for att_key in self.__dict__:
             if att_key == "source" or att_key.startswith("_"):
                 continue
             elif att_key == "args":
-                step["args"]["positional_args"] = [get_obj_info(arg) for arg in self.__dict__[att_key]]
+                step["parameters"][att_key] = [get_obj_info(arg) for arg in self.__dict__[att_key]]
             elif att_key in ["kwargs", "kw"]:
                 kw = {k: get_obj_info(v) for k, v in self.__dict__[att_key].items()}
-                step["args"].update(kw)
+                step["parameters"].update(kw)
             else:
-                step["args"][att_key] = get_obj_info(self.__dict__[att_key])
+                step["parameters"][att_key] = get_obj_info(self.__dict__[att_key])
 
         if isinstance(self.source, Composable):
             self._steps = self.source._add_to_steps() + [step]
