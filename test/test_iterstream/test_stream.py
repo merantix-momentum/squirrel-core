@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import os
 import pathlib
 import tempfile
@@ -30,6 +31,19 @@ def test_streamsteps(samples: t.List[t.Dict]) -> None:
             for i in self.source:
                 yield i + 1
 
+    @dataclasses.dataclass
+    class LongList:
+        llist: t.List
+
+    class YieldLongList(Composable):
+        def __init__(self, long_list: LongList):
+            super().__init__()
+            self.long_list = long_list
+
+        def __iter__(self):
+            for i in self.source:
+                yield from self.long_list.llist.append(i)
+
     def add_1(x: float) -> float:
         """Add 1 to x"""
         return x + 1
@@ -53,6 +67,7 @@ def test_streamsteps(samples: t.List[t.Dict]) -> None:
     it6 = IterableSource(samples).compose(TorchIterable)
     it7 = IterableSource(samples).compose(Add1)
     it8 = FilePathGenerator(str(pathlib.Path.cwd()))
+    it9 = IterableSource(samples).compose(YieldLongList, LongList(list(range(100))))
     assert len(it7.info["steps"]) == 2
     assert len(it8.info["steps"]) == 1
     assert "_AsyncMap" in (step := it3.info["steps"][1])["class"] and "buffer" in step["parameters"]
@@ -60,17 +75,20 @@ def test_streamsteps(samples: t.List[t.Dict]) -> None:
     assert "_LoopIterable" in (step := it5.info["steps"][1])["class"] and "n" in step["parameters"]
     assert "TorchIterable" in it6.info["steps"][1]["class"]
     assert "FilePathGenerator" in (step := it8.info["steps"][0])["class"] and "url" not in step["parameters"]
+    assert "YieldLongList" in (step := it9.info["steps"][1])["class"] and not isinstance(
+        step["parameters"]["long_list"], list
+    )
 
     # test composables with driver
     from squirrel.driver import MessagepackDriver, StoreDriver
     from squirrel.serialization import MessagepackSerializer
 
-    it9 = MessagepackDriver(str(pathlib.Path.cwd())).get_iter()
-    it10 = StoreDriver(str(pathlib.Path.cwd()), MessagepackSerializer()).get_iter()
-    assert len(it9.info["steps"]) == 3
+    it10 = MessagepackDriver(str(pathlib.Path.cwd())).get_iter()
+    it11 = StoreDriver(str(pathlib.Path.cwd()), MessagepackSerializer()).get_iter()
     assert len(it10.info["steps"]) == 3
-    assert "IterableSource" in it9.info["steps"][0]["class"]
+    assert len(it11.info["steps"]) == 3
     assert "IterableSource" in it10.info["steps"][0]["class"]
+    assert "IterableSource" in it11.info["steps"][0]["class"]
 
 
 def test_iterablesource() -> None:
