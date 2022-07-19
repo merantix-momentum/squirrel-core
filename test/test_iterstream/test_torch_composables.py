@@ -19,8 +19,8 @@ def samples() -> List[int]:
     return list(range(100))
 
 
-def test_conveninence_compose_pytorch(samples: List[int]) -> None:
-    """Test convenince functions for converting Composables to PyTorch"""
+def test_convenience_compose_pytorch(samples: List[int]) -> None:
+    """Test convenience functions for converting Composables to PyTorch"""
     batch_size = 5
 
     it1 = IterableSource(samples).compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
