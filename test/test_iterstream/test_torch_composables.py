@@ -19,6 +19,20 @@ def samples() -> List[int]:
     return list(range(100))
 
 
+def test_conveninence_compose_pytorch(samples: List[int]) -> None:
+    """Test convenince functions for converting Composables to PyTorch"""
+    batch_size = 5
+
+    it1 = IterableSource(samples).compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
+    it2 = IterableSource(samples).split_by_worker_pytorch().batched(batch_size).compose(TorchIterable)
+
+    it3 = IterableSource(samples).compose(SplitByRank).batched(batch_size).compose(TorchIterable)
+    it4 = IterableSource(samples).split_by_rank_pytorch().batched(batch_size).compose(TorchIterable)
+
+    assert it1.collect() == it2.collect()
+    assert it3.collect() == it4.collect()
+
+
 def test_skip_k() -> None:
     """Check if partial skip application successful."""
     it = range(10)
