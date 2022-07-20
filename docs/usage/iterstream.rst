@@ -69,7 +69,7 @@ To see how you can chain custom Composables with `compose()`, see the advanced s
 .. note::
 
     Note that when defining a custom Composable, you have to omit the `source` argument in the constructor signature.
-    This is because the `source` of your custom Composable is automatically set the Composable that is operating on.
+    This is because the `source` of your custom Composable is automatically set to the Composable that it operates on.
     The only time the `source` argument is explicitly set is when creating a `IterableSource`,
     as this marks the beginning of the chain of Composables.
 
