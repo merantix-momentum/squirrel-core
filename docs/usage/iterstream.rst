@@ -10,7 +10,7 @@ The :py:class:`Composable` class offers three kinds of methods for processing st
 
 * *Source*: The first node in the stream that generates items or wraps an iterable, for instance :py:class:`IterableSource`.
 * *Transformations* : Provide a way to apply transformations on items in the stream, such as :py:meth:`map` and :py:meth:`filter`, or manipulate the stream itself, such as :py:meth:`shuffle`, :py:meth:`batched`.
-* *Terminal* : :py:meth:`join`, py:meth:`collect`. These methods are used to consume the stream.
+* *Terminal* : :py:meth:`join`, :py:meth:`collect`. These methods are used to consume the stream.
 
 
 Example Workflow
@@ -69,7 +69,9 @@ To see how you can chain custom Composables with `compose()`, see the advanced s
 .. note::
 
     Note that when defining a custom Composable, you have to omit the `source` argument in the constructor signature.
-    This is because the `source` argument is automatically set to the current `Composable` instance when using `compose()`.
+    This is because the `source` of your custom Composable is automatically set the Composable that is operating on.
+    The only time the `source` argument is explicitly set is when creating a `IterableSource`,
+    as this marks the beginning of the chain of Composables.
 
 Combining multiple iterables can be achieved using `IterableSamplerSource`:
 
