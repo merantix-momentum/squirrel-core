@@ -252,6 +252,10 @@ class Composable:
         """
         return self.compose(iterstream.torch_composables.SplitByRank, torch_dist_group)
 
+    def to_torch_iterable(self) -> Composable:
+        """Convert the stream to a torch iterable."""
+        return self.compose(iterstream.torch_composables.TorchIterable)
+
 
 class _Iterable(Composable):
     """

@@ -24,10 +24,10 @@ def test_convenience_compose_pytorch(samples: List[int]) -> None:
     batch_size = 5
 
     it1 = IterableSource(samples).compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
-    it2 = IterableSource(samples).split_by_worker_pytorch().batched(batch_size).compose(TorchIterable)
+    it2 = IterableSource(samples).split_by_worker_pytorch().batched(batch_size).to_torch_iterable()
 
     it3 = IterableSource(samples).compose(SplitByRank).batched(batch_size).compose(TorchIterable)
-    it4 = IterableSource(samples).split_by_rank_pytorch().batched(batch_size).compose(TorchIterable)
+    it4 = IterableSource(samples).split_by_rank_pytorch().batched(batch_size).to_torch_iterable()
 
     assert it1.collect() == it2.collect()
     assert it3.collect() == it4.collect()
