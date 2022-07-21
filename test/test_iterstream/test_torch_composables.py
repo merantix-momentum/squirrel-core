@@ -47,7 +47,7 @@ def test_torch_iterable(samples: List[int]) -> None:
     num_workers = 4
     batch_size = 5
 
-    it = IterableSource(samples).compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
+    it = IterableSource(samples).split_by_worker_pytorch().batched(batch_size).to_torch_iterable()
 
     dl = tud.DataLoader(it, num_workers=num_workers)
 
@@ -66,8 +66,7 @@ def test_multi_worker_torch_iterable_map(samples: List[int]) -> None:
     num_workers = 4
     batch_size = 5
 
-    it = IterableSource(samples).map(_times_two)
-    it = it.compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
+    it = IterableSource(samples).map(_times_two).split_by_worker_pytorch().batched(batch_size).to_torch_iterable()
 
     dl = tud.DataLoader(it, num_workers=num_workers)
 
@@ -81,8 +80,7 @@ def test_multi_worker_torch_iterable_async_map(samples: List[int]) -> None:
     num_workers = 4
     batch_size = 5
 
-    it = IterableSource(samples).async_map(_times_two)
-    it = it.compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
+    it = IterableSource(samples).async_map(_times_two).split_by_worker_pytorch().batched(batch_size).to_torch_iterable()
 
     dl = tud.DataLoader(it, num_workers=num_workers)
 
@@ -103,7 +101,7 @@ def test_multi_rank_torch_iterable(mock_get_rank: int, mock_get_world_size: int,
 
     for rank in range(world_size):
         mock_get_rank.return_value = rank
-        out = IterableSource(samples).compose(SplitByRank).collect()
+        out = IterableSource(samples).split_by_rank_pytorch().collect()
         assert out == samples[rank::world_size]
 
 
@@ -128,11 +126,11 @@ def test_multi_rank_multi_worker_torch_iterable(
         mock_get_rank.return_value = rank
         it = (
             IterableSource(samples)
-            .compose(SplitByRank)
+            .split_by_rank_pytorch()
             .async_map(_times_two)
-            .compose(SplitByWorker)
+            .split_by_worker_pytorch()
             .batched(batch_size)
-            .compose(TorchIterable)
+            .to_torch_iterable()
         )
         dl = tud.DataLoader(it, num_workers=num_workers)
         out = torch.Tensor(list(dl))
@@ -158,7 +156,7 @@ def test_multi_rank_multi_worker_torch_iterable(
                     ]
                 )
                 .async_map(_times_two)
-                .compose(TorchIterable)
+                .to_torch_iterable()
             )
 
             dl2 = tud.DataLoader(it2, num_workers=num_workers)
