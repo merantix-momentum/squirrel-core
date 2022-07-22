@@ -19,6 +19,20 @@ def samples() -> List[int]:
     return list(range(100))
 
 
+def test_convenience_compose_pytorch(samples: List[int]) -> None:
+    """Test convenience functions for converting Composables to PyTorch"""
+    batch_size = 5
+
+    it1 = IterableSource(samples).compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
+    it2 = IterableSource(samples).split_by_worker_pytorch().batched(batch_size).to_torch_iterable()
+
+    it3 = IterableSource(samples).compose(SplitByRank).batched(batch_size).compose(TorchIterable)
+    it4 = IterableSource(samples).split_by_rank_pytorch().batched(batch_size).to_torch_iterable()
+
+    assert it1.collect() == it2.collect()
+    assert it3.collect() == it4.collect()
+
+
 def test_skip_k() -> None:
     """Check if partial skip application successful."""
     it = range(10)
@@ -33,7 +47,7 @@ def test_torch_iterable(samples: List[int]) -> None:
     num_workers = 4
     batch_size = 5
 
-    it = SplitByWorker(samples).batched(batch_size).compose(TorchIterable)
+    it = IterableSource(samples).split_by_worker_pytorch().batched(batch_size).to_torch_iterable()
 
     dl = tud.DataLoader(it, num_workers=num_workers)
 
@@ -52,8 +66,7 @@ def test_multi_worker_torch_iterable_map(samples: List[int]) -> None:
     num_workers = 4
     batch_size = 5
 
-    it = IterableSource(samples).map(_times_two)
-    it = SplitByWorker(it).batched(batch_size).compose(TorchIterable)
+    it = IterableSource(samples).map(_times_two).split_by_worker_pytorch().batched(batch_size).to_torch_iterable()
 
     dl = tud.DataLoader(it, num_workers=num_workers)
 
@@ -67,8 +80,7 @@ def test_multi_worker_torch_iterable_async_map(samples: List[int]) -> None:
     num_workers = 4
     batch_size = 5
 
-    it = IterableSource(samples).async_map(_times_two)
-    it = SplitByWorker(it).batched(batch_size).compose(TorchIterable)
+    it = IterableSource(samples).async_map(_times_two).split_by_worker_pytorch().batched(batch_size).to_torch_iterable()
 
     dl = tud.DataLoader(it, num_workers=num_workers)
 
@@ -89,7 +101,7 @@ def test_multi_rank_torch_iterable(mock_get_rank: int, mock_get_world_size: int,
 
     for rank in range(world_size):
         mock_get_rank.return_value = rank
-        out = SplitByRank(samples).collect()
+        out = IterableSource(samples).split_by_rank_pytorch().collect()
         assert out == samples[rank::world_size]
 
 
@@ -113,7 +125,12 @@ def test_multi_rank_multi_worker_torch_iterable(
     for rank in range(world_size):
         mock_get_rank.return_value = rank
         it = (
-            SplitByRank(samples).async_map(_times_two).compose(SplitByWorker).batched(batch_size).compose(TorchIterable)
+            IterableSource(samples)
+            .split_by_rank_pytorch()
+            .async_map(_times_two)
+            .split_by_worker_pytorch()
+            .batched(batch_size)
+            .to_torch_iterable()
         )
         dl = tud.DataLoader(it, num_workers=num_workers)
         out = torch.Tensor(list(dl))
@@ -139,7 +156,7 @@ def test_multi_rank_multi_worker_torch_iterable(
                     ]
                 )
                 .async_map(_times_two)
-                .compose(TorchIterable)
+                .to_torch_iterable()
             )
 
             dl2 = tud.DataLoader(it2, num_workers=num_workers)

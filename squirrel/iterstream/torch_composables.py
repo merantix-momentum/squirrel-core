@@ -16,11 +16,10 @@ class SplitByRank(Composable):
 
     def __init__(
         self,
-        source: Optional[Iterable] = None,
         torch_dist_group: Optional[str] = None,
     ) -> None:
         """Init the SplitByRank composable."""
-        super().__init__(source=source)
+        super().__init__()
 
         self.rank = 0
         self.size = 1
@@ -43,9 +42,9 @@ class SplitByRank(Composable):
 class SplitByWorker(Composable):
     """Composable to split data between PyTorch workers of a single rank"""
 
-    def __init__(self, source: Optional[Iterable] = None) -> None:
+    def __init__(self) -> None:
         """Init"""
-        super().__init__(source=source)
+        super().__init__()
 
         # Needs to be instantiated lazily in order to be compatible with the forking behavior
         # of pytorch multiprocessing context in its dataloader.
@@ -65,9 +64,9 @@ class SplitByWorker(Composable):
 class TorchIterable(Composable, IterableDataset):
     """Mixin-Composable to have squirrel pipeline inherit from PyTorch IterableDataset"""
 
-    def __init__(self, source: Optional[Iterable] = None) -> None:
+    def __init__(self) -> None:
         """Init"""
-        super().__init__(source=source)
+        super().__init__()
 
     def __iter__(self) -> Iterator:
         """Method to iterate over the source"""

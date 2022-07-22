@@ -10,7 +10,7 @@ The :py:class:`Composable` class offers three kinds of methods for processing st
 
 * *Source*: The first node in the stream that generates items or wraps an iterable, for instance :py:class:`IterableSource`.
 * *Transformations* : Provide a way to apply transformations on items in the stream, such as :py:meth:`map` and :py:meth:`filter`, or manipulate the stream itself, such as :py:meth:`shuffle`, :py:meth:`batched`.
-* *Terminal* : :py:meth:`join`, py:meth:`collect`. These methods are used to consume the stream.
+* *Terminal* : :py:meth:`join`, :py:meth:`collect`. These methods are used to consume the stream.
 
 
 Example Workflow
@@ -65,6 +65,10 @@ Items in `IterableSource` can be composed by providing a Composable in the `comp
         print(item)
 
 To see how you can chain custom Composables with `compose()`, see the advanced section for :ref:`IterStream <advanced/iterstream:IterStream>`.
+
+.. note::
+
+    Note that when defining a custom Composable that is meant to be used as `Source`, i.e. the first step in the pipeline, the `source` argument in the constructor must be present, but if it is `Transformation` or `Terminal`, i.e. any step except the first step in the pipeline, you have to omit the `source` argument in the constructor signature of the custom Composable class because because the `source` of your custom Composable is automatically set by Squirrel to the Composable that it operates on.
 
 Combining multiple iterables can be achieved using `IterableSamplerSource`:
 
