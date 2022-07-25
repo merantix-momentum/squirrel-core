@@ -16,6 +16,10 @@ def test_dataloader_2_workers(local_msgpack_url: URL, num_samples: int) -> None:
     dl = tud.DataLoader(it, num_workers=2)
     assert len(list(dl)) == num_samples
 
+    it2 = MessagepackDriver(url=local_msgpack_url).get_iter().split_by_worker_pytorch().to_torch_iterable()
+    dl2 = tud.DataLoader(it2, num_workers=2)
+    assert len(list(dl2)) == num_samples
+
 
 def test_keys(dummy_msgpack_store: SquirrelStore, num_samples: int) -> None:
     """Test keys method of the store"""
