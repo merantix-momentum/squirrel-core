@@ -130,7 +130,7 @@ class MapDriver(IterDriver):
         get_kwargs = {} if get_kwargs is None else get_kwargs
         key_shuffle_kwargs = {} if key_shuffle_kwargs is None else key_shuffle_kwargs
         item_shuffle_kwargs = {} if item_shuffle_kwargs is None else item_shuffle_kwargs
-        keys_it = keys_iterable if keys_iterable is not None else self.keys(**keys_kwargs)
+        keys_it = keys_iterable if keys_iterable is not None else partial(self.keys, **keys_kwargs)
         it = IterableSource(keys_it).shuffle(size=shuffle_key_buffer, **key_shuffle_kwargs)
 
         if key_hooks:

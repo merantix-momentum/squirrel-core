@@ -159,6 +159,19 @@ def test_multi_rank_multi_worker_torch_iterable(
                 .to_torch_iterable()
             )
 
+            it3 = (
+                driver.get_iter()
+                .split_by_rank_pytorch()
+                .split_by_worker_pytorch()
+                .async_map(_times_two)
+                .to_torch_iterable()
+            )
+
+            expected = [2.0 * s for s in samples[rank::world_size]]
             dl2 = tud.DataLoader(it2, num_workers=num_workers)
             out2 = torch.Tensor(list(dl2))
-            assert sorted(out2.cpu().flatten().numpy().tolist()) == [2.0 * s for s in samples[rank::world_size]]
+            assert sorted(out2.cpu().flatten().numpy().tolist()) == expected
+
+            dl3 = tud.DataLoader(it3, num_workers=num_workers)
+            out3 = torch.Tensor(list(dl3))
+            assert sorted(out3.cpu().flatten().numpy().tolist()) == expected
