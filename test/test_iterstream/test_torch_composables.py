@@ -160,8 +160,7 @@ def test_multi_rank_multi_worker_torch_iterable(
             )
 
             it3 = (
-                driver
-                .get_iter()
+                driver.get_iter()
                 .split_by_rank_pytorch()
                 .split_by_worker_pytorch()
                 .async_map(_times_two)
