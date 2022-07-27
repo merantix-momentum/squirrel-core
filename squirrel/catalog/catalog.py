@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
     from squirrel.driver import Driver
 
-__all__ = ["Catalog", "CatalogKey"]
+__all__ = ["Catalog", "CatalogKey", "CatalogSource"]
 
 
 class CatalogKey(NamedTuple):
