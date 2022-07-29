@@ -33,7 +33,10 @@ __all__ = ["Catalog", "CatalogKey"]
 
 
 class CatalogKey(NamedTuple):
-    """Defines a key in a catalog consisting of the identifier and the version of a source."""
+    """Defines a key in a catalog consisting of the identifier and the version of a source.
+
+    A CatalogKey uniquely describes a :py:class:`~squirrel.catalog.Source` in a :py:class:`~squirrel.catalog.Catalog`.
+    """
 
     identifier: str
     version: int = -1
@@ -51,7 +54,16 @@ class CatalogKey(NamedTuple):
 
 class Catalog(MutableMapping):
     def __init__(self) -> None:
-        """Init a Catalog object."""
+        """A dictionary-like data structure that versions and maintains :py:class:`~squirrel.catalog.Source`s.
+
+        Each source in a Catalog is stored with a :py:class:`squirrel.catalog.CatalogKey`, which is unique.
+
+        It is possible to combine multiple Catalogs together or find the difference between them. Refer to class methods
+        for more information.
+
+        A Catalog can be [de-]serialized. You can check out the from_xxx(), / to_xxx() methods for additional
+        information.
+        """
         self._sources: Dict[str, CatalogSource] = {}
 
     def __repr__(self) -> str:  # noqa D105
