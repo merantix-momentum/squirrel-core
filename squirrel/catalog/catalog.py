@@ -54,14 +54,14 @@ class CatalogKey(NamedTuple):
 
 class Catalog(MutableMapping):
     def __init__(self) -> None:
-        """A dictionary-like data structure that versions and maintains :py:class:`~squirrel.catalog.Source`s.
+        r"""A dictionary-like data structure that versions and maintains :py:class:`~squirrel.catalog.Source`\s.
 
         Each source in a Catalog is stored with a :py:class:`squirrel.catalog.CatalogKey`, which is unique.
 
         It is possible to combine multiple Catalogs together or find the difference between them. Refer to class methods
         for more information.
 
-        A Catalog can be [de-]serialized. You can check out the from_xxx(), / to_xxx() methods for additional
+        A Catalog can be [de-]serialized. You can check out the ``from_xxx()`` and ``to_xxx()`` methods for additional
         information.
         """
         self._sources: Dict[str, CatalogSource] = {}
@@ -284,7 +284,11 @@ class CatalogSource(Source):
         version: int = 1,
         versions: Optional[Dict[int, CatalogSource]] = None,
     ) -> None:
-        """Init a Catalog Source object which is used within a catalog to represent a source in the graph"""
+        """Wraps a Source with an identifier and a version number so that a unique version can be stored in a Catalog.
+
+        Through CatalogSource, it is possible to access other versions of the Source as well as the Catalog storing
+        them. Using :py:meth:`get_driver`, the driver that can read from the Source can be obtained.
+        """
         self._identifier = identifier
         self._version = version
         self._versions = {version: self} if versions is None else versions
