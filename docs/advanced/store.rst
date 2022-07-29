@@ -91,8 +91,8 @@ There are several considerations for deciding appropriate shard size:
 
     #. Parallelizing read and write operation: the higher the number of shards, the bigger the opportunity for parallelizing
        read and write operations. Parallel write may be done with e.g. Spark. For examples, please see:
-       `preprocessing with Spark <https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/09.Spark_Preprocessing.ipynb/>`_
-       or `SquirrelStore with Spark <https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/07.SquirrelStore_with_Spark.ipynb>`_.
+       `preprocessing with Spark <https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/08.Spark_Preprocessing.ipynb/>`_
+       or `SquirrelStore with Spark <https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/06.SquirrelStore_with_Spark.ipynb>`_.
 
     #. Limit on the memory of the process when writing the shard: The :py:meth:`squirrel.store.Store.set` accepts a shard.
        This means that the whole shard has to be in memory for writing it. While technically shards of any size could have
