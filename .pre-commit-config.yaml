@@ -10,18 +10,17 @@ repos:
   rev: 22.3.0
   hooks:
   - id: black # Format Python code
-    additional_dependencies: [keyrings.google-artifactregistry-auth, "--index-url=https://pypi.org/simple/"]
+    additional_dependencies: ["--index-url=https://pypi.org/simple/"]
 - repo: https://github.com/pre-commit/mirrors-autopep8
   rev: v1.5.4  # Use the sha / tag you want to point at
   hooks:
   - id: autopep8
-    additional_dependencies: [keyrings.google-artifactregistry-auth, "--index-url=https://pypi.org/simple/"]
+    additional_dependencies: ["--index-url=https://pypi.org/simple/"]
 - repo: https://gitlab.com/pycqa/flake8
   rev: 3.8.4
   hooks:
   - id: flake8 # Apply flake 8 python file linter
     additional_dependencies:
-    - keyrings.google-artifactregistry-auth
     - "--index-url=https://pypi.org/simple/"
     - "flake8-annotations==2.5.0"
     - "flake8-bugbear==21.9.2"
@@ -31,29 +30,10 @@ repos:
   hooks:
   - id: yamllint # Check YAML Files
     args: ['-d', "{extends: relaxed, rules: {line-length: {max: 120 }}}"]
-    additional_dependencies: [keyrings.google-artifactregistry-auth, "--index-url=https://pypi.org/simple/"]
-- repo: local
-  hooks: # Not nice
-  - id: terraform-version
-    name: Check if terraform v1.0.4 is installed correctly. If this fails, check your version with `terraform --version`
-    language: system
-    entry: bash -c "exit $(terraform --version | sed -n 1p | sed 's/Terraform v//;q' | grep -qE '^\s*1.0.4\s*$')"
-    files: (\.tf|\.tfvars)$  # Only run if there actually are tf files to lint!
-    exclude: \.terraform\/.*$
-    pass_filenames: false
-    require_serial: true
-- repo: https://github.com/antonbabenko/pre-commit-terraform
-  rev: v1.60.0
+    additional_dependencies: ["--index-url=https://pypi.org/simple/"]
+- repo: https://github.com/PyCQA/doc8
+  rev: 0.11.1
   hooks:
-  - id: terraform_fmt
-    args:
-    - "--args=-diff"
-- repo: https://github.com/sqlfluff/sqlfluff
-  rev: 0.4.0  # Oldest version with pre-commit hooks!
-  hooks:
-  - id: sqlfluff-lint
-    args: ["--dialect", "ansi"]
-    additional_dependencies: [keyrings.google-artifactregistry-auth, "--index-url=https://pypi.org/simple/"]
-  - id: sqlfluff-fix
-    args: ["--dialect", "ansi"]
-    additional_dependencies: [keyrings.google-artifactregistry-auth, "--index-url=https://pypi.org/simple/"]
+  - id: doc8
+    args: [--max-line-length, "120"]
+    additional_dependencies: ["--index-url=https://pypi.org/simple/"]
