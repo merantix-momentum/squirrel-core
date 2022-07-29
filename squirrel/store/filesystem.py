@@ -4,6 +4,7 @@ import os.path as osp
 import random
 import string
 import typing as t
+import warnings
 
 from squirrel.framework.io import read_from_file, write_to_file
 from squirrel.fsspec.fs import get_fs_from_url
@@ -23,17 +24,23 @@ class FilesystemStore(AbstractStore):
     """Store that uses fsspec to read from / write to files."""
 
     def __init__(
-        self, url: str, serializer: t.Optional[SquirrelSerializer] = None, clean: bool = False, **storage_options
+        self,
+        url: str,
+        serializer: t.Optional[SquirrelSerializer] = None,
+        clean: bool = False,
+        exist_ok: bool = False,
+        **storage_options,
     ) -> None:
         """Initializes FilesystemStore.
 
-        Args:
-            url (str): Path to the root directory. If this path does not exist, it will be created.
-            serializer (SquirrelSerializer, optional): Serializer that is used to serialize data before persisting (see
-                :py:meth:`set`) and to deserialize data after reading (see :py:meth:`get`). If not specified, data will
-                not be (de)serialized. Defaults to None.
-            clean (bool): If true, all files in the store will be removed recursively
-            **storage_options: Keyword arguments passed to filesystem initializer.
+        Args: url (str): Path to the root directory. If this path does not exist, it will be created. serializer (
+        SquirrelSerializer, optional): Serializer that is used to serialize data before persisting (see
+        :py:meth:`set`) and to deserialize data after reading (see :py:meth:`get`). If not specified, data will not
+        be (de)serialized. Defaults to None. clean (bool): If true, all files in the store will be removed
+        recursively
+        exist_ok (bool): If true, url is allowed to be non-empty. If false, an error is thrown for a
+        non-empty directory.
+         **storage_options: Keyword arguments passed to filesystem initializer.
         """
         super().__init__()
         # gcs filesystem complains at some point when url ends with a "/"
@@ -45,6 +52,12 @@ class FilesystemStore(AbstractStore):
         if clean and self._dir_exists:
             self.fs.rm(self.url, recursive=True)
             self._dir_exists = False
+
+        if not exist_ok and not FilePathGenerator(self.url).is_empty():
+            raise ValueError(
+                f"URL {self.url} is not empty. "
+                f"Try setting exist_ok to True or cleaning the URL by setting clean to True."
+            )
 
     def get(self, key: str, mode: str = "rb", **open_kwargs) -> t.Any:
         """Yields the item with the given key.
@@ -97,5 +110,16 @@ class FilesystemStore(AbstractStore):
         storage_options.update(kwargs)
 
         fp_gen = FilePathGenerator(url=self.url, nested=nested, **storage_options)
+
+        if fp_gen.is_empty():
+            if not self.fs.exists(self.url):
+                warnings.warn(f"{self.url} does not exist", UserWarning)
+            else:
+                warnings.warn(
+                    f"URL {self.url} is empty or only contains folders."
+                    f"To get urls of sub-folders, use nested=True.",
+                    UserWarning,
+                )
+
         for path in fp_gen:
             yield osp.relpath(path, start=self.url)

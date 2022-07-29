@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import tempfile
 import typing as t
+import warnings
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
@@ -322,9 +323,12 @@ def test_filepathgenerator_nested() -> None:
                     os.makedirs(basedir)
                 with open(f"{tmp_dir}/{d}/{sub}.csv", mode="x") as f:
                     f.write("")
-
-        dirs = FilePathGenerator(url=tmp_dir).collect()
-        files = FilePathGenerator(url=tmp_dir, nested=True).collect()
+        # This should print out a warning as only directories are returned
+        with pytest.warns(UserWarning):
+            dirs = FilePathGenerator(url=tmp_dir).collect()
+        # Using nested, warning should not be returned
+        with warnings.catch_warnings():
+            files = FilePathGenerator(url=tmp_dir, nested=True).collect()
     assert len(dirs) == 2
     assert len(files) == 4
 

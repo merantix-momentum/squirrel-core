@@ -1,5 +1,6 @@
 import tempfile
-
+import warnings
+import pytest
 import torch.utils.data as tud
 
 from squirrel.constants import URL
@@ -8,6 +9,33 @@ from squirrel.iterstream import IterableSource
 from squirrel.iterstream.torch_composables import TorchIterable, SplitByWorker
 from squirrel.serialization import MessagepackSerializer
 from squirrel.store import SquirrelStore
+
+
+def test_empty_or_nonexistent_url(local_msgpack_url: URL) -> None:
+    """Test if a warning is printed when we iterate over an empty or nonexistent url"""
+
+    # empty directory
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with pytest.warns(UserWarning):
+            _ = MessagepackDriver(url=tmp_dir).get_iter().collect()
+
+    # directory containing only empty directories
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with tempfile.TemporaryDirectory(dir=tmp_dir) as sub_dir:
+            with pytest.warns(UserWarning):
+                _ = MessagepackDriver(url=tmp_dir).get_iter().collect()
+            with pytest.warns(UserWarning):
+                _ = MessagepackDriver(url=sub_dir).get_iter().collect()
+
+    # test nonexistent url
+    nonexistent_url = "nonexistent_url"
+    with pytest.warns(UserWarning):
+        _ = MessagepackDriver(url=nonexistent_url).get_iter().collect()
+
+    # test valid url containing samples
+    # this should print a warning
+    with warnings.catch_warnings():
+        _ = MessagepackDriver(url=local_msgpack_url).get_iter().collect()
 
 
 def test_dataloader_2_workers(local_msgpack_url: URL, num_samples: int) -> None:

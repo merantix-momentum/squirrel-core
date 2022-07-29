@@ -12,7 +12,9 @@ if t.TYPE_CHECKING:
 class SquirrelStore(FilesystemStore):
     """FilesystemStore that persist samples (Dict objects) or shards (i.e. list of samples)."""
 
-    def __init__(self, url: str, serializer: SquirrelSerializer, clean: bool = False, **storage_options) -> None:
+    def __init__(
+        self, url: str, serializer: SquirrelSerializer, clean: bool = False, exist_ok: bool = False, **storage_options
+    ) -> None:
         """Initializes SquirrelStore.
 
         Args:
@@ -21,9 +23,11 @@ class SquirrelStore(FilesystemStore):
                 :py:meth:`set`) and to deserialize data after reading (see :py:meth:`get`). If not specified, data will
                 not be (de)serialized. Defaults to None.
             clean (bool): If true, all files in the store will be removed recursively
+            exist_ok (bool): If true, url is allowed to be non-empty. If false, an error is thrown for a
+            non-empty directory.
             **storage_options: Keyword arguments passed to filesystem initializer.
         """
-        super().__init__(url=url, serializer=serializer, clean=clean, **storage_options)
+        super().__init__(url=url, serializer=serializer, clean=clean, exist_ok=exist_ok, **storage_options)
 
     def get(self, key: str, **kwargs) -> t.Iterator[SampleType]:
         """Yields the item with the given key.

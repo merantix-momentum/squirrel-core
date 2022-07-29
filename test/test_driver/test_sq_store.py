@@ -12,9 +12,36 @@ from squirrel.fsspec.fs import get_fs_from_url
 from squirrel.integration_test.helpers import SHAPE, get_sample
 
 
-def test_store_creation(dummy_sq_store: SquirrelStore, array_shape: SHAPE, num_samples: int) -> None:
-    """Test store creation with non empty path."""
-    uncleaned_store = SquirrelStore(url=dummy_sq_store.url, serializer=MessagepackSerializer(), clean=False)
+@pytest.mark.parametrize("exist_ok", [True, False])
+def test_store_creation_with_clean_set(dummy_sq_store: SquirrelStore, exist_ok: bool) -> None:
+    """No error should be thrown when instantiating a store with a non-empty url and clean is set to True"""
+    try:
+        SquirrelStore(url=dummy_sq_store.url, serializer=MessagepackSerializer(), clean=True, exist_ok=exist_ok)
+    except ValueError:
+        pytest.fail("Expected no error when instantiating from non-empty url and clean is set to True")
+
+
+@pytest.mark.parametrize("clean", [True, False])
+def test_store_creation_with_exist_ok_set(dummy_sq_store: SquirrelStore, clean: bool) -> None:
+    """No error should be thrown when having the exist_ok flag set to True"""
+    try:
+        SquirrelStore(url=dummy_sq_store.url, serializer=MessagepackSerializer(), exist_ok=True, clean=clean)
+    except ValueError:
+        pytest.fail("Expected no error when instantiating from non-empty url and exist_ok is set to True")
+
+
+def test_store_creation(dummy_sq_store: SquirrelStore, num_samples: int) -> None:
+    """Test store creation with non-empty path."""
+    # Error should be thrown when instantiating a store with a non-empty url
+    with pytest.raises(ValueError):
+        SquirrelStore(url=dummy_sq_store.url, serializer=MessagepackSerializer())
+
+
+def test_store_cleaning(dummy_sq_store: SquirrelStore, array_shape: SHAPE, num_samples: int) -> None:
+    """Test if store is cleaned when clean flag is used."""
+    uncleaned_store = SquirrelStore(
+        url=dummy_sq_store.url, serializer=MessagepackSerializer(), clean=False, exist_ok=True
+    )
     assert len(list(uncleaned_store.keys())) == num_samples
     uncleaned_store.set(get_sample(array_shape))
     assert len(list(uncleaned_store.keys())) == num_samples + 1
