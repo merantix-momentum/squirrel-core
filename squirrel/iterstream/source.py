@@ -1,5 +1,6 @@
 import random
 import typing as t
+import warnings
 from concurrent.futures import ThreadPoolExecutor
 
 from squirrel.fsspec.fs import get_fs_from_url, get_protocol
@@ -73,6 +74,7 @@ class FilePathGenerator(Composable):
         self.max_workers = max_workers
         self.max_keys = max_keys
         self.max_dirs = max_dirs
+        self._returned_url = False
 
     def __iter__(self) -> t.Iterator[str]:
         """Iterator that does ls and yield filepaths under the given url"""
@@ -95,7 +97,16 @@ class FilePathGenerator(Composable):
                         urls.extend(d)
         else:
             for url in urls:
+                if not self._returned_url:
+                    self._returned_url = True
                 yield f"{self.protocol}{url}"
+
+        if not self._returned_url:
+            warnings.warn(
+                f"URL {self.url} does not exist or is empty. "
+                f"You might be accessing a driver or store over an empty or invalid URL.",
+                UserWarning,
+            )
 
 
 class IterableSamplerSource(Composable):
