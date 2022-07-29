@@ -10,14 +10,15 @@ Squirrel provides an easy way of both defining a data source and how to read fro
         driver_name="file",
         driver_kwargs={"path": "path/to/my/file"},
         metadata={"owner": "Merantix", "license": "Other"},
-    ) 
+    )
 
 That's it, we created our first :py:class:`~squirrel.catalog.source.Source`. Note that:
 
-- Our source can be read using a certain :py:class:`~squirrel.driver.Driver`, i.e. the Driver that corresponds to "file".
-  
+- Our source can be read using a certain :py:class:`~squirrel.driver.Driver`, i.e. the Driver that corresponds to
+  "file".
+
   .. note::
-  
+
     Note that each driver defines its name with the ``name`` class variable.
     You can check out :py:class:`~squirrel.driver.FileDriver` to verify that its name is indeed "file".
 
@@ -165,21 +166,21 @@ Catalogs can be summed together:
 
 
 .. code-block:: python
-    
+
     res = cat1.union(cat2)
     list(res.keys())  # -> ['shared_0', 'shared_1', 'distinct_for_1', 'distinct_for_2']
 
 The difference between two catalogs can be taken:
 
 .. code-block:: python
-    
+
     res = cat1.difference(cat2)
     list(res.keys())  # -> ['distinct_for_1', 'distinct_for_2']
 
 Catalogs can be intersected:
 
 .. code-block:: python
-    
+
     res = cat1.intersection(cat2)
     list(res.keys())  # -> ['shared_0', 'shared_1']
 
@@ -190,10 +191,11 @@ Sharing your Catalog
 
 As most things, Catalogs are more fun when shared with others.
 To share a Catalog, you must first serialize it.
-Luckily, Squirrel provides `Catalog.to_file()` method, which will serialize your catalog for you and write it to a .yaml file with all information regarding the sources.
+Luckily, Squirrel provides `Catalog.to_file()` method, which will serialize your catalog for you and write it to a
+.yaml file with all information regarding the sources.
 
 .. code-block:: python
-    
+
     import tempfile
 
     temp_d = tempfile.TemporaryDirectory()

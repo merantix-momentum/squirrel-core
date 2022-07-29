@@ -24,7 +24,8 @@ Output::
 
 
 
-This functionality is provided through the :py:class:`~squirrel.iterstream.Composable` class, which forms the base class for all classes in IterStream.
+This functionality is provided through the :py:class:`~squirrel.iterstream.Composable` class, which forms the base
+class for all classes in IterStream.
 
 .. code-block:: python
 
@@ -46,7 +47,9 @@ Output::
     multiply 10 to 1
 
 
-In the example above we see how Composables are chained. Each transformation again returns a Composable object. We also call this chain of Composables **stream**.
+In the example above we see how Composables are chained.
+Each transformation again returns a Composable object.
+We also call this chain of Composables **stream**.
 The executions are done lazily, that is the transformation is only executed when the iterator fetches the next item.
 
 Custom Composable
@@ -83,15 +86,22 @@ Output::
     add 1 to 0
     multiply 10 to 1
 
-Similar as before, the execution is done lazily and each transformation returns a Composable object. The only difference is that we wrap the function inside a custom :py:class:`Composable`
-class. Writing custom Composable classes allows us to modify the iteration process. Some use-cases for custom Composables include:
+Similar as before, the execution is done lazily and each transformation returns a Composable object.
+The only difference is that we wrap the function inside a custom :py:class:`Composable` class.
+Writing custom Composable classes allows us to modify the iteration process.
+Some use-cases for custom Composables include:
 
-    #. We need to instantiate an expensive resource such as a database connection or a CNN feature extractor only once for the entire stream instead of once per item. In this case it is advisable to instantiate this resource in the ``__iter__`` method of your custom class. One advantage is that the object is only instantiated once iterating over the stream starts. Additionally, if this resource is a non-picklable object, the stream can still be pickled before the iteration starts (e.g. in the multiprocessing context).
-
+    #. We need to instantiate an expensive resource such as a database connection or a CNN feature extractor only once
+    for the entire stream instead of once per item.
+    In this case it is advisable to instantiate this resource in the ``__iter__`` method of your custom class.
+    One advantage is that the object is only instantiated once iterating over the stream starts.
+    Additionally, if this resource is a non-picklable object, the stream can still be pickled before the iteration
+    starts (e.g. in the multiprocessing context).
 
     #. When a very complex  stream processing is needed that is hard to achieve with standard methods.
 
-The following example illustrates the control flow when chaining Composables. Note that the order of calling the ``__iter__`` method is from right ot left.
+The following example illustrates the control flow when chaining Composables.
+Note that the order of calling the ``__iter__`` method is from right ot left.
 
 .. code-block:: python
 
@@ -162,16 +172,20 @@ Output::
 
 Asynchronous execution
 ----------------------
-We have seen in :ref:`usage/iterstream:IterStream` how to apply functions on streams asynchronously with :py:meth:`async_map`.
+We have seen in :ref:`usage/iterstream:IterStream` how to apply functions on streams asynchronously with
+:py:meth:`async_map`.
 Internally, a :py:class:`squirrel.iterstream.base._AsyncMap` object is constructed when calling :py:meth:`async_map`.
-:py:class:`_AsyncMap` maintains an internal queue and creates :py:class:`AsyncContent`\s that are inserted to the queue.
-:py:class:`AsyncContent` objects are created by specifying a function callback, the item it operates on, and an executor.
-When :py:class:`AsyncContent` object is created, the function callback is scheduled for asynchronous execution. We can simply fetch results
-from the queue by iterating over the :py:class:`_AsyncMap` object.
+:py:class:`_AsyncMap` maintains an internal queue and creates :py:class:`AsyncContent`\s that are inserted to the
+queue.
+:py:class:`AsyncContent` objects are created by specifying a function callback, the item it operates on, and an
+executor.
+When :py:class:`AsyncContent` object is created, the function callback is scheduled for asynchronous execution.
+We can simply fetch results from the queue by iterating over the :py:class:`_AsyncMap` object.
 
 Architecture
 --------------------
-Most classes inherit from :py:class:`Composable`, which provides many concrete stream processing methods such as :py:meth:`map` and :py:meth:`filter`, and one abstract method ``__iter__`` which must be implemented by all sub classes. 
+Most classes inherit from :py:class:`Composable`, which provides many concrete stream processing methods such as
+:py:meth:`map` and :py:meth:`filter`, and one abstract method ``__iter__`` which must be implemented by all subclasses.
 
 In the non-exhaustive UML diagram below, we show how the IterStream module is structured.
 

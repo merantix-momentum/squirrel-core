@@ -5,14 +5,18 @@ There are four modules in squirrel which are instrumental in understanding the a
 
 * :ref:`usage/catalog:Catalog`: organizing, accessing, and sharing datasets.
 * :ref:`usage/driver:Driver`: performant and convenient read.
-* :ref:`usage/iterstream:IterStream`: :py:class:`Composable` is the foundational building block in the :ref:`usage/iterstream:IterStream` module which provides a mechanism to chain iterables, and a fluent api that includes methods such as `map`, `filter`, and `async_map`.
-* :ref:`usage/store:Store`: a key/value abstraction for reading data from and writing data to arbitrary storage backends such as filesystem, object store, database, etc.
+* :ref:`usage/iterstream:IterStream`: :py:class:`Composable` is the foundational building block in the
+  :ref:`usage/iterstream:IterStream` module which provides a mechanism to chain iterables, and a fluent api that
+  includes methods such as `map`, `filter`, and `async_map`.
+* :ref:`usage/store:Store`: a key/value abstraction for reading data from and writing data to arbitrary storage
+  backends such as filesystem, object store, database, etc.
 
-These modules are designed in a way that `can` be
-used together, but this is not enforced in order to maximize flexibility. This may make it difficult to realize the
-intended and recommended way of combining squirrel primitives. Although there are many such ways already provided (and many more
-that can be implemented for specific use-cases), here we focus on one concrete example that captures the most common
-and most widely applicable pattern through a code snippet and its equivalent UML diagram.
+These modules are designed in a way that `can` be used together, but this is not enforced in order to maximize
+flexibility.
+This may make it difficult to realize the intended and recommended way of combining squirrel primitives.
+Although there are many such ways already provided (and many more that can be implemented for specific use-cases), here
+we focus on one concrete example that captures the most common and most widely applicable pattern through a code
+snippet and its equivalent UML diagram.
 Here is a complete data loading pipeline:
 
 .. code-block:: python
@@ -101,8 +105,8 @@ that the data is in messagepack format (see :ref:`usage/store:Store` for informa
 
 The relationships between these components and the methods they provide depends on the particular implementation of
 the abstract classes (i.e. :py:class:`Driver`, :py:class:`AbstractStore`, :py:class:`SquirrelSerializer`).
-For instance, an implementation of the :py:class:`Drive` may not need to or may choose not to use :py:class:`SquirrelStore`
-or :py:class:`Composable` at all.
+For instance, an implementation of the :py:class:`Drive` may not need to or may choose not to use
+:py:class:`SquirrelStore` or :py:class:`Composable` at all.
 
 .. note::
 
