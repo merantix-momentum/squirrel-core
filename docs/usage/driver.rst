@@ -2,10 +2,11 @@ Driver
 ==============
 
 Driver is the Squirrel component that is used for accessing data.
-Combined with the :ref:`usage/iterstream:IterStream` functionalities, drivers provide a powerful and intuitive way of accessing data:
+Combined with the :ref:`usage/iterstream:IterStream` functionalities, drivers provide a powerful and intuitive way of
+accessing data:
 
 .. code-block:: python
-    
+
     from torch.utils.data import DataLoader
 
     url = "path/to/my/messagepack/dataset"
@@ -80,7 +81,7 @@ Let's see an IterDriver in action:
         assert lines[0] == "Lorem ipsum dolor sit amet"
         assert lines[1] == "consetetur sadipscing elitr"
 
-        # get_iter() returns a squirrel.iterstream.Composable, we can use iterstream functionalities directly (actually 
+        # get_iter() returns a squirrel.iterstream.Composable, we can use iterstream functionalities directly (actually
         # we already were using collect() above)
 
         upper_lines = driver.get_iter().map(str.upper).collect()
@@ -141,11 +142,12 @@ For this simple example, a custom driver works well. In general, it is better to
 
 StoreDriver
 -----------
-For common data access scenarios, it is much simpler to delegate low-level data operations to a :ref:`Store <usage/store:Store>`.
+For common data access scenarios, it is much simpler to delegate low-level data operations to a
+:ref:`Store <usage/store:Store>`.
 :py:class:`StoreDriver` lets the underlying store to handle :py:meth:`get` and :py:meth:`keys` calls.
 
-For example, :py:class:`MessagepackDriver` can load messagepack-serialized data by using the :ref:`usage/store:SquirrelStore`
-behind the scenes.
+For example, :py:class:`MessagepackDriver` can load messagepack-serialized data by using the
+:ref:`usage/store:SquirrelStore` behind the scenes.
 
 FileDriver
 ----------
@@ -179,7 +181,7 @@ FileDriver
     with tempfile.TemporaryDirectory() as temp_dir:
         # trace your model to TorchScript and save using FileDriver
         model_path  = f"{temp_dir}/my_model.pt"
-        
+
         with FileDriver(model_path).open(mode='wb', create_if_not_exists=True) as f:
             my_scripted_model = torch.jit.script(my_model)
             torch.jit.save(my_scripted_model, f)
@@ -187,14 +189,15 @@ FileDriver
         # now, load the model back
         with FileDriver(model_path).open(mode='rb') as f:
             model_reloaded = torch.jit.load(f)
-        
+
         # test that model outputs are the same
         batch = torch.rand(16, 1, 100,100)
         assert torch.equal(my_model(batch), model_reloaded(batch))
 
 Further reading
 ---------------
-Drivers can be registered as part of a :py:class:`~squirrel.catalog.source.Source` in a :ref:`Catalog <usage/catalog:Catalog>`.
+Drivers can be registered as part of a :py:class:`~squirrel.catalog.source.Source` in a
+:ref:`Catalog <usage/catalog:Catalog>`.
 
 `squirrel-datasets <https://squirrel-datasets-core.readthedocs.io/en/latest/>`_ provides drivers to load data from
 various datasets.

@@ -1,8 +1,8 @@
 Store
 =====
 
-:py:class:`Store` manages the storage and retrieval of data and serve as an abstraction layer under :py:class:`StoreDriver` to ease the
-implementation of custom drivers.
+:py:class:`Store` manages the storage and retrieval of data and serve as an abstraction layer under
+:py:class:`StoreDriver` to ease the implementation of custom drivers.
 
 Squirrel store API defines three methods:
 
@@ -14,8 +14,8 @@ Squirrel store API defines three methods:
 
 .. admonition:: Store vs Driver
 
-    A Store permits persisting of values via the :py:meth:`set` method whereas a :ref:`Driver <usage/driver:Driver>` can only read
-    from a data source and cannot write to it.
+    A Store permits persisting of values via the :py:meth:`set` method whereas a :ref:`Driver <usage/driver:Driver>`
+    can only read from a data source and cannot write to it.
 
     If you only want to load data, you can:
 
@@ -68,10 +68,11 @@ This is the recommended approach, unless low-level control is needed.
 Sample and Shard
 ----------------
 :py:class:`squirrel.store.SquirrelStore` uses a concept called sharding to efficiently store and load data.
-A Shard is a collection of samples, it stores a predetermined number of samples in a fixed order. Samples can be any
-Python object. They represent a single training sample for model training and can be for example a Dictionary containing
-a numpy array. Each shard is then identified through a unique key. A sample is of type :py:class:`Dict[str, Any]` and a shard is a
-list thereof i.e. :py:class:`List[Dict[str, Any]]`.
+A Shard is a collection of samples, it stores a predetermined number of samples in a fixed order.
+Samples can be any Python object.
+They represent a single training sample for model training and can be for example a Dictionary containing a numpy array.
+Each shard is then identified through a unique key.
+A sample is of type :py:class:`Dict[str, Any]` and a shard is a list thereof i.e. :py:class:`List[Dict[str, Any]]`.
 
 Writing samples as shards using SquirrelStore
 ---------------------------------------------

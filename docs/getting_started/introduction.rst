@@ -3,7 +3,10 @@ Introduction
 
 Goal of the project
 -------------------
-Squirrel is a data catalog library that provides you with an efficient data infrastructure to serve data as a FAIR data product. See
+Squirrel is a data catalog library that provides you with an efficient data infrastructure to serve data as a FAIR data
+product.
+
+See
 
 #. :doc:`driver <../usage/driver>` to learn about data loading functionalities for various formats.
 

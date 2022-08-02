@@ -2,15 +2,18 @@ IterStream
 ==========
 
 Squirrel provides an API for chaining iterables.
-The functionality is provided through the :py:class:`Composable` class, which acts as a base class for most classes in IterStream.
+The functionality is provided through the :py:class:`Composable` class, which acts as a base class for most classes in
+IterStream.
 
 Stream Processing Methods
 -------------------------
 The :py:class:`Composable` class offers three kinds of methods for processing streams.
 
-* *Source*: The first node in the stream that generates items or wraps an iterable, for instance :py:class:`IterableSource`.
-* *Transformations* : Provide a way to apply transformations on items in the stream, such as :py:meth:`map` and :py:meth:`filter`, or manipulate the stream itself, such as :py:meth:`shuffle`, :py:meth:`batched`.
-* *Terminal* : :py:meth:`join`, :py:meth:`collect`. These methods are used to consume the stream.
+* *Source*: The first node in the stream that generates items or wraps an iterable, for instance
+  :py:class:`IterableSource`.
+* *Transformations*: Provide a way to apply transformations on items in the stream, such as :py:meth:`map` and
+  :py:meth:`filter`, or manipulate the stream itself, such as :py:meth:`shuffle`, :py:meth:`batched`.
+* *Terminal*: :py:meth:`join`, :py:meth:`collect`. These methods are used to consume the stream.
 
 
 Example Workflow
@@ -25,7 +28,8 @@ Example Workflow
     for item in it:
         print(item)
 
-:py:class:`IterableSource` is a :py:class:`Composable` and has several methods to conveniently load data, given an iterable as the input:
+:py:class:`IterableSource` is a :py:class:`Composable` and has several methods to conveniently load data, given an
+iterable as the input:
 
 .. code-block:: python
 
@@ -44,7 +48,8 @@ Items in the stream can be shuffled in the buffer and batched
     for item in it:
         print(item)
 
-Note that the argument `drop_last_if_not_full` (default True) will drop the last batch if its size is less than `batchsize` argument; so, only 3 items will be printed above.
+Note that the argument `drop_last_if_not_full` (default True) will drop the last batch if its size is less than
+`batchsize` argument; so, only 3 items will be printed above.
 
 Items in `IterableSource` can be composed by providing a Composable in the `compose()` method:
 
@@ -64,7 +69,8 @@ Items in `IterableSource` can be composed by providing a Composable in the `comp
     for item in it:
         print(item)
 
-To see how you can chain custom Composables with `compose()`, see the advanced section for :ref:`IterStream <advanced/iterstream:IterStream>`.
+To see how you can chain custom Composables with `compose()`, see the advanced section for
+:ref:`IterStream <advanced/iterstream:IterStream>`.
 
 .. note::
 
@@ -83,7 +89,8 @@ Combining multiple iterables can be achieved using `IterableSamplerSource`:
     print(res)
     assert sum(res) == 15
 
-Note that you can pass the probabilities of sampling from each iterator. When an iterator is exhausted, the probabilities are normalized.
+Note that you can pass the probabilities of sampling from each iterator.
+When an iterator is exhausted, the probabilities are normalized.
 
 Asynchronous execution
 ----------------------
