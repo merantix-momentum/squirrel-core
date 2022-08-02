@@ -32,7 +32,7 @@ repos:
     args: ['-d', "{extends: relaxed, rules: {line-length: {max: 120 }}}"]
     additional_dependencies: ["--index-url=https://pypi.org/simple/"]
 - repo: https://github.com/PyCQA/doc8
-  rev: 0.11.1
+  rev: v1.0.0
   hooks:
   - id: doc8
     args: [--max-line-length, "120"]
