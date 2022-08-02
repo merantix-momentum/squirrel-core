@@ -34,9 +34,9 @@ calculated metrics at step `async_map` is sent to the callback function `wandb.l
 :code:`Dict[str, [int, float]]`, therefore any function takes such argument can be used to plug into
 the callback of :code:`monitor`.)
 
-By default, :code:`monitor` calculate two **metrics**: `IOPS` and `throughput`. However, this can be configured by
-passing
-a data class :py:class:`squirrel.metrics.MetricsConf` to the argument :code:`metrics_conf` in :code:`monitor`.
+By default, :code:`monitor` calculates two **metrics**: Input/output operations per second (`IOPS`) and `throughput`.
+However, this can be configured by passing a data class :py:class:`squirrel.metrics.MetricsConf` to the argument
+:code:`metrics_conf` in :code:`monitor`.
 For details, see :py:mod:`squirrel.iterstream.metrics`.
 
 **Monitoring at different locations** in an iterstream in one run can be achieved by inserting :code:`monitor` with

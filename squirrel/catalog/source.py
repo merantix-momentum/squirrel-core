@@ -7,6 +7,15 @@ __all__ = ["Source"]
 
 @dataclass(init=True)
 class Source:
+    """Defines a data source by describing its metadata and how it can be read.
+
+    The driver specified within the Source is responsible for reading from the data source and should contain all the
+    necessary logic for reading, Source itself does not contain this logic.
+
+    Sources can be set in a :py:class:`~squirrel.catalog.Catalog` along with a key and a version that uniquely identify
+    them.
+    """
+
     driver_name: str
     driver_kwargs: Optional[Dict[str, str]] = field(default_factory=dict)
     metadata: Optional[Dict[str, str]] = field(default_factory=dict)

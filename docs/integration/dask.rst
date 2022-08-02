@@ -30,4 +30,4 @@ In this example, a task is submitted and the result is gathered. An alternative 
         print(item)
     print(time.time() - t1)
 
-Note that after calling :code:`dask_map` for the first time, you can chain more :code:`dask_map`s, which are then operating on the :code:`dask.delayed.Delayed` objects, so that the data and the operations live on the dask cluster until :code:`materialize_dask` is called.
+Note that after calling :code:`dask_map` for the first time, you can chain more :code:`dask_map`\s, which are then operating on the :code:`dask.delayed.Delayed` objects, so that the data and the operations live on the dask cluster until :code:`materialize_dask` is called.

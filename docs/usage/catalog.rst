@@ -64,6 +64,11 @@ Note that there are some new fields, more specifically, the source now also has:
 - An identifier
 - A version
 
+This is because Catalog returns a :py:class:`~squirrel.catalog.CatalogSource`, which is responsible for storing a
+single version of a Source.
+Inside a Catalog, there can be multiple ``CatalogSource``s for a single data source.
+In this case, the ``identifier`` will be the same for all of them but they will each have a unique version number.
+
 We specified the identifier when adding the Source to the Catalog.
 However, the version was automatically set.
 We could have set the version ourselves as well:
@@ -110,7 +115,7 @@ It is possible to specify which version to get::
         "version": 1
     }
 
-It is possible to get a Driver instance to read from a Catalog Source.
+It is possible to get a Driver instance to read from a CatalogSource.
 
 .. code-block:: python
 
