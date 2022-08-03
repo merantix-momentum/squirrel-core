@@ -52,12 +52,28 @@ def pipeline(it: DaliExternalSource, device: str) -> Tuple[DataNode]:
 def get_classification_dali_it(
     it: DaliExternalSource, device: str, device_id: Optional[int] = None
 ) -> DALIGenericIterator:
+    """Returns DALI generic pytorch iterator over a custom img classification pipeline.
+
+    Args:
+        it (DaliExternalSource): The source passed to DALI fn.external_source.
+        device (str): Which device to put data on.
+        device_id (Optional[int], optional): ID of device. Defaults to None.
+
+    Returns:
+        DALIGenericIterator: DALI generic pytorch iterator.
+    """
     pipe = pipeline(it, device, batch_size=BATCH_SIZE, num_threads=NUM_THREADS, device_id=device_id)
     pipe.build()
     return DALIGenericIterator([pipe], [DATA_KEY, LABEL_KEY])
 
 
-def check_dali_iterator(dali_iter: DALIGenericIterator, device: str):
+def check_dali_iterator(dali_iter: DALIGenericIterator, device: str) -> None:
+    """Runs over the DALI pytorch iterator and checks dataset format.
+
+    Args:
+        dali_iter (DALIGenericIterator): DALI pytorch iterator.
+        device (str): Which device (e.g. "cuda:0") the data is on.
+    """
     counter = 0
     for item in dali_iter:
         # access data of first pipeline
