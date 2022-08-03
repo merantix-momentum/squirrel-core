@@ -256,6 +256,11 @@ class Composable:
         """Convert the stream to a torch iterable."""
         return self.compose(iterstream.torch_composables.TorchIterable)
 
+    def to_dali_external_source(self, batch_size: int, collation_fn: t.Callable[[t.List], t.List]) -> Composable:
+        """Convert the stream to a Nvidia DALI external source that is directly usable by nvidia.dali.fn.external_source
+        in a DALI pipeline."""
+        return self.compose(iterstream.dali_composables.DaliExternalSource, batch_size, collation_fn)
+
 
 class _Iterable(Composable):
     """
