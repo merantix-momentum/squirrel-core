@@ -57,6 +57,10 @@ class SquirrelStore(FilesystemStore):
         if key is None:
             key = get_random_key()
         fp = f"{self.url}/{key}.gz"
+
+        if not self._dir_exists:
+            self.fs.makedirs(self.url, exist_ok=True)
+
         self.serializer.serialize_shard_to_file(value, fp, fs=self.fs, **kwargs)
 
     def keys(self, nested: bool = False, **kwargs) -> t.Iterator[str]:
