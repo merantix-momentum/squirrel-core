@@ -60,6 +60,7 @@ class SquirrelStore(FilesystemStore):
 
         if not self._dir_exists:
             self.fs.makedirs(self.url, exist_ok=True)
+            self._dir_exists = True
 
         self.serializer.serialize_shard_to_file(value, fp, fs=self.fs, **kwargs)
 
