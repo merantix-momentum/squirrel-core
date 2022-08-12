@@ -10,7 +10,6 @@ from copy import deepcopy
 from numba import jit
 
 from squirrel.constants import MetricsType
-from squirrel import iterstream
 from squirrel.iterstream.iterators import (
     batched_,
     dask_delayed_,
