@@ -242,7 +242,9 @@ class Composable:
 
     def split_by_worker_pytorch(self) -> Composable:
         """Split the stream into multiple streams, one for each worker in the PyTorch distributed system."""
-        return self.compose(iterstream.torch_composables.SplitByWorker)
+        from squirrel.iterstream.torch_composables import SplitByWorker
+
+        return self.compose(SplitByWorker)
 
     def split_by_rank_pytorch(self, torch_dist_group: t.Optional[str] = None) -> Composable:
         """Split the stream into multiple streams, one for each rank in the PyTorch distributed system
@@ -250,11 +252,15 @@ class Composable:
         Args:
             torch_dist_group (str, optional): The group name of the PyTorch distributed system. Defaults to None.
         """
-        return self.compose(iterstream.torch_composables.SplitByRank, torch_dist_group)
+        from squirrel.iterstream.torch_composables import SplitByRank
+
+        return self.compose(SplitByRank, torch_dist_group)
 
     def to_torch_iterable(self) -> Composable:
         """Convert the stream to a torch iterable."""
-        return self.compose(iterstream.torch_composables.TorchIterable)
+        from squirrel.iterstream.torch_composables import TorchIterable
+
+        return self.compose(TorchIterable)
 
 
 class _Iterable(Composable):
