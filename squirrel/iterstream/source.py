@@ -77,7 +77,7 @@ class FilePathGenerator(Composable):
     def __iter__(self) -> t.Iterator[str]:
         """Iterator that does ls and yield filepaths under the given url"""
         self.fs = get_fs_from_url(self.url)
-        urls = self.fs.ls(self.url)
+        urls = self.fs.ls(self.url) if self.fs.exists(self.url) else []
         urls.sort()
         if self.nested:
             dirs = []

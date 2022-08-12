@@ -6,7 +6,7 @@ import string
 import typing as t
 
 from squirrel.framework.io import read_from_file, write_to_file
-from squirrel.fsspec.fs import create_dir_if_does_not_exist, get_fs_from_url
+from squirrel.fsspec.fs import get_fs_from_url
 from squirrel.iterstream.source import FilePathGenerator
 from squirrel.store.store import AbstractStore
 
@@ -41,9 +41,10 @@ class FilesystemStore(AbstractStore):
         self.storage_options = storage_options
         self.serializer = serializer
         self.fs = get_fs_from_url(self.url, **self.storage_options)
-        if clean:
+        self._dir_exists = self.fs.exists(self.url)
+        if clean and self._dir_exists:
             self.fs.rm(self.url, recursive=True)
-        create_dir_if_does_not_exist(self.fs, self.url)
+            self._dir_exists = False
 
     def get(self, key: str, mode: str = "rb", **open_kwargs) -> t.Any:
         """Yields the item with the given key.
