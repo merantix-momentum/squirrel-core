@@ -12,7 +12,7 @@ from squirrel.store import SquirrelStore
 
 
 def test_invalid_url(local_msgpack_url: URL) -> None:
-    """Test if an error is raised when an invalid url is passed"""
+    """Test if a warning is printed when an invalid url is passed"""
 
     # empty directory
     with tempfile.TemporaryDirectory() as tmp_dir:
