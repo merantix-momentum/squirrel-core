@@ -1,4 +1,4 @@
-FROM python:3.8.9-slim
+FROM python:3.9-slim
 
 RUN apt-get update && \
     apt-get -y install git findutils build-essential unzip wget && \
