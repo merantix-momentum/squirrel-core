@@ -91,7 +91,9 @@ class FilePathGenerator(Composable):
                             future = AsyncContent(url, self.fs.ls, pool)
                             dirs.append(future)
                         else:
-                            yield f"{self.protocol}{url}"
+                            if not self._returned_url:
+                                self._returned_url = True
+                                yield f"{self.protocol}{url}"
                     if (len(dirs) >= self.max_dirs and len(urls) < self.max_keys) or len(urls) == 0 and dirs:
                         d = dirs.pop(0).value()
                         urls.extend(d)

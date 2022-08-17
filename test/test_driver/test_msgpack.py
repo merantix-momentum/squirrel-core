@@ -11,8 +11,8 @@ from squirrel.serialization import MessagepackSerializer
 from squirrel.store import SquirrelStore
 
 
-def test_invalid_url(local_msgpack_url: URL) -> None:
-    """Test if a warning is printed when an invalid url is passed"""
+def test_empty_or_nonexistent_url(local_msgpack_url: URL) -> None:
+    """Test if a warning is printed when we iterate over an empty or nonexistent url"""
 
     # empty directory
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -22,18 +22,18 @@ def test_invalid_url(local_msgpack_url: URL) -> None:
     # directory containing only empty directories
     with tempfile.TemporaryDirectory() as tmp_dir:
         with tempfile.TemporaryDirectory(dir=tmp_dir) as sub_dir:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                _ = MessagepackDriver(url=tmp_dir).get_iter().collect()
+            with pytest.warns(UserWarning):
+                _ = MessagepackDriver(url=tmp_dir).get_iter(keys_kwargs={"nested": True}).collect()
             with pytest.warns(UserWarning):
                 _ = MessagepackDriver(url=sub_dir).get_iter().collect()
 
-    # test invalid url
-    invalid_url = "invalid_url"
+    # test nonexistent url
+    nonexistent_url = "nonexistent_url"
     with pytest.warns(UserWarning):
-        _ = MessagepackDriver(url=invalid_url).get_iter().collect()
+        _ = MessagepackDriver(url=nonexistent_url).get_iter().collect()
 
     # test valid url containing samples
+    # this should print a warning
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         _ = MessagepackDriver(url=local_msgpack_url).get_iter().collect()
