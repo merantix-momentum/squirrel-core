@@ -23,7 +23,7 @@ def test_empty_or_nonexistent_url(local_msgpack_url: URL) -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         with tempfile.TemporaryDirectory(dir=tmp_dir) as sub_dir:
             with pytest.warns(UserWarning):
-                _ = MessagepackDriver(url=tmp_dir).get_iter(keys_kwargs={"nested": True}).collect()
+                _ = MessagepackDriver(url=tmp_dir).get_iter().collect()
             with pytest.warns(UserWarning):
                 _ = MessagepackDriver(url=sub_dir).get_iter().collect()
 
@@ -35,7 +35,6 @@ def test_empty_or_nonexistent_url(local_msgpack_url: URL) -> None:
     # test valid url containing samples
     # this should print a warning
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
         _ = MessagepackDriver(url=local_msgpack_url).get_iter().collect()
 
 

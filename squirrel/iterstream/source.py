@@ -74,7 +74,7 @@ class FilePathGenerator(Composable):
         self.max_workers = max_workers
         self.max_keys = max_keys
         self.max_dirs = max_dirs
-        self._returned_url = False
+        self._returned_file_url = False
 
     def __iter__(self) -> t.Iterator[str]:
         """Iterator that does ls and yield filepaths under the given url"""
@@ -91,24 +91,27 @@ class FilePathGenerator(Composable):
                             future = AsyncContent(url, self.fs.ls, pool)
                             dirs.append(future)
                         else:
-                            if not self._returned_url:
-                                self._returned_url = True
+                            if not self._returned_file_url:
+                                self._returned_file_url = True
                                 yield f"{self.protocol}{url}"
                     if (len(dirs) >= self.max_dirs and len(urls) < self.max_keys) or len(urls) == 0 and dirs:
                         d = dirs.pop(0).value()
                         urls.extend(d)
         else:
             for url in urls:
-                if not self._returned_url:
-                    self._returned_url = True
+                if not self._returned_file_url and not self.fs.isdir(path=url):
+                    self._returned_file_url = True
                 yield f"{self.protocol}{url}"
 
-        if not self._returned_url:
-            warnings.warn(
-                f"URL {self.url} does not exist or is empty. "
-                f"You might be accessing a driver or store over an empty or invalid URL.",
-                UserWarning,
-            )
+        if not self._returned_file_url:
+            if not self.fs.exists(self.url):
+                warnings.warn(f"{self.url} does not exist", UserWarning)
+            else:
+                warnings.warn(
+                    f"URL {self.url} is empty or only contains folders."
+                    f"To get urls of sub-folders, use nested=True.",
+                    UserWarning,
+                )
 
 
 class IterableSamplerSource(Composable):
