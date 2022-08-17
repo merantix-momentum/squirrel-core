@@ -93,7 +93,7 @@ class FilePathGenerator(Composable):
                         else:
                             if not self._returned_file_url:
                                 self._returned_file_url = True
-                                yield f"{self.protocol}{url}"
+                            yield f"{self.protocol}{url}"
                     if (len(dirs) >= self.max_dirs and len(urls) < self.max_keys) or len(urls) == 0 and dirs:
                         d = dirs.pop(0).value()
                         urls.extend(d)
