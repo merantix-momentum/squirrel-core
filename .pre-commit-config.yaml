@@ -3,7 +3,7 @@
 # See
 # https://medium.com/staqu-dev-logs/keeping-python-code-clean-with-pre-commit-hooks-black-flake8-and-isort-cac8b01e0ea1
 default_language_version:
-  python: python3.8
+  python: python3.9
 exclude: (?x)(^docs/_build)
 repos:
 - repo: https://github.com/psf/black
@@ -37,3 +37,4 @@ repos:
   - id: doc8
     args: [--max-line-length, "120"]
     additional_dependencies: ["--index-url=https://pypi.org/simple/"]
+
