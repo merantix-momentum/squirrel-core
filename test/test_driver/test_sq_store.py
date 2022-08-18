@@ -5,11 +5,57 @@ import pytest
 import tempfile
 
 from squirrel.driver import StoreDriver
-from squirrel.iterstream import FilePathGenerator
+from squirrel.iterstream import FilePathGenerator, IterableSource
 from squirrel.serialization import MessagepackSerializer
 from squirrel.store import SquirrelStore
 from squirrel.fsspec.fs import get_fs_from_url
 from squirrel.integration_test.helpers import SHAPE, get_sample
+
+
+@pytest.mark.parametrize("exist_ok_while_clean", [True, False], "clean_while_exist_ok", [True, False])
+def test_squirrel_overwrite_when_creating(
+    dummy_sq_store: SquirrelStore, exist_ok_while_clean: bool, clean_while_exist_ok: bool
+) -> None:
+    """Test overwriting behaviour when creating a store."""
+    # Error should be thrown when instantiating a store with a non-empty url
+    with pytest.raises(ValueError):
+        SquirrelStore(url=dummy_sq_store.url, serializer=MessagepackSerializer())
+    # No error should be thrown when having the exist_ok flag set to True
+    try:
+        SquirrelStore(
+            url=dummy_sq_store.url, serializer=MessagepackSerializer(), exist_ok=True, clean=clean_while_exist_ok
+        )
+    except ValueError:
+        pytest.fail("Expected no error when instantiating from non-empty url and exist_ok is set to True")
+    # No error should be thrown when instantiating a store with a non-empty url and clean is set to True
+    try:
+        SquirrelStore(
+            url=dummy_sq_store.url, serializer=MessagepackSerializer(), clean=True, exist_ok=exist_ok_while_clean
+        )
+    except ValueError:
+        pytest.fail("Expected no error when instantiating from non-empty url and clean is set to True")
+
+
+def test_squirrel_overwrite_when_writing(dummy_sq_store: SquirrelStore, num_samples: int) -> None:
+    """Test overwrite when setting."""
+    # Error should be thrown when writing to an existing store
+    samples = IterableSource(dummy_sq_store.keys()).async_map(dummy_sq_store.get)
+    with pytest.raises(ValueError):
+        IterableSource(samples).async_map(dummy_sq_store.set)
+
+    # Error should not be thrown when writing an existing store and exit_ok is set to True
+    store = SquirrelStore(url=dummy_sq_store.url, serializer=MessagepackSerializer(), exist_ok=True)
+    try:
+        IterableSource(samples).async_map(store.set)
+    except ValueError:
+        pytest.fail("Expected no error when writing to an existing store and exist_ok is set to True")
+
+    # Error should not be thrown when writing an existing store and clean is set to True
+    store = SquirrelStore(url=dummy_sq_store.url, serializer=MessagepackSerializer(), clean=True)
+    try:
+        IterableSource(samples).async_map(store.set)
+    except ValueError:
+        pytest.fail("Expected no error when writing to an existing store and clean is set to True")
 
 
 def test_store_creation(dummy_sq_store: SquirrelStore, array_shape: SHAPE, num_samples: int) -> None:
