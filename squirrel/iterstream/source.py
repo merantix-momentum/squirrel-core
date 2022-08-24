@@ -6,7 +6,6 @@ from squirrel.fsspec.fs import get_fs_from_url, get_protocol
 from squirrel.iterstream.base import AsyncContent, Composable
 from squirrel.iterstream.iterators import get_random_range
 
-
 __all__ = ["IterableSource", "FilePathGenerator", "IterableSamplerSource"]
 
 
@@ -54,6 +53,7 @@ class FilePathGenerator(Composable):
         max_workers: t.Optional[int] = None,
         max_keys: int = 1_000_000,
         max_dirs: int = 10,
+        **storage_options,
     ):
         """
         Args:
@@ -65,6 +65,7 @@ class FilePathGenerator(Composable):
                 expansion on the currently discovered directories is done, until enough keys are yielded to make room
                 for the new ones.
             max_dirs (int): maximum number of parallel ls operation.
+            **storage_options (dict): kwargs to pass onto the fsspec filesystem initialization.
         """
         super().__init__()
         self.url = url
@@ -73,10 +74,11 @@ class FilePathGenerator(Composable):
         self.max_workers = max_workers
         self.max_keys = max_keys
         self.max_dirs = max_dirs
+        self.storage_options = storage_options
 
     def __iter__(self) -> t.Iterator[str]:
         """Iterator that does ls and yield filepaths under the given url"""
-        self.fs = get_fs_from_url(self.url)
+        self.fs = get_fs_from_url(self.url, **self.storage_options)
         urls = self.fs.ls(self.url) if self.fs.exists(self.url) else []
         urls.sort()
         if self.nested:
