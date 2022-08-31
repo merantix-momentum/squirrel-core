@@ -122,7 +122,6 @@ if __name__ == "__main__":
     setup(
         name=f"{SOURCE_DIR}-core",
         version=version,
-        python_requires=">=3.8.0",
         description=(
             "Squirrel is a Python library that enables ML teams to share, load, and transform data in a "
             + "collaborative, flexible, and efficient way."
