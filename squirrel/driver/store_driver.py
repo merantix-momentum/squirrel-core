@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable
+from typing import TYPE_CHECKING, Any, Iterable, Dict, Optional
 
 from squirrel.driver.driver import MapDriver
 from squirrel.serialization import SquirrelSerializer
@@ -19,17 +19,21 @@ class StoreDriver(MapDriver):
 
     name = "store_driver"
 
-    def __init__(self, url: str, serializer: SquirrelSerializer, **kwargs) -> None:
+    def __init__(
+        self, url: str, serializer: SquirrelSerializer, storage_options: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> None:
         """Initializes StoreDriver.
 
         Args:
             url (str): the url of the store
             serializer (SquirrelSerializer): serializer to be passed to SquirrelStore
+            storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments passed to filesystem initializer
             **kwargs: Keyword arguments to pass to the super class initializer.
         """
         super().__init__(**kwargs)
         self.url = url
         self.serializer = serializer
+        self.storage_options = storage_options if storage_options is not None else {}
         self._store = None
 
     def get_iter(self, flatten: bool = True, **kwargs) -> Composable:
@@ -83,5 +87,5 @@ class StoreDriver(MapDriver):
     def store(self) -> AbstractStore:
         """Store that is used by the driver."""
         if self._store is None:
-            self._store = SquirrelStore(url=self.url, serializer=self.serializer)
+            self._store = SquirrelStore(url=self.url, serializer=self.serializer, **self.storage_options)
         return self._store

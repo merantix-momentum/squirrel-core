@@ -87,11 +87,15 @@ class FilesystemStore(AbstractStore):
             nested (bool): Whether to return paths that are not direct children of the root directory. If True, all
                 paths in the store will be yielded. Otherwise, only the top-level paths (i.e. direct children of the
                 root path) will be yielded. This option is passed to FilePathGenerator initializer. Defaults to True.
-            **kwargs: Other keyword arguments passed to the FilePathGenerator initializer.
+            **kwargs: Other keyword arguments passed to the FilePathGenerator initializer. Any kwargs you provide
+                here and are also present in the FilesystemStore's storage_options will be overriden with kwargs.
 
         Yields:
             (str) Paths to files and directories in the store relative to the root directory.
         """
-        fp_gen = FilePathGenerator(url=self.url, nested=nested, **kwargs)
+        storage_options = self.storage_options.copy()
+        storage_options.update(kwargs)
+
+        fp_gen = FilePathGenerator(url=self.url, nested=nested, **storage_options)
         for path in fp_gen:
             yield osp.relpath(path, start=self.url)
