@@ -27,7 +27,7 @@ class StoreDriver(MapDriver):
         Args:
             url (str): the url of the store
             serializer (SquirrelSerializer): serializer to be passed to SquirrelStore
-            storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments passed to filesystem initializer
+            storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments to be passed to store initializer
             **kwargs: Keyword arguments to pass to the super class initializer.
         """
         super().__init__(**kwargs)
