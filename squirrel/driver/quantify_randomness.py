@@ -1,7 +1,10 @@
+from typing import Iterable
+
 import numpy as np
 from scipy.stats import kendalltau
 
 from squirrel.driver import MapDriver
+from squirrel.iterstream.base import Composable
 
 
 class DummyShardedDriver(MapDriver):
@@ -9,18 +12,22 @@ class DummyShardedDriver(MapDriver):
 
     name = "dummy_sharded_driver"
 
-    def __init__(self, num_shard: int, shard_size: int):
+    def __init__(self, num_shard: int, shard_size: int) -> None:
+        """Init dummy sharded driver"""
         self.shard_size = shard_size
         self.key_it = range(num_shard)
         self.data = np.arange(num_shard * shard_size)
 
-    def get(self, key: str):
+    def get(self, key: str) -> int:
+        """Get item with key"""
         return self.data[int(key) * self.shard_size : (int(key) + 1) * self.shard_size]
 
-    def keys(self):
+    def keys(self) -> Iterable:
+        """Get key iterator"""
         yield from map(str, self.key_it)
 
-    def get_iter(self, flatten: bool = True, **kwargs):
+    def get_iter(self, flatten: bool = True, **kwargs) -> Composable:
+        """Get iterator"""
         return super().get_iter(flatten=flatten, **kwargs)
 
 
