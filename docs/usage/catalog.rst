@@ -73,14 +73,16 @@ In this case, the ``identifier`` will be the same for all of them but they will 
 We specified the identifier when adding the Source to the Catalog.
 However, the version was automatically set.
 
-If we set another source (or the same one in this example) on the same key, a new version will automatically be created:
+If we set another source (or the same one in this example) on the same key, 
+a new version will automatically be created:
 
 .. code-block:: python
 
     cat["my_source"] = source  # Automatically add new version of the same source
 
 
-We could have set the version ourselves as well. So the following would have had the same effect, but in this case would explicitly overwrite the existing version:
+We could have set the version ourselves as well. So the following would have had the same effect, 
+but in this case would explicitly overwrite the existing version:
 
 .. code-block:: python
 
