@@ -41,5 +41,5 @@ class FileDriver(Driver):
         storage_options = self.storage_options.copy()
         storage_options.update({"auto_mkdir": create_if_not_exists})
 
-        fs = get_fs_from_url(self.path, storage_options=storage_options)
+        fs = get_fs_from_url(self.path, **storage_options)
         return fs.open(self.path, mode=mode, **kwargs)
