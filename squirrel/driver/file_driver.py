@@ -1,4 +1,4 @@
-from typing import IO
+from typing import IO, Any, Dict, Optional
 
 from squirrel.driver.driver import Driver
 
@@ -6,15 +6,17 @@ from squirrel.driver.driver import Driver
 class FileDriver(Driver):
     name = "file"
 
-    def __init__(self, path: str, **kwargs) -> None:
+    def __init__(self, path: str, storage_options: Optional[Dict[str, Any]] = None, **kwargs) -> None:
         """Initializes FileDriver.
 
         Args:
             path (str): Path to a file.
+            storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments passed to file system initializer
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         super().__init__(**kwargs)
         self.path = path
+        self.storage_options = storage_options if storage_options is not None else {}
 
     def open(self, mode: str = "r", create_if_not_exists: bool = False, **kwargs) -> IO:
         """Returns a handler for the file.
@@ -27,7 +29,8 @@ class FileDriver(Driver):
                 to "r".
             create_if_not_exists (bool): If True, the file will be created if it does not exist (along with the parent
                 directories). This is achieved by providing `auto_mkdir=create_if_not_exists` as a storage option to
-                the filesystem. Defaults to False.
+                the filesystem. If the key `create_if_not_exists` is already present in the `FileDriver`'s
+                `storage_options`, the value provided here will be used. Defaults to False.
             **kwargs: Keyword arguments that are passed to the `filesystem.open()` method.
 
         Return:
@@ -35,5 +38,8 @@ class FileDriver(Driver):
         """
         from squirrel.fsspec.fs import get_fs_from_url
 
-        fs = get_fs_from_url(self.path, storage_options={"auto_mkdir": create_if_not_exists})
+        storage_options = self.storage_options.copy()
+        storage_options.update({"auto_mkdir": create_if_not_exists})
+
+        fs = get_fs_from_url(self.path, storage_options=storage_options)
         return fs.open(self.path, mode=mode, **kwargs)
