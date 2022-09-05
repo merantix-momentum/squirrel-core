@@ -25,6 +25,7 @@ ignore =
     ANN101, # Missing type annotation for self in method
     ANN102, # Missing type annotation for cls in classmethod
     ANN204, # Missing return type annotation for special method, e.g. init
+    ANN401, # Dynamically typed expressions (typing.Any) are disallowed
     # The following is for the docstring plugin, to make it less whiny. We are happy if we have docs on all functions
     D100, # Missing docstring in public module
     D101, # Missing docstring in public class
