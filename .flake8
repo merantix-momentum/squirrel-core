@@ -39,3 +39,5 @@ max_line_length = 120
 import_order_style = appnexus
 application_package_names = devtool
 docstring-convention = google
+# 3.6.0 does not allow defaults or methods in NamedTuples, which breaks CatalogKey 
+min_python_version = 3.6.1
