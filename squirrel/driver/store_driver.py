@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Dict, Optional
+from typing import Any, Iterable, TYPE_CHECKING
 
 from squirrel.driver.driver import MapDriver
 from squirrel.serialization import SquirrelSerializer
@@ -20,7 +20,7 @@ class StoreDriver(MapDriver):
     name = "store_driver"
 
     def __init__(
-        self, url: str, serializer: SquirrelSerializer, storage_options: Optional[Dict[str, Any]] = None, **kwargs
+        self, url: str, serializer: SquirrelSerializer, storage_options: dict[str, Any] | None = None, **kwargs
     ) -> None:
         """Initializes StoreDriver.
 

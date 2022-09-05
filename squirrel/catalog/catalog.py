@@ -2,22 +2,7 @@ from __future__ import annotations
 
 import io
 import json
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    KeysView,
-    List,
-    MutableMapping,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Any, Callable, Iterable, Iterator, KeysView, MutableMapping, NamedTuple, TYPE_CHECKING
 
 import fsspec
 
@@ -64,7 +49,7 @@ class Catalog(MutableMapping):
         A Catalog can be [de-]serialized. You can check out the ``from_xxx()`` and ``to_xxx()`` methods for additional
         information.
         """
-        self._sources: Dict[str, CatalogSource] = {}
+        self._sources: dict[str, CatalogSource] = {}
 
     def __repr__(self) -> str:  # noqa D105
         return str(set(self.sources.keys()))
@@ -84,14 +69,14 @@ class Catalog(MutableMapping):
 
         return True
 
-    def __contains__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> bool:  # noqa D105
+    def __contains__(self, identifier: str | CatalogKey | tuple[str, int]) -> bool:  # noqa D105
         if isinstance(identifier, str):
             return identifier in self._sources
 
         identifier, version = identifier
         return identifier in self._sources and version in self._sources[identifier]
 
-    def __delitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> None:  # noqa D105
+    def __delitem__(self, identifier: str | CatalogKey | tuple[str, int]) -> None:  # noqa D105
         if isinstance(identifier, str):
             # if not given a specific version, we remove all versions of the identifier
             del self._sources[identifier]
@@ -101,7 +86,7 @@ class Catalog(MutableMapping):
             if len(self._sources[identifier]) == 0:
                 del self._sources[identifier]
 
-    def __setitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]], value: Source) -> None:  # noqa D105
+    def __setitem__(self, identifier: str | CatalogKey | tuple[str, int], value: Source) -> None:  # noqa D105
         if isinstance(identifier, str):
             version = 1 if identifier not in self else self._sources[identifier][-1].version + 1
         else:
@@ -114,7 +99,7 @@ class Catalog(MutableMapping):
         else:
             self._sources[identifier][version] = value
 
-    def __getitem__(self, identifier: Union[str, CatalogKey, Tuple[str, int]]) -> CatalogSource:  # noqa D105
+    def __getitem__(self, identifier: str | CatalogKey | tuple[str, int]) -> CatalogSource:  # noqa D105
         if identifier not in self:
             if isinstance(identifier, str):
                 # return a dummy object to let the user set a version directly
@@ -131,10 +116,10 @@ class Catalog(MutableMapping):
 
         return self.sources[identifier][version]
 
-    def items(self) -> Iterator[Tuple[str, Source]]:  # noqa D105
+    def items(self) -> Iterator[tuple[str, Source]]:  # noqa D105
         return self.__iter__()
 
-    def __iter__(self) -> Iterator[Tuple[str, Source]]:  # noqa D105
+    def __iter__(self) -> Iterator[tuple[str, Source]]:  # noqa D105
         for k, v in self.sources.items():
             yield k, v[-1]
 
@@ -158,7 +143,7 @@ class Catalog(MutableMapping):
             ret = yamlcatalog2catalog(yaml.load(fh.read()))
         return ret
 
-    def slice(self, keys: List[str]) -> Catalog:
+    def slice(self, keys: list[str]) -> Catalog:
         """Return a deep copy of catalog were only by key specified sources get copied."""
         cat_cp = self.copy()
         cat = Catalog()
@@ -233,7 +218,7 @@ class Catalog(MutableMapping):
         return ret
 
     @staticmethod
-    def from_dirs(paths: List[str]) -> Catalog:
+    def from_dirs(paths: list[str]) -> Catalog:
         """Create a Catalog based on a list of folders containing yaml files."""
         files = []
         for path in paths:
@@ -243,7 +228,7 @@ class Catalog(MutableMapping):
         return Catalog.from_files(files)
 
     @staticmethod
-    def from_files(paths: List[str]) -> Catalog:
+    def from_files(paths: list[str]) -> Catalog:
         """Create a Catalog based on a list of paths to yaml files."""
         cat = Catalog()
         for file in paths:
@@ -270,7 +255,7 @@ class Catalog(MutableMapping):
             yaml.dump(ser, fh)
 
     @property
-    def sources(self) -> Dict[str, CatalogSource]:
+    def sources(self) -> dict[str, CatalogSource]:
         """Read only property"""
         return self._sources
 
@@ -282,7 +267,7 @@ class CatalogSource(Source):
         identifier: str,
         catalog: Catalog,
         version: int = 1,
-        versions: Optional[Dict[int, CatalogSource]] = None,
+        versions: dict[int, CatalogSource] | None = None,
     ) -> None:
         """Wraps a Source with an identifier and a version number so that a unique version can be stored in a Catalog.
 
@@ -360,7 +345,7 @@ class CatalogSource(Source):
         return self._version
 
     @property
-    def versions(self) -> Dict[int, CatalogSource]:
+    def versions(self) -> dict[int, CatalogSource]:
         """Read only property"""
         return self._versions
 
@@ -368,7 +353,7 @@ class CatalogSource(Source):
         """Returns an instance of the driver specified by the source."""
         from squirrel.framework.plugins.plugin_manager import squirrel_plugin_manager
 
-        plugins: List[List[Type[Driver]]] = squirrel_plugin_manager.hook.squirrel_drivers()
+        plugins: list[list[type[Driver]]] = squirrel_plugin_manager.hook.squirrel_drivers()
         for plugin in plugins:
             for driver_cls in plugin:
                 if driver_cls.name == self.driver_name:

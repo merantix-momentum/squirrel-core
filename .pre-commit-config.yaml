@@ -39,3 +39,9 @@ repos:
       - id: doc8
         args: [--max-line-length, '120']
         additional_dependencies: [--index-url=https://pypi.org/simple/]
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.37.3
+    hooks:
+      - id: pyupgrade
+        args: [--py3-plus]
+        additional_dependencies: [--index-url=https://pypi.org/simple/]

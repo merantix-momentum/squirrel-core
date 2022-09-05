@@ -82,7 +82,7 @@ class SquirrelFSStore(FSStore):
         try:
             children = sorted(p.rstrip("/").rsplit("/", 1)[-1] for p in self.fs.ls(dir_path, detail=False))
             return [c for c in children if is_dir(c)]
-        except IOError:
+        except OSError:
             return []
 
     def getsize(self, path: URL = None) -> int:
