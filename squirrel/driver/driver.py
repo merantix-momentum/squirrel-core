@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 __all__ = ["Driver", "IterDriver", "MapDriver", "DataFrameDriver"]
 
 
-class Driver(ABC):
+class Driver(ABC):  # noqa: B024, we want to make it explicit that this class is abstract
     """Drives the access to a data source."""
 
     name: str
