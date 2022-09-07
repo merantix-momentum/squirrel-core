@@ -75,7 +75,7 @@ class Composable:
         buffer: int = 100,
         max_workers: t.Optional[int] = None,
         executor: t.Optional[Executor] = None,
-    ) -> "_AsyncMap":
+    ) -> _AsyncMap:
         """
         Applies the `callback` to the item in the self and returns the result.
 
@@ -294,7 +294,7 @@ class _Iterable(Composable):
 class _LoopIterable(Composable):
     def __init__(self, source: t.Iterable, n: t.Optional[int]):
         """Init"""
-        super(_LoopIterable, self).__init__(source=source)
+        super().__init__(source=source)
         self.n = n
 
     def __iter__(self) -> t.Iterator:

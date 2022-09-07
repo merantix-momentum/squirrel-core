@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING
 
 from squirrel.driver.driver import DataFrameDriver
 from squirrel.driver.file_driver import FileDriver
@@ -36,7 +36,7 @@ class CsvDriver(FileDriver, DataFrameDriver):
 
         return dd.read_csv(self.path, **kwargs)
 
-    def get_iter(self, itertuples_kwargs: Optional[Dict] = None, read_csv_kwargs: Optional[Dict] = None) -> Composable:
+    def get_iter(self, itertuples_kwargs: dict | None = None, read_csv_kwargs: dict | None = None) -> Composable:
         """Returns an iterator over rows.
 
         Note that first the csv file is read into a DataFrame and then :py:meth:`df.itertuples` is called.

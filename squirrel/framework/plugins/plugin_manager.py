@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Tuple, Type
+from typing import TYPE_CHECKING
 
 import pluggy
 
@@ -26,24 +26,24 @@ def register_source(identifier: str, source: Source, version: int = 1) -> None:
 
     class MyPlugin:
         @hookimpl.hookimpl
-        def squirrel_sources(self) -> List[Tuple[CatalogKey, Source]]:
+        def squirrel_sources(self) -> list[tuple[CatalogKey, Source]]:
             return [(CatalogKey(identifier, version), source)]
 
     squirrel_plugin_manager.register(MyPlugin())
 
 
-def register_driver(driver: Type[Driver]) -> None:
+def register_driver(driver: type[Driver]) -> None:
     """Add Driver to Squirrel so that it can be used in catalogs."""
 
     class MyPlugin:
         @hookimpl.hookimpl
-        def squirrel_drivers(self) -> List[Type[Driver]]:
+        def squirrel_drivers(self) -> list[type[Driver]]:
             return [driver]
 
     squirrel_plugin_manager.register(MyPlugin())
 
 
-def list_driver_names() -> List[str]:
+def list_driver_names() -> list[str]:
     """List names of registered drivers"""
     plugins = squirrel_plugin_manager.hook.squirrel_drivers()
     ret = []

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import typing as t
-from collections import MutableMapping
+from collections.abc import MutableMapping
 
 from zarr.errors import GroupNotFoundError, ReadOnlyError
 from zarr.hierarchy import Group
