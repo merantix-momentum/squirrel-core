@@ -87,9 +87,5 @@ class StoreDriver(MapDriver):
     def store(self) -> AbstractStore:
         """Store that is used by the driver."""
         if self._store is None:
-<<<<<<< HEAD
             self._store = SquirrelStore(url=self.url, serializer=self.serializer, **self.storage_options)
-=======
-            self._store = SquirrelStore(url=self.url, serializer=self.serializer, exist_ok=True)
->>>>>>> aa7b9c5 (skip cleaning store when url does not exist)
         return self._store
