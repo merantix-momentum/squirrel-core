@@ -89,7 +89,7 @@ class FilesystemStore(AbstractStore):
             mode (str): IO mode to use when opening the file. Defaults to "wb".
             **open_kwargs: Keyword arguments that will be forwarded to the filesystem object when opening the file.
         """
-        if not self._read_only:
+        if self._read_only:
             raise ValueError(
                 "Store is set to read-only mode. If you are writing to the store via a driver, consider"
                 "instantiating a separate store with read_only set to False"
