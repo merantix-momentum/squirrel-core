@@ -8,6 +8,7 @@ import torch
 import torch.utils.data as tud
 
 from squirrel.driver import MessagepackDriver
+from squirrel.store import SquirrelStore
 from squirrel.iterstream.iterators import map_
 from squirrel.iterstream.source import IterableSource
 from squirrel.iterstream.torch_composables import SplitByRank, SplitByWorker, TorchIterable, skip_k
@@ -138,7 +139,7 @@ def test_multi_rank_multi_worker_torch_iterable(
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             driver = MessagepackDriver(tmp_dir)
-            store = driver.store
+            store = SquirrelStore(tmp_dir, serializer=driver.serializer)
             keys_ = list(range(1000, 1100))
             for idx, sh in enumerate(samples):
                 store.set(value=sh, key=keys_[idx])

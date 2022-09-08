@@ -10,6 +10,7 @@ from squirrel.serialization import MessagepackSerializer
 from squirrel.store import SquirrelStore
 from squirrel.fsspec.fs import get_fs_from_url
 from squirrel.integration_test.helpers import SHAPE, get_sample
+from squirrel.constants import URL
 
 
 @pytest.mark.parametrize("exist_ok", [True, False])
@@ -28,6 +29,32 @@ def test_store_creation_with_exist_ok_set(dummy_sq_store: SquirrelStore, clean: 
         SquirrelStore(url=dummy_sq_store.url, serializer=MessagepackSerializer(), exist_ok=True, clean=clean)
     except ValueError:
         pytest.fail("Expected no error when instantiating from non-empty url and exist_ok is set to True")
+
+
+@pytest.mark.parametrize("clean, exist_ok", [(True, True), (False, False)])
+def test_store_read_only(test_path: URL, clean: bool, exist_ok: bool, array_shape: SHAPE) -> None:
+    """No error should when read_only is False"""
+    try:
+        sq_store = SquirrelStore(
+            url=f"{test_path}/sq_store/",
+            serializer=MessagepackSerializer(),
+            exist_ok=exist_ok,
+            clean=clean,
+            read_only=False,
+        )
+        sq_store.set(get_sample(array_shape))
+    except ValueError:
+        pytest.fail("Expected no error when instantiating from non-empty url and exist_ok is set to True")
+
+    with pytest.raises(ValueError):
+        sq_store = SquirrelStore(
+            url=f"{test_path}/sq_store/",
+            serializer=MessagepackSerializer(),
+            exist_ok=exist_ok,
+            clean=clean,
+            read_only=True,
+        )
+        sq_store.set(get_sample(array_shape))
 
 
 def test_store_creation(dummy_sq_store: SquirrelStore, num_samples: int) -> None:

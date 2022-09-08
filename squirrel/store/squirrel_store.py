@@ -13,7 +13,13 @@ class SquirrelStore(FilesystemStore):
     """FilesystemStore that persist samples (Dict objects) or shards (i.e. list of samples)."""
 
     def __init__(
-        self, url: str, serializer: SquirrelSerializer, clean: bool = False, exist_ok: bool = False, **storage_options
+        self,
+        url: str,
+        serializer: SquirrelSerializer,
+        clean: bool = False,
+        exist_ok: bool = False,
+        read_only: bool = False,
+        **storage_options,
     ) -> None:
         """Initializes SquirrelStore.
 
@@ -25,9 +31,12 @@ class SquirrelStore(FilesystemStore):
             clean (bool): If true, all files in the store will be removed recursively
             exist_ok (bool): If true, url is allowed to be non-empty. If false, an error is thrown for a
             non-empty directory.
+            read_only (bool): if true, set operations will raise error.
             **storage_options: Keyword arguments passed to filesystem initializer.
         """
-        super().__init__(url=url, serializer=serializer, clean=clean, exist_ok=exist_ok, **storage_options)
+        super().__init__(
+            url=url, serializer=serializer, clean=clean, exist_ok=exist_ok, read_only=read_only, **storage_options
+        )
 
     def get(self, key: str, **kwargs) -> t.Iterator[SampleType]:
         """Yields the item with the given key.
@@ -55,6 +64,11 @@ class SquirrelStore(FilesystemStore):
             key (Optional[str]): Optional key corresponding to the item to persist.
             **kwargs: Keyword arguments forwarded to :py:meth:`self.serializer.serialize_shard_to_file`.
         """
+        if self._read_only:
+            raise ValueError(
+                "Store is set to read-only mode. If you are writing to the store via a driver, consider"
+                "instantiating a separate store with read_only set to False"
+            )
         if not isinstance(value, t.List):
             value = [value]
 

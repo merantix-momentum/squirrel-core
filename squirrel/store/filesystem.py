@@ -29,6 +29,7 @@ class FilesystemStore(AbstractStore):
         serializer: t.Optional[SquirrelSerializer] = None,
         clean: bool = False,
         exist_ok: bool = False,
+        read_only: bool = False,
         **storage_options,
     ) -> None:
         """Initializes FilesystemStore.
@@ -40,6 +41,7 @@ class FilesystemStore(AbstractStore):
         recursively
         exist_ok (bool): If true, url is allowed to be non-empty. If false, an error is thrown for a
         non-empty directory.
+        read_only (bool): if true, set operations will raise error.
          **storage_options: Keyword arguments passed to filesystem initializer.
         """
         super().__init__()
@@ -49,6 +51,7 @@ class FilesystemStore(AbstractStore):
         self.serializer = serializer
         self.fs = get_fs_from_url(self.url, **self.storage_options)
         self._dir_exists = self.fs.exists(self.url)
+        self._read_only = read_only
         if clean and self._dir_exists:
             self.fs.rm(self.url, recursive=True)
             self._dir_exists = False
@@ -86,6 +89,12 @@ class FilesystemStore(AbstractStore):
             mode (str): IO mode to use when opening the file. Defaults to "wb".
             **open_kwargs: Keyword arguments that will be forwarded to the filesystem object when opening the file.
         """
+        if not self._read_only:
+            raise ValueError(
+                "Store is set to read-only mode. If you are writing to the store via a driver, consider"
+                "instantiating a separate store with read_only set to False"
+            )
+
         open_kwargs["mode"] = mode
         if key is None:
             key = get_random_key()

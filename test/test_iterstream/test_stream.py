@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-
+import os
+import tempfile
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
@@ -11,7 +12,7 @@ import numpy as np
 import pytest
 import wandb
 
-from squirrel.iterstream import Composable, IterableSamplerSource, IterableSource
+from squirrel.iterstream import Composable, FilePathGenerator, IterableSamplerSource, IterableSource
 from squirrel.iterstream.iterators import take_
 from squirrel.iterstream.metrics import MetricsConf
 
@@ -309,6 +310,22 @@ def test_iterablesamplersource_all_sampled(probs: t.Optional[t.List[float]]) -> 
     res_2 = IterableSource([4, 5, 6])
     res = IterableSamplerSource([res_1, res_2], probs=probs).collect()
     assert set(res) == set(range(7))
+
+
+def test_filepathgenerator_nested() -> None:
+    """Test FilePathGenerator with on without nested argument"""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        for d in range(2):
+            for sub in range(2):
+                basedir = f"{tmp_dir}/{d}"
+                if not os.path.exists(basedir):
+                    os.makedirs(basedir)
+                with open(f"{tmp_dir}/{d}/{sub}.csv", mode="x") as f:
+                    f.write("")
+            dirs = FilePathGenerator(url=tmp_dir).collect()
+            files = FilePathGenerator(url=tmp_dir, nested=True).collect()
+    assert len(dirs) == 2
+    assert len(files) == 4
 
 
 @pytest.fixture

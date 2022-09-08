@@ -22,7 +22,8 @@ def test_empty_or_nonexistent_url(local_msgpack_url: URL) -> None:
     # directory containing only empty directories
     with tempfile.TemporaryDirectory() as tmp_dir:
         with tempfile.TemporaryDirectory(dir=tmp_dir) as sub_dir:
-            with pytest.warns(UserWarning):
+            # no warnings, as nested is set to False for MessagepackDriver
+            with warnings.catch_warnings():
                 _ = MessagepackDriver(url=tmp_dir).get_iter().collect()
             with pytest.warns(UserWarning):
                 _ = MessagepackDriver(url=sub_dir).get_iter().collect()
@@ -65,9 +66,9 @@ def test_get_iter(dummy_msgpack_store: SquirrelStore, num_samples: int) -> None:
 def test_clean_store() -> None:
     """Test instantiating a store and removing all it's content"""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        _ = SquirrelStore(tmp_dir, clean=True, serializer=MessagepackSerializer())
+        store = SquirrelStore(tmp_dir, clean=True, serializer=MessagepackSerializer())
         driver = MessagepackDriver(url=tmp_dir)
-        IterableSource([{f"k{i}": f"v{i}"} for i in range(4)]).batched(2).async_map(driver.store.set).join()
+        IterableSource([{f"k{i}": f"v{i}"} for i in range(4)]).batched(2).async_map(store.set).join()
         assert len(list(driver.store.keys())) == 2
         store = SquirrelStore(tmp_dir, clean=True, serializer=MessagepackSerializer())
         assert len(list(store.keys())) == 0
