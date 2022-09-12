@@ -1,5 +1,6 @@
 from typing import IO, Any, Dict, Optional
 
+import fsspec
 from squirrel.driver.driver import Driver
 
 
@@ -29,17 +30,12 @@ class FileDriver(Driver):
                 to "r".
             create_if_not_exists (bool): If True, the file will be created if it does not exist (along with the parent
                 directories). This is achieved by providing `auto_mkdir=create_if_not_exists` as a storage option to
-                the filesystem. If the key `create_if_not_exists` is already present in the `FileDriver`'s
+                the filesystem. If the key `auto_mkdir` is already present in the `FileDriver`'s
                 `storage_options`, the value provided here will be used. Defaults to False.
             **kwargs: Keyword arguments that are passed to the `filesystem.open()` method.
 
         Return:
             (IO) File handler for the file at `self.path`.
         """
-        from squirrel.fsspec.fs import get_fs_from_url
-
-        storage_options = self.storage_options.copy()
-        storage_options.update({"auto_mkdir": create_if_not_exists})
-
-        fs = get_fs_from_url(self.path, **storage_options)
-        return fs.open(self.path, mode=mode, **kwargs)
+        kwargs = {**self.storage_options, **{"auto_mkdir": create_if_not_exists}, **kwargs}
+        return fsspec.open(self.path, mode=mode, **kwargs)
