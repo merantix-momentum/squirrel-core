@@ -25,13 +25,11 @@ def test_iterablesource() -> None:
 
     def _gen() -> t.Any:
         """A generator without argument"""
-        for i in range(3):
-            yield i
+        yield from range(3)
 
     def _gen_2(num: int) -> t.Any:
         """A generator with arguments"""
-        for i in range(num):
-            yield i
+        yield from range(num)
 
     class _Gen:
         def __init__(self, items: t.List):

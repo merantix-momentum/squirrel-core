@@ -32,11 +32,9 @@ class SplitByRank(Composable):
     def __iter__(self) -> Iterator:
         """Method to iterate over the source and yield the elements that will be processed by a particular node"""
         if torch.distributed.is_available() and self.size > 1:
-            for s in islice(self.source, self.rank, None, self.size):
-                yield s
+            yield from islice(self.source, self.rank, None, self.size)
         else:
-            for s in self.source:
-                yield s
+            yield from self.source
 
 
 class SplitByWorker(Composable):
@@ -54,11 +52,9 @@ class SplitByWorker(Composable):
         """Method to iterate over the source and yield the elements that will be processed by a particular worker"""
         self.winfo = torch.utils.data.get_worker_info()
         if self.winfo is None:
-            for s in self.source:
-                yield s
+            yield from self.source
         else:
-            for s in islice(self.source, self.winfo.id, None, self.winfo.num_workers):
-                yield s
+            yield from islice(self.source, self.winfo.id, None, self.winfo.num_workers)
 
 
 class TorchIterable(Composable, IterableDataset):
@@ -70,8 +66,7 @@ class TorchIterable(Composable, IterableDataset):
 
     def __iter__(self) -> Iterator:
         """Method to iterate over the source"""
-        for i in self.source:
-            yield i
+        yield from self.source
 
 
 def _skip_k(it: Iterable, start: int, step: int) -> Iterator:
@@ -84,11 +79,9 @@ def _skip_k(it: Iterable, start: int, step: int) -> Iterator:
         step: int denoting the step size of the skipping operation
     """
     if step > 1:
-        for s in islice(it, start, None, step):
-            yield s
+        yield from islice(it, start, None, step)
     else:
-        for s in it:
-            yield s
+        yield from it
 
 
 def skip_k(rank: int, world_size: int) -> Callable[[Iterable], Iterator]:

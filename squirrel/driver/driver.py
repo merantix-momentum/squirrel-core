@@ -6,7 +6,7 @@ import functools
 from abc import ABC, abstractmethod
 from functools import partial
 from inspect import isclass
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Type, Union
+from typing import Any, Callable, Iterable, TYPE_CHECKING
 
 from squirrel.catalog import Catalog
 from squirrel.iterstream import Composable, IterableSource
@@ -18,12 +18,12 @@ if TYPE_CHECKING:
 __all__ = ["Driver", "IterDriver", "MapDriver", "DataFrameDriver"]
 
 
-class Driver(ABC):
+class Driver(ABC):  # noqa: B024, we want to make it explicit that this class is abstract
     """Drives the access to a data source."""
 
     name: str
 
-    def __init__(self, catalog: Optional[Catalog] = None, **kwargs) -> None:
+    def __init__(self, catalog: Catalog | None = None, **kwargs) -> None:
         """Initializes driver with a catalog and arbitrary kwargs."""
         self._catalog = catalog if catalog is not None else Catalog()
 
@@ -67,17 +67,17 @@ class MapDriver(IterDriver):
 
     def get_iter(
         self,
-        keys_iterable: Optional[Iterable] = None,
+        keys_iterable: Iterable | None = None,
         shuffle_key_buffer: int = 1,
-        key_hooks: Optional[Iterable[Union[Callable, Type[Composable], functools.partial]]] = None,
-        max_workers: Optional[int] = None,
+        key_hooks: Iterable[Callable | type[Composable] | functools.partial] | None = None,
+        max_workers: int | None = None,
         prefetch_buffer: int = 10,
         shuffle_item_buffer: int = 1,
         flatten: bool = False,
-        keys_kwargs: Optional[Dict] = None,
-        get_kwargs: Optional[Dict] = None,
-        key_shuffle_kwargs: Optional[Dict] = None,
-        item_shuffle_kwargs: Optional[Dict] = None,
+        keys_kwargs: dict | None = None,
+        get_kwargs: dict | None = None,
+        key_shuffle_kwargs: dict | None = None,
+        item_shuffle_kwargs: dict | None = None,
     ) -> Composable:
         """Returns an iterable of items in the form of a :py:class:`squirrel.iterstream.Composable`, which allows
         various stream manipulation functionalities.

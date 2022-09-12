@@ -25,6 +25,7 @@ ignore =
     ANN101, # Missing type annotation for self in method
     ANN102, # Missing type annotation for cls in classmethod
     ANN204, # Missing return type annotation for special method, e.g. init
+    ANN401, # Dynamically typed expressions (typing.Any) are disallowed
     # The following is for the docstring plugin, to make it less whiny. We are happy if we have docs on all functions
     D100, # Missing docstring in public module
     D101, # Missing docstring in public class
@@ -38,3 +39,5 @@ max_line_length = 120
 import_order_style = appnexus
 application_package_names = devtool
 docstring-convention = google
+# 3.6.0 does not allow defaults or methods in NamedTuples, which breaks CatalogKey 
+min_python_version = 3.6.1

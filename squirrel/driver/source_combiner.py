@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
+from typing import Any, Iterable, TYPE_CHECKING
 
 import more_itertools
 
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 class SourceCombiner(MapDriver, DataFrameDriver):
     name = "source_combiner"
 
-    def __init__(self, subsets: Dict[str, CatalogKey], catalog: Catalog, **kwargs) -> None:
+    def __init__(self, subsets: dict[str, CatalogKey], catalog: Catalog, **kwargs) -> None:
         """Initializes SourceCombiner.
 
         Args:
@@ -35,7 +35,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
         self._subsets = subsets
 
     @property
-    def subsets(self) -> List[str]:
+    def subsets(self) -> list[str]:
         """Ids of all subsets defined by this source."""
         return list(self._subsets.keys())
 
@@ -51,7 +51,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
         key, version = self._subsets[subset]
         return self._catalog[key][version]
 
-    def get_iter(self, subset: Optional[str] = None, **kwargs) -> Composable:
+    def get_iter(self, subset: str | None = None, **kwargs) -> Composable:
         """Routes to the :py:meth:`get_iter` method of the appropriate subset driver.
 
         Args:
@@ -118,9 +118,9 @@ class SourceCombiner(MapDriver, DataFrameDriver):
 
     def get_iter_sampler(
         self,
-        probs: Optional[List[float]] = None,
-        rng: Optional[random.Random] = None,
-        seed: Optional[int] = None,
+        probs: list[float] | None = None,
+        rng: random.Random | None = None,
+        seed: int | None = None,
         **kwargs,
     ) -> Composable:
         """Returns an iterstream that samples from the subsets of this source.

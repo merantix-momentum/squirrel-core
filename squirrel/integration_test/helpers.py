@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 SHAPE = Tuple[int, int, int]
 
 
-def create_torch_mock(t_worker: Tuple[int, int], t_world: Tuple[int, int]) -> MagicMock:
+def create_torch_mock(t_worker: tuple[int, int], t_world: tuple[int, int]) -> MagicMock:
     """Returns a mock of the pytorch module with parallel and distributed worker."""
     torch_mock = mock.MagicMock()
     torch_mock.distributed.is_available.return_value = True
