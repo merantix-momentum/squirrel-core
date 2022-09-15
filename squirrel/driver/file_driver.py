@@ -30,8 +30,8 @@ class FileDriver(Driver):
                 to "r".
             create_if_not_exists (bool): If True, the file will be created if it does not exist (along with the parent
                 directories). This is achieved by providing `auto_mkdir=create_if_not_exists` as a storage option to
-                the filesystem. If the key `auto_mkdir` is already present in the `FileDriver`'s
-                `storage_options`, the value provided here will be used. Defaults to False.
+                the filesystem. No matter what you set in the FileDriver's `storage_options`, `create_if_not_exists`
+                will override the key `auto_mkdir`. Defaults to False.
             **kwargs: Keyword arguments that are passed to the `filesystem.open()` method.
 
         Return:
