@@ -37,5 +37,5 @@ class FileDriver(Driver):
         Return:
             (IO) File handler for the file at `self.path`.
         """
-        kwargs = {**self.storage_options, **{"auto_mkdir": create_if_not_exists}, **kwargs}
+        kwargs = {**self.storage_options, "auto_mkdir": create_if_not_exists, **kwargs}
         return fsspec.open(self.path, mode=mode, **kwargs)
