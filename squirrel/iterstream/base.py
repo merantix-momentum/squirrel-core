@@ -77,7 +77,7 @@ class Composable:
         buffer: int = 100,
         max_workers: t.Optional[int] = None,
         executor: t.Optional[Executor] = None,
-        **kw
+        **kw,
     ) -> _AsyncMap:
         """
         Applies the `callback` to the item in the self and returns the result.
@@ -106,11 +106,9 @@ class Composable:
         Returns (_AsyncMap)
         """
         partial_callback = partial(callback, **kw)
-        return _AsyncMap(source=self,
-                         callback=partial_callback,
-                         buffer=buffer,
-                         max_workers=max_workers,
-                         executor=executor)
+        return _AsyncMap(
+            source=self, callback=partial_callback, buffer=buffer, max_workers=max_workers, executor=executor
+        )
 
     def dask_map(self, callback: t.Callable, **kw) -> _Iterable:
         """Converts each item in the stream into a dask.delayed object by applying the callback to the item"""
