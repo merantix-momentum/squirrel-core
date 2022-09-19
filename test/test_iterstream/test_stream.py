@@ -52,8 +52,11 @@ def test_iterablesource() -> None:
 def test_map(samples: t.List[t.Dict]) -> None:
     """Test map"""
     res_1 = IterableSource(samples).map(lambda sample: _f(sample, 3)).map(lambda sample: sample["label"]).collect()
-
+    res_2 = IterableSource(res_1).map(lambda sample, offset: sample + offset, offset=1)
     assert all(i == 3 for i in res_1)
+    assert all(i == 4 for i in res_2)
+    res_3 = IterableSource(res_2).map(multiply, factor=2)
+    assert all(i == 8 for i in res_3)
 
 
 def test_compose() -> None:
@@ -118,13 +121,17 @@ def test_compose() -> None:
 
 def test_async_map(samples: t.List[SampleType]) -> None:
     """Test async_map"""
-    res = (
+    res1 = (
         IterableSource(samples)
-        .async_map(lambda sample: _f(sample, 4))
-        .async_map(lambda sample: sample["label"])
-        .collect()
+            .async_map(lambda sample: _f(sample, 4))
+            .async_map(lambda sample: sample["label"])
+            .collect()
     )
-    assert all(i == 4 for i in res)
+    assert all(i == 4 for i in res1)
+    res2 = IterableSource(res1).async_map(lambda value, offset: value + offset, offset=1)
+    assert all(i == 5 for i in res2)
+    res3 = IterableSource(res2).async_map(multiply, factor=2)
+    assert all(i == 10 for i in res3)
 
 
 def test_filter(samples: t.List[SampleType]) -> None:
@@ -214,9 +221,9 @@ def test_async_map_executor() -> None:
     # pass it to another stream to make sure it's not closed by squirrel when IterableSource is exhausted
     res_2 = (
         IterableSource(range(10))
-        .async_map(lambda x: x + 2, executor=exec_)
-        .async_map(lambda x: x - 1, executor=exec_)
-        .collect()
+            .async_map(lambda x: x + 2, executor=exec_)
+            .async_map(lambda x: x - 1, executor=exec_)
+            .collect()
     )
     exec_.shutdown()
     assert [i + 1 for i in range(10)] == res_1
@@ -244,9 +251,13 @@ def test_different_maps() -> None:
 def test_dask(samples: t.List[SampleType]) -> None:
     """Test async_map with dask executor"""
     client = dask.distributed.Client()
-    res = IterableSource([1, 2, 3]).async_map(lambda x: x**2, executor=client).collect()
+    res_1 = IterableSource([1, 2, 3]).async_map(lambda x: x ** 2, executor=client).collect()
+    res_2 = IterableSource(res_1).async_map(lambda x, offset: x + offset, offset=1).collect()
+    res_3 = IterableSource(res_2).async_map(multiply, factor=2).collect()
     client.shutdown()
-    assert res == [1, 4, 9]
+    assert res_1 == [1, 4, 9]
+    assert res_2 == [2, 5, 10]
+    assert res_3 == [4, 10, 20]
 
 
 def test_tqdm(samples: t.List[SampleType]) -> None:
@@ -259,11 +270,11 @@ def test_tqdm(samples: t.List[SampleType]) -> None:
 @pytest.mark.parametrize("metrics_conf_throughput", [True, False])
 @pytest.mark.parametrize("multi_points", [1, 2])
 def test_metrics_tracking_with_wandb(
-    toggle_wandb: None,
-    metrics_conf_iops: bool,
-    metrics_conf_throughput: bool,
-    create_all_iterable_source: Composable,
-    multi_points: int,
+        toggle_wandb: None,
+        metrics_conf_iops: bool,
+        metrics_conf_throughput: bool,
+        create_all_iterable_source: Composable,
+        multi_points: int,
 ) -> None:
     """Smoke test for tracked iterable source, when callback set to be wandb.log."""
     conf = MetricsConf(iops=metrics_conf_iops, throughput=metrics_conf_throughput)
@@ -275,9 +286,9 @@ def test_metrics_tracking_with_wandb(
         with wandb.init("squirrel-test"):
             (
                 it.monitor(wandb.log, prefix="(before shuffle) ", metrics_conf=conf)
-                .shuffle(20)
-                .monitor(wandb.log, prefix="(after shuffle) ", metrics_conf=conf)
-                .collect()
+                    .shuffle(20)
+                    .monitor(wandb.log, prefix="(after shuffle) ", metrics_conf=conf)
+                    .collect()
             )
 
 
@@ -285,7 +296,8 @@ def test_metrics_tracking_with_wandb(
 @pytest.mark.parametrize("metrics_conf_throughput", [True, False])
 @pytest.mark.parametrize("multi_points", [1, 2])
 def test_metrics_tracking_with_mlflow(
-    metrics_conf_iops: bool, metrics_conf_throughput: bool, create_all_iterable_source: Composable, multi_points: int
+        metrics_conf_iops: bool, metrics_conf_throughput: bool, create_all_iterable_source: Composable,
+        multi_points: int
 ) -> None:
     """Smoke test for tracked iterable source, when callback set to be mlflow.log_metrics."""
     conf = MetricsConf(iops=metrics_conf_iops, throughput=metrics_conf_throughput)
@@ -297,9 +309,9 @@ def test_metrics_tracking_with_mlflow(
         with mlflow.start_run(run_name="squirrel-test"):
             (
                 it.monitor(mlflow.log_metrics, prefix="before shuffle ", metrics_conf=conf)
-                .shuffle(20)
-                .monitor(mlflow.log_metrics, prefix="after shuffle ", metrics_conf=conf)
-                .collect()
+                    .shuffle(20)
+                    .monitor(mlflow.log_metrics, prefix="after shuffle ", metrics_conf=conf)
+                    .collect()
             )
 
 
@@ -351,3 +363,7 @@ def get_sample() -> SampleType:
 def _f(sample: SampleType, value: int) -> SampleType:
     sample["label"] = value
     return sample
+
+
+def multiply(value: float, factor: float) -> float:
+    return value * factor
