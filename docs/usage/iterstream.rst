@@ -38,7 +38,14 @@ iterable as the input:
         print(item)
 
 :code:`map_async()` applies the provided function asynchronously. More on this in the following sections.
-In addition to explicitly iterating over the items, it's also possible to call `collect()` to collect all items in a list, or `join()` to iterate over items without returning anything.
+To pass additional arguments to the mapped function, simply pass them as additional key-word arguments.
+
+.. code-block:: python
+
+    it = IterableSource([1, 2, 3, 4]).map(lambda x, offset: x + offset, offset=1)
+
+In addition to explicitly iterating over the items, it's also possible to call `collect()` to collect all items in
+a list, or `join()` to iterate over items without returning anything.
 
 Items in the stream can be shuffled in the buffer and batched
 
