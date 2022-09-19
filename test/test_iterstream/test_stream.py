@@ -52,10 +52,10 @@ def test_iterablesource() -> None:
 def test_map(samples: t.List[t.Dict]) -> None:
     """Test map"""
     res_1 = IterableSource(samples).map(lambda sample: _f(sample, 3)).map(lambda sample: sample["label"]).collect()
-    res_2 = IterableSource(res_1).map(lambda sample, offset: sample + offset, offset=1)
     assert all(i == 3 for i in res_1)
+    res_2 = IterableSource(res_1).map(lambda sample, offset: sample + offset, offset=1).collect()
     assert all(i == 4 for i in res_2)
-    res_3 = IterableSource(res_2).map(multiply, factor=2)
+    res_3 = IterableSource(res_2).map(multiply, factor=2).collect()
     assert all(i == 8 for i in res_3)
 
 
@@ -128,9 +128,9 @@ def test_async_map(samples: t.List[SampleType]) -> None:
             .collect()
     )
     assert all(i == 4 for i in res1)
-    res2 = IterableSource(res1).async_map(lambda value, offset: value + offset, offset=1)
+    res2 = IterableSource(res1).async_map(lambda value, offset: value + offset, offset=1).collect()
     assert all(i == 5 for i in res2)
-    res3 = IterableSource(res2).async_map(multiply, factor=2)
+    res3 = IterableSource(res2).async_map(multiply, factor=2).collect()
     assert all(i == 10 for i in res3)
 
 

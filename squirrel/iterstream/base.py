@@ -6,6 +6,7 @@ import typing as t
 from abc import abstractmethod
 from concurrent.futures import Executor, ThreadPoolExecutor
 from copy import deepcopy
+from functools import partial
 
 from numba import jit
 
@@ -61,9 +62,10 @@ class Composable:
         self.source = source
         return self
 
-    def map(self, callback: t.Callable) -> _Iterable:
+    def map(self, callback: t.Callable, **kw) -> _Iterable:
         """Applies the `callback` to each item in the stream"""
-        return self.to(map_, callback)
+        partial_callback = partial(callback, **kw)
+        return self.to(map_, partial_callback)
 
     def filter(self, predicate: t.Callable) -> _Iterable:
         """Filters items by `predicate` callable"""
@@ -75,6 +77,7 @@ class Composable:
         buffer: int = 100,
         max_workers: t.Optional[int] = None,
         executor: t.Optional[Executor] = None,
+        **kw
     ) -> _AsyncMap:
         """
         Applies the `callback` to the item in the self and returns the result.
@@ -102,11 +105,17 @@ class Composable:
 
         Returns (_AsyncMap)
         """
-        return _AsyncMap(source=self, callback=callback, buffer=buffer, max_workers=max_workers, executor=executor)
+        partial_callback = partial(callback, **kw)
+        return _AsyncMap(source=self,
+                         callback=partial_callback,
+                         buffer=buffer,
+                         max_workers=max_workers,
+                         executor=executor)
 
-    def dask_map(self, callback: t.Callable) -> _Iterable:
+    def dask_map(self, callback: t.Callable, **kw) -> _Iterable:
         """Converts each item in the stream into a dask.delayed object by applying the callback to the item"""
-        return self.to(dask_delayed_, callback)
+        partial_callback = partial(callback, **kw)
+        return self.to(dask_delayed_, partial_callback)
 
     def materialize_dask(self, buffer: int = 10, max_workers: t.Optional[int] = None) -> _Iterable:
         """
