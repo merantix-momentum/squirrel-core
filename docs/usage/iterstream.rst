@@ -38,7 +38,7 @@ iterable as the input:
         print(item)
 
 :code:`map_async()` applies the provided function asynchronously. More on this in the following sections.
-To pass additional arguments to the mapped function, simply pass them as additional key-word arguments.
+To pass additional arguments to the mapped function, simply pass them as additional key-word arguments to `map`. This works analogously for `async_map` and `dask_map`.
 
 .. code-block:: python
 
