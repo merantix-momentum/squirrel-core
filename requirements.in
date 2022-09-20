@@ -10,3 +10,5 @@ tqdm
 numba
 numpy
 pyjwt>=2.4.0
+mako>=1.2.2
+oauthlib>=3.2.1
