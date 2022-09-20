@@ -97,7 +97,7 @@ Some use-cases for custom Composables include:
       iterating over the stream starts. Additionally, if this resource is a non-picklable object, the stream can still
       be pickled before the iteration starts (e.g. in the multiprocessing context).
 
-    * When a very complex  stream processing is needed that is hard to achieve with standard methods.
+    * When a very complex stream processing is needed that is hard to achieve with standard methods.
 
 The following example illustrates the control flow when chaining Composables.
 Note that the order of calling the ``__iter__`` method is from right ot left.
