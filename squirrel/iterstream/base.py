@@ -62,9 +62,9 @@ class Composable:
         self.source = source
         return self
 
-    def map(self, callback: t.Callable, **kw) -> _Iterable:
-        """Applies the `callback` to each item in the stream"""
-        partial_callback = partial(callback, **kw)
+    def map(self, callback: t.Callable, *args, **kw) -> _Iterable:
+        """Applies the `callback` to each item in the stream. Specify key-word arguments for callback in **kw"""
+        partial_callback = partial(callback, *args, **kw)
         return self.to(map_, partial_callback)
 
     def filter(self, predicate: t.Callable) -> _Iterable:
@@ -102,6 +102,7 @@ class Composable:
 
                 **Note** if executor is provided, the argument `max_workers` will be ignored. You should
                 specify this in the executor that is being passed.
+            **kw: key-word arguments for callback
 
         Returns (_AsyncMap)
         """
@@ -111,7 +112,16 @@ class Composable:
         )
 
     def dask_map(self, callback: t.Callable, **kw) -> _Iterable:
-        """Converts each item in the stream into a dask.delayed object by applying the callback to the item"""
+        """
+        Converts each item in the stream into a dask.delayed object by applying the callback to the item.
+        Specify additional keyword arguments via kw
+        Args:
+            callback: callback to be mapped over
+            **kw: key-word arguments for callback
+
+        Returns:
+            mapped Composable
+        """
         partial_callback = partial(callback, **kw)
         return self.to(dask_delayed_, partial_callback)
 
