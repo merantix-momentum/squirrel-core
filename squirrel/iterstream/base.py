@@ -62,9 +62,9 @@ class Composable:
         self.source = source
         return self
 
-    def map(self, callback: t.Callable, *args, **kw) -> _Iterable:
+    def map(self, callback: t.Callable, **kw) -> _Iterable:
         """Applies the `callback` to each item in the stream. Specify key-word arguments for callback in **kw"""
-        partial_callback = partial(callback, *args, **kw)
+        partial_callback = partial(callback, **kw)
         return self.to(map_, partial_callback)
 
     def filter(self, predicate: t.Callable) -> _Iterable:
