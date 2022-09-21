@@ -102,7 +102,7 @@ class Composable:
 
                 **Note** if executor is provided, the argument `max_workers` will be ignored. You should
                 specify this in the executor that is being passed.
-            **kw: key-word arguments for callback
+            **kw (dict): key-word arguments for callback
 
         Returns (_AsyncMap)
         """
@@ -116,11 +116,11 @@ class Composable:
         Converts each item in the stream into a dask.delayed object by applying the callback to the item.
         Specify additional keyword arguments via kw
         Args:
-            callback: callback to be mapped over
+            callback (Callback): callback to be mapped over
             **kw: key-word arguments for callback
 
         Returns:
-            mapped Composable
+            mapped Composable (_Iterable)
         """
         partial_callback = partial(callback, **kw)
         return self.to(dask_delayed_, partial_callback)
@@ -247,7 +247,7 @@ class Composable:
             window_size (int): How many items to average over the metrics calculation. Since each item passes by in a
                 very small time window, for better accuracy, a rolling window cal is more accurate. Its value must
                 be bigger than 0.
-            **kw: arguments to pass to your callback function.
+            **kw (dict): arguments to pass to your callback function.
 
         Returns:
             An _Iterable instance which can be chained by other funcs in this class.
