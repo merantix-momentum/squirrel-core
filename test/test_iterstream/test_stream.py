@@ -52,8 +52,14 @@ def test_iterablesource() -> None:
 def test_map(samples: t.List[t.Dict]) -> None:
     """Test map"""
     res_1 = IterableSource(samples).map(lambda sample: _f(sample, 3)).map(lambda sample: sample["label"]).collect()
-
     assert all(i == 3 for i in res_1)
+    res_2 = IterableSource(range(5)).map(lambda sample, offset: sample + offset, offset=1).collect()
+    assert res_2 == [1, 2, 3, 4, 5]
+    res_3 = IterableSource(range(5)).map(multiply, factor=2).collect()
+    assert res_3 == [0, 2, 4, 6, 8]
+    linear_fn = partial(lambda x, a, b: a * x + b, b=1)
+    res_4 = IterableSource(range(5)).map(linear_fn, a=2).collect()
+    assert res_4 == [1, 3, 5, 7, 9]
 
 
 def test_compose() -> None:
@@ -118,13 +124,22 @@ def test_compose() -> None:
 
 def test_async_map(samples: t.List[SampleType]) -> None:
     """Test async_map"""
-    res = (
+    res_1 = (
         IterableSource(samples)
         .async_map(lambda sample: _f(sample, 4))
         .async_map(lambda sample: sample["label"])
         .collect()
     )
-    assert all(i == 4 for i in res)
+    assert all(i == 4 for i in res_1)
+    res_2 = IterableSource(range(5)).async_map(lambda value, offset: value + offset, offset=1).collect()
+    assert res_2 == [1, 2, 3, 4, 5]
+    res_3 = IterableSource(range(5)).async_map(multiply, factor=2).collect()
+    assert res_3 == [0, 2, 4, 6, 8]
+    linear_fn = partial(lambda x, a, b: a * x + b, b=1)
+    res_4 = IterableSource(range(5)).async_map(linear_fn, a=2).collect()
+    assert res_4 == [1, 3, 5, 7, 9]
+    res_5 = IterableSource(range(5)).async_map(multiply, factor=10, buffer=100).collect()
+    assert res_5 == [0, 10, 20, 30, 40]
 
 
 def test_filter(samples: t.List[SampleType]) -> None:
@@ -244,9 +259,18 @@ def test_different_maps() -> None:
 def test_dask(samples: t.List[SampleType]) -> None:
     """Test async_map with dask executor"""
     client = dask.distributed.Client()
-    res = IterableSource([1, 2, 3]).async_map(lambda x: x**2, executor=client).collect()
+    res_1 = IterableSource([1, 2, 3]).async_map(lambda x: x**2, executor=client).collect()
+    res_2 = IterableSource(range(5)).async_map(lambda x, offset: x + offset, offset=1).collect()
+    res_3 = IterableSource(range(5)).async_map(multiply, factor=2).collect()
+    linear_fn = partial(lambda x, a, b: a * x + b, b=1)
+    res_4 = IterableSource(range(5)).dask_map(linear_fn, a=2).materialize_dask().collect()
+    res_5 = IterableSource(range(5)).dask_map(multiply, factor=10).materialize_dask().collect()
     client.shutdown()
-    assert res == [1, 4, 9]
+    assert res_1 == [1, 4, 9]
+    assert res_2 == [1, 2, 3, 4, 5]
+    assert res_3 == [0, 2, 4, 6, 8]
+    assert res_4 == [1, 3, 5, 7, 9]
+    assert res_5 == [0, 10, 20, 30, 40]
 
 
 def test_tqdm(samples: t.List[SampleType]) -> None:
@@ -349,5 +373,11 @@ def get_sample() -> SampleType:
 
 
 def _f(sample: SampleType, value: int) -> SampleType:
+    """Sets label value to given value"""
     sample["label"] = value
     return sample
+
+
+def multiply(value: float, factor: float) -> float:
+    """Simply multiply value by given factor"""
+    return value * factor
