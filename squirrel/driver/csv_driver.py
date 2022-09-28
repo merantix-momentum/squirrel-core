@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Iterable
 
 from squirrel.driver.driver import DataFrameDriver
 from squirrel.driver.file_driver import FileDriver
@@ -14,14 +14,16 @@ class CsvDriver(FileDriver, DataFrameDriver):
 
     name = "csv"
 
-    def __init__(self, path: str, **kwargs) -> None:
+    def __init__(self, path: str, df_hooks: Iterable[Callable] | None = None, **kwargs) -> None:
         """Initializes CsvDriver.
 
         Args:
             path (str): Path to a .csv file.
+            df_hooks (Iterable[Callable], optional): preprocessing hooks to execute on the dataframe
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         super().__init__(path, **kwargs)
+        self.df_hooks = [] if df_hooks is None else df_hooks
 
     def get_df(self, **kwargs) -> DataFrame:
         """Returns the data in the .csv file as a Dask DataFrame.
@@ -34,7 +36,11 @@ class CsvDriver(FileDriver, DataFrameDriver):
         """
         import dask.dataframe as dd
 
-        return dd.read_csv(self.path, **kwargs)
+        result = dd.read_csv(self.path, **kwargs)
+        for hook in self.df_hooks:
+            result = hook(result)
+
+        return result
 
     def get_iter(self, itertuples_kwargs: dict | None = None, read_csv_kwargs: dict | None = None) -> Composable:
         """Returns an iterator over rows.
