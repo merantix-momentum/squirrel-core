@@ -7,6 +7,7 @@ from squirrel.driver.file_driver import FileDriver
 from squirrel.iterstream import Composable, IterableSource
 
 if TYPE_CHECKING:
+    import pandas as pd
     from dask.dataframe import DataFrame
 
 
@@ -14,30 +15,38 @@ class CsvDriver(FileDriver, DataFrameDriver):
 
     name = "csv"
 
-    def __init__(self, path: str, df_hooks: Iterable[Callable] | None = None, **kwargs) -> None:
+    def __init__(self, path: str, use_dask: bool = True, df_hooks: Iterable[Callable] | None = None, **kwargs) -> None:
         """Initializes CsvDriver.
 
         Args:
             path (str): Path to a .csv file.
-            df_hooks (Iterable[Callable], optional): preprocessing hooks to execute on the dataframe.
-                The first hook must accept a dask.dataframe.DataFrame.
+            use_dask (bool): Whether to anychronously load the dataframe with dask.
+            df_hooks (Iterable[Callable], optional): Preprocessing hooks to execute on the dataframe.
+                The first hook must accept a dask.dataframe.DataFrame or pandas.Dataframe in accordance with use_dask.
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         super().__init__(path, **kwargs)
+        self.use_dask = use_dask
         self.df_hooks = df_hooks or []
 
-    def get_df(self, **kwargs) -> DataFrame:
+    def get_df(self, **kwargs) -> DataFrame | pd.DataFrame:
         """Returns the data in the .csv file as a Dask DataFrame.
 
         Args:
-            **kwargs: Keyword arguments passed to :py:func:`dask.dataframe.read_csv` to read the .csv file.
+            **kwargs: Keyword arguments passed to :py:func:`dask.dataframe.read_csv` or
+                :py:func:`pandas.dataframe.read_csv` to read the .csv file.
 
         Returns:
-            (dask.dataframe.DataFrame) Dask DataFrame constructed from the .csv file.
+            (dask.dataframe.DataFrame | pandas.DataFrame) Dask or Pandas DataFrame constructed from the .csv file.
         """
-        import dask.dataframe as dd
+        if self.use_dask:
+            import dask.dataframe as dd
 
-        result = dd.read_csv(self.path, **kwargs)
+            result = dd.read_csv(self.path, **kwargs)
+        else:
+            import pandas as pd
+
+            result = pd.read_csv(self.path, **kwargs)
         for hook in self.df_hooks:
             result = hook(result)
 
@@ -50,7 +59,9 @@ class CsvDriver(FileDriver, DataFrameDriver):
 
         Args:
             itertuples_kwargs: Keyword arguments to be passed to :py:meth:`dask.dataframe.DataFrame.itertuples`.
-            read_csv_kwargs: Keyword arguments to be passed to :py:func:`dask.dataframe.read_csv`.
+                or :py:func:`pandas.dataframe.DataFrame.itertuples`
+            read_csv_kwargs: Keyword arguments to be passed to :py:func:`dask.dataframe.read_csv` or
+                :py:func:`pandas.dataframe.read_csv`.
 
         Returns:
             (squirrel.iterstream.Composable) Iterable over the rows of the data frame as namedtuples.
