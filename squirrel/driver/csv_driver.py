@@ -23,7 +23,7 @@ class CsvDriver(FileDriver, DataFrameDriver):
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         super().__init__(path, **kwargs)
-        self.df_hooks = [] if df_hooks is None else df_hooks
+        self.df_hooks = df_hooks or []
 
     def get_df(self, **kwargs) -> DataFrame:
         """Returns the data in the .csv file as a Dask DataFrame.
