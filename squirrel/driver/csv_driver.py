@@ -19,7 +19,8 @@ class CsvDriver(FileDriver, DataFrameDriver):
 
         Args:
             path (str): Path to a .csv file.
-            df_hooks (Iterable[Callable], optional): preprocessing hooks to execute on the dataframe
+            df_hooks (Iterable[Callable], optional): preprocessing hooks to execute on the dataframe.
+                The first hook must accept a dask.dataframe.DataFrame.
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         super().__init__(path, **kwargs)
