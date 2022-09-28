@@ -31,7 +31,8 @@ class DummyShardedDriver(MapDriver):
         return super().get_iter(flatten=flatten, **kwargs)
 
 
-def kendalltau_metric(result1, result2):
+def kendalltau_metric(result1: np.array, result2: np.array) -> float:
+    """Compute the kendall tau randomness metric"""
     tau, _ = kendalltau(result1, result2)
     return tau
 
