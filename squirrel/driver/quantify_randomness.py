@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Callable, Iterable
 
 import numpy as np
 from scipy.stats import kendalltau
@@ -31,7 +31,19 @@ class DummyShardedDriver(MapDriver):
         return super().get_iter(flatten=flatten, **kwargs)
 
 
-def quantify_randomness(num_shard: int, shard_size: int, buffer_size: int, initial: int, n_samples: int = 250) -> float:
+def kendalltau_metric(result1, result2):
+    tau, _ = kendalltau(result1, result2)
+    return tau
+
+
+def quantify_randomness(
+    num_shard: int,
+    shard_size: int,
+    buffer_size: int,
+    initial: int,
+    n_samples: int = 250,
+    metric: Callable = kendalltau_metric,
+) -> float:
     """Quantify the randomness of sampling from a driver with the given shuffle parameters.
        This function assumes that we always fully shuffle all keys and the parameters for the item buffer is what we
        are interested in.
@@ -42,6 +54,7 @@ def quantify_randomness(num_shard: int, shard_size: int, buffer_size: int, initi
         buffer_size (int): buffer size for item shuffle buffer
         initial (int): initial size of item shuffle buffer
         n_samples (int): influences the accuracy of the estimate by controlling the number of sampled trajectories
+        metric (Callable): how to measure the distance
 
     Returns:
         float: randomness measure computed from the kendall tau coefficient. Values between 0 and 1 while 1 means
@@ -60,8 +73,7 @@ def quantify_randomness(num_shard: int, shard_size: int, buffer_size: int, initi
         ).collect()
 
         # and get their distance via the kendall tau function
-        tau, _ = kendalltau(result1, result2)
-        distances.append(tau)
+        distances.append(metric(result1, result2))
 
     # return the median of distances
     return np.abs(np.median(np.array(distances)))
