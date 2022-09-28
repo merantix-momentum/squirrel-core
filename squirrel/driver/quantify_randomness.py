@@ -46,8 +46,8 @@ def quantify_randomness(
     metric: Callable = kendalltau_metric,
 ) -> float:
     """Quantify the randomness of sampling from a driver with the given shuffle parameters.
-       This function assumes that we always fully shuffle all keys and the parameters for the item buffer is what we
-       are interested in.
+    This function assumes that we always fully shuffle all keys and the parameters for the item buffer is what we
+    are interested in.
 
     Args:
         num_shard (int): number of shards
@@ -59,7 +59,7 @@ def quantify_randomness(
 
     Returns:
         float: randomness measure computed from the kendall tau coefficient. Values between 0 and 1 while 1 means
-        completely deterministic and 0 means random.
+            completely deterministic and 0 means random.
     """
     driver = DummyShardedDriver(num_shard, shard_size)
     distances = []
