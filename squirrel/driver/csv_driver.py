@@ -15,12 +15,14 @@ class CsvDriver(FileDriver, DataFrameDriver):
 
     name = "csv"
 
-    def __init__(self,
-                 path: str,
-                 use_dask: bool = True,
-                 df_hooks: Iterable[Callable] | None = None,
-                 read_csv_kwargs: dict | None = None,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        path: str,
+        use_dask: bool = True,
+        df_hooks: Iterable[Callable] | None = None,
+        read_csv_kwargs: dict | None = None,
+        **kwargs
+    ) -> None:
         """Initializes CsvDriver.
 
         Args:
