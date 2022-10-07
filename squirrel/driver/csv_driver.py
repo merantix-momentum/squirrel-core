@@ -80,6 +80,7 @@ class CsvDriver(FileDriver, DataFrameDriver):
             (squirrel.iterstream.Composable) Iterable over the rows of the data frame as namedtuples.
         """
         # Join kwargs for read_csv where read_csv_kwargs takes precedence over self.read_csv_kwargs
+        read_csv_kwargs = read_csv_kwargs or {}
         read_csv_kwargs = {**self.read_csv_kwargs, **read_csv_kwargs}
 
         if itertuples_kwargs is None:
