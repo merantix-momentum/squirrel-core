@@ -21,7 +21,7 @@ class CsvDriver(FileDriver, DataFrameDriver):
         use_dask: bool = True,
         df_hooks: Iterable[Callable] | None = None,
         read_csv_kwargs: dict | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initializes CsvDriver.
 
