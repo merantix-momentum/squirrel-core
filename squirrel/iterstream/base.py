@@ -342,18 +342,18 @@ class _LoopIterable(Composable):
 
 
 class _ZipIndexIterable(Composable):
-    def __init__(self, source, pad_length: int = None):
+    def __init__(self, source: t.Iterable, pad_length: int = None) -> None:
         """Init"""
         super().__init__(source)
         self.idx = 0
         self.pad_length = pad_length
 
-    def __iter__(self):
+    def __iter__(self) -> t.Iterator:
         """Zip the index and the data"""
         for i in self.source:
             yield self._next_idx(), i
 
-    def _next_idx(self):
+    def _next_idx(self) -> t.Union[int, str]:
         _idx = None
         if self.pad_length is not None:
             str_idx = str(self.idx)
