@@ -52,7 +52,7 @@ class Catalog(MutableMapping):
         self._sources: dict[str, CatalogSource] = {}
 
     def __repr__(self) -> str:  # noqa D105
-        return str(set(sorted(self.sources.keys(), key=lambda x: x.lower())))
+        return str(sorted(set(self.sources.keys()), key=lambda x: x.lower()))
 
     def __eq__(self, other: Any) -> bool:  # noqa D105
         if not isinstance(other, Catalog):
