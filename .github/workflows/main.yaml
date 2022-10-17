@@ -6,7 +6,7 @@ on:
       - hossein-github-actions
 
 env:
-  test_cov: Test coverage string.
+  test_cov: squirrel-core test/
 jobs:
   main_trigger:
     name:
