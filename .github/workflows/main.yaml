@@ -6,7 +6,7 @@ on:
       - hossein-github-actions
 
 env:
-  test_cov: "Test coverage string."
+  test_cov: Test coverage string.
 jobs:
   main_trigger:
     name:
@@ -24,11 +24,11 @@ jobs:
       - name: set outputs
         run: |
           echo "::set-output name=dev_version_tag::dev$(git rev-parse --short HEAD)"
-      - name: Install requirements
-        run: |
-           pip3 install --require-hashes -r requirements.txt --no-deps --disable-pip-version-check
       - name: lint_repo
         uses: pre-commit/action@v3.0.0
+      - name: Install requirements
+        run: |
+          pip3 install --require-hashes -r requirements.txt --no-deps --disable-pip-version-check
       - name: Test_repo
         run: |
           pip install -e . --no-deps
