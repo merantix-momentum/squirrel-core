@@ -9,7 +9,7 @@ env:
   test_cov: "Test coverage string."
 jobs:
   main_trigger:
-    name: 
+    name:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -20,7 +20,7 @@ jobs:
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9    
+          python-version: 3.9
       - name: set outputs
         run: |
           echo "::set-output name=dev_version_tag::dev$(git rev-parse --short HEAD)"
@@ -31,10 +31,8 @@ jobs:
         uses: pre-commit/action@v3.0.0
       - name: Test_repo
         run: |
-          pip install -e . --no-deps 
+          pip install -e . --no-deps
           pytest -n auto --cov=${{ env.test_cov }} --cov-config=.coveragerc --durations=0
       - name: Build_dist
         run: |
           python ./setup.py --version_tag ${{ steps.vars.outputs.dev_version_tag }} sdist bdist_wheel
-
-
