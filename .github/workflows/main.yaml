@@ -17,6 +17,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9    
       - name: set outputs
         run: |
           echo "::set-output name=dev_version_tag::dev$(git rev-parse --short HEAD)"
