@@ -33,6 +33,6 @@ jobs:
           pytest -n auto --cov=${{ env.test_cov }} --cov-config=.coveragerc --durations=0
       - name: Build_dist
         run: |
-          python ./setup.py --version_tag ${{ ${{ steps.vars.outputs.dev_version_tag }} sdist bdist_wheel
+          python ./setup.py --version_tag ${{ steps.vars.outputs.dev_version_tag }} sdist bdist_wheel
 
 
