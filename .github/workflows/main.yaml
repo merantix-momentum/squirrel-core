@@ -29,10 +29,10 @@ jobs:
       - name: Install requirements
         run: |
           pip3 install --require-hashes -r requirements.txt --no-deps --disable-pip-version-check
-#      - name: Test_repo
-#        run: |
-#          pip install -e . --no-deps
-#          pytest -n auto --cov=${{ env.test_cov }} --cov-config=.coveragerc --durations=0
+      - name: Test_repo
+        run: |
+          pip install -e . --no-deps
+          pytest -n auto --cov=${{ env.test_cov }} --cov-config=.coveragerc --durations=0
       - name: Build_dist
         run: |
           python ./setup.py --version_tag ${{ steps.vars.outputs.dev_version_tag }} sdist bdist_wheel
