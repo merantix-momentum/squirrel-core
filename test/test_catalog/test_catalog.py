@@ -169,6 +169,16 @@ def test_catalog_loadyaml(tmp_yaml_1: URL) -> None:
     assert df["a"].compute().iloc[0] == 1
 
 
+def test_catalog_repr() -> None:
+    """Test if repr return sorted keys"""
+    cat = Catalog()
+    cat["a"] = Source("dummy")
+    cat["b"] = Source("dummy")
+    cat["ab"] = Source("dummy")
+    cat["c"] = Source("dummy")
+    assert cat.__repr__() == "['a', 'ab', 'b', 'c']"
+
+
 @pytest.fixture
 def tmp_yaml_1(test_path: URL) -> URL:
     """Create a tmp yaml file under the path `f_path`. No need to teardown, cuz pytest will tear the entire tmp_path
