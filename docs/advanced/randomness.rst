@@ -4,6 +4,9 @@ The :py:class:`~squirrel.driver.MapDriver` supports loading data from multiple s
 A difficult choice is often to select an appropriate shard size when a dataset is created.
 The choice of the shard size in combination with the size of the squirrel shuffel buffer determines
 if the iid assumption holds approximately while we sample the data.
+On the other hand, bigger shard size improves the loading performance
+ substantially. Therefore we should aim for the biggest shard size that 
+ does not hurt the approximate iid assumption. 
 We provide a helper function to estimate the randomness of loading data from any data source using
 the provided shuffle buffer size, number of shards and shard size.
 We also allow to control the size of the initial shuffle buffer separately.
