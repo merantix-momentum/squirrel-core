@@ -26,3 +26,13 @@ Build the documentation locally
 To build the documentation locally, make sure you install dev requirements by running
 ``pip install -r requirements.dev.in``. Running ``sphinx-build ./docs ./docs/build`` from the root
 directory will generate the documentation.
+
+
+Python Code Style Guide
+-----------------------
+
+We use PEP8 with some modifications.
+We use `pre-commit <https://pre-commit.com>`_ to automatically check most of these points.
+Visit `their website <https://pre-commit.com/#install>`_ to find out how to setup pre-commit for this repository and
+check your contributions before opening a PR. You can run ``pre-commit run --all-files``. See the file
+``.pre-commit-config.yaml`` in the root directory of the repo for more details.
