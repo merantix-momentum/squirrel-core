@@ -26,6 +26,7 @@ Welcome to Squirrel´s documentation!
 
    advanced/store
    advanced/iterstream
+   advanced/randomness
 
 .. toctree::
    :maxdepth: 1
