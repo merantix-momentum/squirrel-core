@@ -43,8 +43,23 @@ Check out our full [getting started](https://github.com/merantix-momentum/squirr
 # Installation
 You can install `squirrel-core` by
 ```shell
+pip install squirrel-core
+```
+
+To install all features and functionalities:
+
+```shell
 pip install "squirrel-core[all]"
 ```
+
+Or select the dependencies you need:
+
+```shell
+pip install "squirrel-core[gcs,torch]"
+```
+
+Please refer to the [installation](https://squirrel-core.readthedocs.io/en/latest/getting_started/installation.html) 
+section of thedocumentation for a complete list of supported dependencies.
 
 # Documentation
 
