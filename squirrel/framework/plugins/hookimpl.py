@@ -14,11 +14,25 @@ def squirrel_drivers() -> List[Type[Driver]]:
     from squirrel.driver import (
         CsvDriver,
         FileDriver,
+        JsonDriver,
         JsonlDriver,
         MessagepackDriver,
+        ParquetDriver,
         SourceCombiner,
         StoreDriver,
+        XlsDriver,
         ZarrDriver,
     )
 
-    return [CsvDriver, FileDriver, JsonlDriver, MessagepackDriver, SourceCombiner, StoreDriver, ZarrDriver]
+    return [
+        CsvDriver,
+        FileDriver,
+        JsonDriver,
+        JsonlDriver,
+        MessagepackDriver,
+        ParquetDriver,
+        SourceCombiner,
+        StoreDriver,
+        XlsDriver,
+        ZarrDriver,
+    ]
