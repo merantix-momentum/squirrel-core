@@ -4,8 +4,7 @@ from typing import Any, Iterable, TYPE_CHECKING
 
 import more_itertools
 
-from squirrel.driver.csv_driver import DataFrameDriver
-from squirrel.driver.driver import MapDriver
+from squirrel.driver.driver import DataFrameDriver, MapDriver
 from squirrel.iterstream.source import IterableSamplerSource, IterableSource
 
 if TYPE_CHECKING:
