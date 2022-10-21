@@ -17,7 +17,7 @@ class FileDriver(Driver):
         """
         super().__init__(**kwargs)
         self.path = path
-        self.storage_options = storage_options if storage_options is not None else {}
+        self.storage_options = storage_options or {}
 
     def open(self, mode: str = "r", create_if_not_exists: bool = False, **kwargs) -> IO:
         """Returns a handler for the file.
