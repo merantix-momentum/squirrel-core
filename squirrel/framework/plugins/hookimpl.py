@@ -13,6 +13,7 @@ def squirrel_drivers() -> List[Type[Driver]]:
     """Core drivers of Squirrel."""
     from squirrel.driver import (
         CsvDriver,
+        FeatherDriver,
         FileDriver,
         JsonDriver,
         JsonlDriver,
@@ -26,6 +27,7 @@ def squirrel_drivers() -> List[Type[Driver]]:
 
     return [
         CsvDriver,
+        FeatherDriver,
         FileDriver,
         JsonDriver,
         JsonlDriver,
