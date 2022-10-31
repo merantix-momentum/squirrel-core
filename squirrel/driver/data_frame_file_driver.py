@@ -48,7 +48,8 @@ class DataFrameFileDriver(FileDriver, DataFrameDriver, metaclass=ABCMeta):
         """Read DataFrame.
         Wraps the underlying read() to handle read arguments and storage options.
         """
-        # Join kwargs for read passed kwargs takes precedence over self.read_kwargs and self.storage_kwargs
+        # Join kwargs for read()
+        # Passed kwargs takes precedence over self.read_kwargs and self.storage_kwargs
         storage_kwargs = {"storage_options": self.storage_options} if self.storage_options else {}
         read_kwargs = {**self.read_kwargs, **storage_kwargs, **kwargs}
         return self.read(**read_kwargs)
