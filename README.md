@@ -80,7 +80,7 @@ Squirrel is open source and community contributions are welcome!
 
 Check out the [contribution guide](https://squirrel-core.readthedocs.io/en/latest/developer/contribute.html) to learn how to get involved.
 
-## The Humans behind Squirrel
+## The Humans Behind Squirrel
 We are [Merantix Momentum](https://merantix-momentum.com/), a team of ~30 machine learning engineers, developing machine learning solutions for industry and research. Each project comes with its own challenges, data types and learnings, but one issue we always faced was scalable data loading, transforming and sharing. We were looking for a solution that would allow us to load the data in a fast and cost-efficient way, while keeping the flexibility to work with any possible dataset and integrate with any API. That's why we build Squirrel – and we hope you'll find it as useful as we do! By the way, [we are hiring](https://merantix-momentum.com/about#jobs)!
 
 
