@@ -36,6 +36,7 @@ Welcome to Squirrel´s documentation!
    integration/monitoring_mlflow_wandb.rst
    integration/spark.rst
    integration/dask.rst
+   integration/squirrel_datasets_drivers.rst
 
 .. toctree::
    :maxdepth: 1

@@ -18,7 +18,7 @@
 
 ---
 
-# What is Squirrel?
+## What is Squirrel?
 
 Squirrel is a Python library that enables ML teams to share, load, and transform data in a collaborative, flexible, and efficient way.
 
@@ -32,15 +32,18 @@ Squirrel is a Python library that enables ML teams to share, load, and transform
 
 Stream data from anywhere to your machine learning model as easy as:
 ```python
-it = (Catalog.from_plugins()["imagenet"].get_driver()
-      .get_iter("train")
-      .map(lambda r: (augment(r["image"]), r["label"]))
-      .batched(100))
+it = (
+    Catalog.from_plugins()["imagenet"]
+    .get_driver()
+    .get_iter("train")
+    .map(lambda r: (augment(r["image"]), r["label"]))
+    .batched(100)
+)
 ```
 
 Check out our full [getting started](https://github.com/merantix-momentum/squirrel-datasets-core/blob/main/examples/01.Getting_Started.ipynb) tutorial notebook. If you have any questions or would like to contribute, join our [Slack community](https://join.slack.com/t/squirrel-core/shared_invite/zt-14k6sk6sw-zQPHfqAI8Xq5WYd~UqgNFw).
 
-# Installation
+## Installation
 You can install `squirrel-core` by
 ```shell
 pip install squirrel-core
@@ -59,25 +62,29 @@ pip install "squirrel-core[gcs,torch]"
 ```
 
 Please refer to the [installation](https://squirrel-core.readthedocs.io/en/latest/getting_started/installation.html) 
-section of thedocumentation for a complete list of supported dependencies.
+section of the documentation for a complete list of supported dependencies.
 
-# Documentation
+## Documentation
 
 Read our documentation at [ReadTheDocs](https://squirrel-core.readthedocs.io/en/latest)
 
-# Example Notebooks
-Check out the [Squirrel-datasets repository](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for open source and community-contributed tutorial and example notebooks of using Squirrel.
+## Squirrel Datasets
 
-# Contributing
+[Squirrel-datasets-core](https://github.com/merantix-momentum/squirrel-datasets-core) is an accompanying Python package that does three things.
+1. It extends the Squirrel platform for data transform, access, and discovery through custom drivers for public datasets. 
+2. It also allows you to tap into the vast amounts of open-source datasets from [Huggingface](https://huggingface.co/), [Activeloop Hub](https://www.activeloop.ai/) and [Torchvision](https://pytorch.org/vision/stable/datasets.html), and you'll get all of Squirrel's functionality on top!
+3. It provides open-source and community-contributed [tutorials and example notebooks](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for using Squirrel.
+
+## Contributing
 Squirrel is open source and community contributions are welcome!
 
 Check out the [contribution guide](https://squirrel-core.readthedocs.io/en/latest/developer/contribute.html) to learn how to get involved.
 
-# The humans behind Squirrel
+## The Humans behind Squirrel
 We are [Merantix Momentum](https://merantix-momentum.com/), a team of ~30 machine learning engineers, developing machine learning solutions for industry and research. Each project comes with its own challenges, data types and learnings, but one issue we always faced was scalable data loading, transforming and sharing. We were looking for a solution that would allow us to load the data in a fast and cost-efficient way, while keeping the flexibility to work with any possible dataset and integrate with any API. That's why we build Squirrel – and we hope you'll find it as useful as we do! By the way, [we are hiring](https://merantix-momentum.com/about#jobs)!
 
 
-# Citation
+## Citation
 
 If you use Squirrel in your research, please cite it using:
 ```bibtex
