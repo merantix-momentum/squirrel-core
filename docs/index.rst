@@ -1,7 +1,7 @@
 .. squirrel documentation master file:
 
-Welcome to Squirrel´s documentation!
-====================================
+Squirrel Documentation
+======================
 .. toctree::
    :maxdepth: 1
    :caption: Getting Started
