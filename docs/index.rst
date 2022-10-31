@@ -4,7 +4,7 @@ Welcome to Squirrel´s documentation!
 ====================================
 .. toctree::
    :maxdepth: 1
-   :caption: Getting Started:
+   :caption: Getting Started
 
    getting_started/installation
    getting_started/introduction
@@ -12,7 +12,7 @@ Welcome to Squirrel´s documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Basic Usage:
+   :caption: Basic Usage
 
    usage/architecture_overview
    usage/driver
@@ -22,7 +22,7 @@ Welcome to Squirrel´s documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Advanced:
+   :caption: Advanced
 
    advanced/store
    advanced/iterstream
@@ -30,7 +30,7 @@ Welcome to Squirrel´s documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Integration:
+   :caption: Integration
 
    integration/pytorch.rst
    integration/monitoring_mlflow_wandb.rst
@@ -40,7 +40,7 @@ Welcome to Squirrel´s documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Developer Guide:
+   :caption: Developer Guide
 
    developer/code_of_conduct
    developer/contribute
