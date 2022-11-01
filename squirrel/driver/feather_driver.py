@@ -12,13 +12,14 @@ class FeatherDriver(DataFrameFileDriver):
 
     name = "feather"
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """Initializes ParquetDriver.
 
         Args:
+            *args: See DataFrameFileDriver.
             **kwargs: See DataFrameFileDriver.
         """
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         if self.use_dask:
             raise ValueError("Dask does not support reading feather files.")
 

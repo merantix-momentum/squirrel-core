@@ -13,13 +13,14 @@ class CsvDriver(DataFrameFileDriver):
 
     name = "csv"
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """Initializes CsvDriver.
 
         Args:
+            *args: See DataFrameFileDriver.
             **kwargs: See DataFrameFileDriver.
         """
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
 
     def read(self, **kwargs) -> DataFrame | pd.DataFrame:
         """Read CSV file using dask or pandas."""

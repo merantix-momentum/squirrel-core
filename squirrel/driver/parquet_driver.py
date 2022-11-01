@@ -13,13 +13,14 @@ class ParquetDriver(DataFrameFileDriver):
 
     name = "parquet"
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """Initializes ParquetDriver.
 
         Args:
+            *args: See DataFrameFileDriver.
             **kwargs: See DataFrameFileDriver.
         """
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
 
     def read(self, **kwargs) -> DataFrame | pd.DataFrame:
         """Read Parquet file using pandas."""
