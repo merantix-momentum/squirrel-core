@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Iterable
 
 from squirrel.driver.driver import DataFrameDriver
 from squirrel.driver.file import FileDriver
@@ -16,6 +16,7 @@ class DataFrameFileDriver(FileDriver, DataFrameDriver, metaclass=ABCMeta):
     def __init__(
         self,
         path: str,
+        storage_options: dict[str, Any] | None = None,
         use_dask: bool = True,
         df_hooks: Iterable[Callable] | None = None,
         read_kwargs: dict | None = None,
@@ -27,14 +28,15 @@ class DataFrameFileDriver(FileDriver, DataFrameDriver, metaclass=ABCMeta):
         from .csv, .xls, .parqet etc. These derived drivers have to only specify the read() method.
 
         Args:
-            path (str): Path to a .csv file.
+            path (str): Path to a file.
+            storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments passed to file system initializer
             use_dask (bool): Whether to anychronously load the dataframe with dask.
             df_hooks (Iterable[Callable], optional): Preprocessing hooks to execute on the dataframe.
                 The first hook must accept a dask.dataframe.DataFrame or pandas.Dataframe in accordance with use_dask.
             read_kwargs: Arguments passed to all read methods of the derived driver.
             **kwargs: Keyword arguments passed to the FileDriver class initializer.
         """
-        super().__init__(path, **kwargs)
+        super().__init__(path, storage_options, **kwargs)
         self.use_dask = use_dask
         self.df_hooks = df_hooks or []
         self.read_kwargs = read_kwargs or {}

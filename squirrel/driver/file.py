@@ -1,4 +1,6 @@
-from typing import IO, Any, Dict, Optional
+from __future__ import annotations
+
+from typing import IO, Any
 
 import fsspec
 from squirrel.driver.driver import Driver
@@ -7,7 +9,7 @@ from squirrel.driver.driver import Driver
 class FileDriver(Driver):
     name = "file"
 
-    def __init__(self, path: str, storage_options: Optional[Dict[str, Any]] = None, **kwargs) -> None:
+    def __init__(self, path: str, storage_options: dict[str, Any] | None = None, **kwargs) -> None:
         """Initializes FileDriver.
 
         Args:
