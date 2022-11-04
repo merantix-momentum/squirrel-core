@@ -1,4 +1,4 @@
-from squirrel.driver.store_driver import StoreDriver
+from squirrel.driver.store import StoreDriver
 from squirrel.serialization import MessagepackSerializer
 
 __all__ = [

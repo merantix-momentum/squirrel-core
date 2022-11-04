@@ -2,28 +2,28 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from squirrel.driver.data_frame_file_driver import DataFrameFileDriver
+from squirrel.driver.data_frame_file import DataFrameFileDriver
 
 if TYPE_CHECKING:
     import pandas as pd
 
 
-class XlsDriver(DataFrameFileDriver):
+class FeatherDriver(DataFrameFileDriver):
 
-    name = "xls"
+    name = "feather"
 
     def __init__(self, **kwargs) -> None:
-        """Initializes XlsDriver.
+        """Initializes ParquetDriver.
 
         Args:
             **kwargs: See DataFrameFileDriver.
         """
         super().__init__(**kwargs)
         if self.use_dask:
-            raise ValueError("Dask does not support reading XLS files.")
+            raise ValueError("Dask does not support reading feather files.")
 
     def read(self, **kwargs) -> pd.DataFrame:
-        """Read Excel file using pandas."""
+        """Read Parquet file using pandas."""
         import pandas as pd
 
-        return pd.read_excel(self.path, **kwargs)
+        return pd.read_feather(self.path, **kwargs)

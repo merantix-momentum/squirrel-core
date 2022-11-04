@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from squirrel.driver.data_frame_file_driver import DataFrameFileDriver
+from squirrel.driver.data_frame_file import DataFrameFileDriver
 
 if TYPE_CHECKING:
     import pandas as pd

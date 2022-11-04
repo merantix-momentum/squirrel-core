@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from squirrel.driver.data_frame_file_driver import DataFrameFileDriver
+from squirrel.driver.data_frame_file import DataFrameFileDriver
 
 if TYPE_CHECKING:
     import pandas as pd
     from dask.dataframe import DataFrame
 
 
-class CsvDriver(DataFrameFileDriver):
+class JsonDriver(DataFrameFileDriver):
 
-    name = "csv"
+    name = "json"
 
     def __init__(self, **kwargs) -> None:
-        """Initializes CsvDriver.
+        """Initializes JsonDriver.
 
         Args:
             **kwargs: See DataFrameFileDriver.
@@ -22,12 +22,12 @@ class CsvDriver(DataFrameFileDriver):
         super().__init__(**kwargs)
 
     def read(self, **kwargs) -> DataFrame | pd.DataFrame:
-        """Read CSV file using dask or pandas."""
+        """Read JSON file using dask or pandas."""
         if self.use_dask:
             import dask.dataframe as dd
 
-            return dd.read_csv(self.path, **kwargs)
+            return dd.read_json(self.path, **kwargs)
         else:
             import pandas as pd
 
-            return pd.read_csv(self.path, **kwargs)
+            return pd.read_json(self.path, **kwargs)

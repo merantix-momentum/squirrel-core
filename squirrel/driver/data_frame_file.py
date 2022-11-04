@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Callable, Iterable
 
 from squirrel.driver.driver import DataFrameDriver
-from squirrel.driver.file_driver import FileDriver
+from squirrel.driver.file import FileDriver
 from squirrel.iterstream import Composable, IterableSource
 
 if TYPE_CHECKING:

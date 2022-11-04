@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing as t
 
-from squirrel.driver.store_driver import StoreDriver
+from squirrel.driver.store import StoreDriver
 from squirrel.iterstream import Composable
 from squirrel.serialization import JsonSerializer
 
