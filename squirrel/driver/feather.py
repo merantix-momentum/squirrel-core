@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from squirrel.driver.data_frame_file import DataFrameFileDriver
+from squirrel.driver.data_frame import DataFrameDriver
 
 if TYPE_CHECKING:
     import pandas as pd
 
 
-class FeatherDriver(DataFrameFileDriver):
+class FeatherDriver(DataFrameDriver):
 
     name = "feather"
 
@@ -16,8 +16,8 @@ class FeatherDriver(DataFrameFileDriver):
         """Initializes ParquetDriver.
 
         Args:
-            *args: See DataFrameFileDriver.
-            **kwargs: See DataFrameFileDriver.
+            *args: See DataFrameDriver.
+            **kwargs: See DataFrameDriver.
         """
         super().__init__(*args, **kwargs)
         if self.use_dask:

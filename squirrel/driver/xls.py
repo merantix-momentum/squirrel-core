@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from squirrel.driver.data_frame_file import DataFrameFileDriver
+from squirrel.driver.data_frame import DataFrameDriver
 
 if TYPE_CHECKING:
     import pandas as pd
 
 
-class XlsDriver(DataFrameFileDriver):
+class XlsDriver(DataFrameDriver):
 
     name = "xls"
 
@@ -16,7 +16,7 @@ class XlsDriver(DataFrameFileDriver):
         """Initializes XlsDriver.
 
         Args:
-            **kwargs: See DataFrameFileDriver.
+            **kwargs: See DataFrameDriver.
         """
         super().__init__(**kwargs)
         if self.use_dask:

@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from squirrel.driver.data_frame_file import DataFrameFileDriver
+from squirrel.driver.data_frame import DataFrameDriver
 
 if TYPE_CHECKING:
     import pandas as pd
     from dask.dataframe import DataFrame
 
 
-class CsvDriver(DataFrameFileDriver):
+class CsvDriver(DataFrameDriver):
 
     name = "csv"
 
@@ -17,8 +17,8 @@ class CsvDriver(DataFrameFileDriver):
         """Initializes CsvDriver.
 
         Args:
-            *args: See DataFrameFileDriver.
-            **kwargs: See DataFrameFileDriver.
+            *args: See DataFrameDriver.
+            **kwargs: See DataFrameDriver.
         """
         super().__init__(*args, **kwargs)
 

@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from squirrel.driver.data_frame_file import DataFrameFileDriver
+from squirrel.driver.data_frame import DataFrameDriver
 
 if TYPE_CHECKING:
     import pandas as pd
     from dask.dataframe import DataFrame
 
 
-class ParquetDriver(DataFrameFileDriver):
+class ParquetDriver(DataFrameDriver):
 
     name = "parquet"
 
@@ -17,8 +17,8 @@ class ParquetDriver(DataFrameFileDriver):
         """Initializes ParquetDriver.
 
         Args:
-            *args: See DataFrameFileDriver.
-            **kwargs: See DataFrameFileDriver.
+            *args: See DataFrameDriver.
+            **kwargs: See DataFrameDriver.
         """
         super().__init__(*args, **kwargs)
 

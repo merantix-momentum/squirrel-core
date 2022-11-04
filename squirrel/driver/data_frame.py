@@ -3,7 +3,6 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Callable, Iterable
 
-from squirrel.driver.driver import DataFrameDriver
 from squirrel.driver.file import FileDriver
 from squirrel.iterstream import Composable, IterableSource
 
@@ -12,7 +11,7 @@ if TYPE_CHECKING:
     from dask.dataframe import DataFrame
 
 
-class DataFrameFileDriver(FileDriver, DataFrameDriver, metaclass=ABCMeta):
+class DataFrameDriver(FileDriver, metaclass=ABCMeta):
     def __init__(
         self,
         path: str,
@@ -22,7 +21,7 @@ class DataFrameFileDriver(FileDriver, DataFrameDriver, metaclass=ABCMeta):
         read_kwargs: dict | None = None,
         **kwargs,
     ) -> None:
-        """Abstract DataFrameFileDriver.
+        """Abstract DataFrameDriver.
 
         This defines a common interface for all driver using different read methods to read the dataframe such as
         from .csv, .xls, .parqet etc. These derived drivers have to only specify the read() method.
