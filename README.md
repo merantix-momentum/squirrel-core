@@ -72,7 +72,7 @@ Read our documentation at [ReadTheDocs](https://squirrel-core.readthedocs.io/en/
 
 [Squirrel-datasets-core](https://github.com/merantix-momentum/squirrel-datasets-core) is an accompanying Python package that does three things.
 1. It extends the Squirrel platform for data transform, access, and discovery through custom drivers for public datasets. 
-2. It also allows you to tap into the vast amounts of open-source datasets from [Huggingface](https://huggingface.co/), [Activeloop Hub](https://www.activeloop.ai/) and [Torchvision](https://pytorch.org/vision/stable/datasets.html), and you'll get all of Squirrel's functionality on top!
+2. It also allows you to tap into the vast amounts of open-source datasets from [Huggingface](https://huggingface.co/), [Activeloop Deeplake](https://www.activeloop.ai/) and [Torchvision](https://pytorch.org/vision/stable/datasets.html), and you'll get all of Squirrel's functionality on top!
 3. It provides open-source and community-contributed [tutorials and example notebooks](https://github.com/merantix-momentum/squirrel-datasets-core/tree/main/examples) for using Squirrel.
 
 ## Contributing
