@@ -8,9 +8,9 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-class XlsDriver(DataFrameDriver):
+class ExcelDriver(DataFrameDriver):
 
-    name = "xls"
+    name = "excel"
 
     def __init__(self, **kwargs) -> None:
         """Initializes XlsDriver.

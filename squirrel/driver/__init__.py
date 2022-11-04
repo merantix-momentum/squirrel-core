@@ -9,7 +9,7 @@ from squirrel.driver.msgpack import MessagepackDriver
 from squirrel.driver.parquet import ParquetDriver
 from squirrel.driver.source_combiner import SourceCombiner
 from squirrel.driver.store import StoreDriver
-from squirrel.driver.xls import XlsDriver
+from squirrel.driver.excel import ExcelDriver
 from squirrel.driver.zarr import ZarrDriver
 
 __all__ = [
@@ -26,6 +26,6 @@ __all__ = [
     "ParquetDriver",
     "SourceCombiner",
     "StoreDriver",
-    "XlsDriver",
+    "ExcelDriver",
     "ZarrDriver",
 ]

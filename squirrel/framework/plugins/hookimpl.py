@@ -21,7 +21,7 @@ def squirrel_drivers() -> List[Type[Driver]]:
         ParquetDriver,
         SourceCombiner,
         StoreDriver,
-        XlsDriver,
+        ExcelDriver,
         ZarrDriver,
     )
 
@@ -35,6 +35,6 @@ def squirrel_drivers() -> List[Type[Driver]]:
         ParquetDriver,
         SourceCombiner,
         StoreDriver,
-        XlsDriver,
+        ExcelDriver,
         ZarrDriver,
     ]
