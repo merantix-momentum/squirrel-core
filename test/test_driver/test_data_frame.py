@@ -1,8 +1,3 @@
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
-
 import pandas as pd
 from pandas import DataFrame
 import pytest
@@ -11,9 +6,8 @@ from _pytest.fixtures import SubRequest as Request
 from squirrel.constants import URL
 from squirrel.catalog.source import Source
 from squirrel.catalog.catalog import CatalogSource
+from squirrel.driver.data_frame import ENGINE
 from squirrel.iterstream import IterableSource
-
-ENGINE = Literal["dask", "pandas"]
 
 
 @pytest.fixture
@@ -33,7 +27,7 @@ def data_frame_source_path(
     """Create a temporary file for all supported file types and write a temporary DataFrame to it.
 
     Returns:
-        Returns the name of the driver and path to the temporary file
+        Returns the name of the driver, path to the temporary file, and read_kwargs.
     """
 
     df = data_frame_ground_truth
@@ -84,7 +78,7 @@ def engine(request: Request) -> ENGINE:
 
 @pytest.fixture
 def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENGINE) -> tuple[Source, ENGINE]:
-    """Get DataFrame source for all drivers and used engines"""
+    """Get DataFrame source and engine for all drivers and used engines."""
     name, path, read_kwargs = data_frame_source_path
     read_kwargs = read_kwargs[engine]
 
@@ -92,8 +86,7 @@ def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENG
     if engine == "dask" and name in ["excel", "feather"]:
         pytest.skip("Dask loading not supported.")
 
-    use_dask = engine == "dask"
-    source = Source(name, driver_kwargs={"url": path, "use_dask": use_dask, "read_kwargs": read_kwargs})
+    source = Source(name, driver_kwargs={"url": path, "engine": engine, "read_kwargs": read_kwargs})
     return source, engine
 
 

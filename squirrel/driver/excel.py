@@ -22,7 +22,7 @@ class ExcelDriver(DataFrameDriver):
             **kwargs: See DataFrameDriver.
         """
         super().__init__(url, **kwargs)
-        if self.use_dask:
+        if self.engine == "dask":
             raise ValueError("Dask does not support reading Excel files.")
 
     def read(self, **kwargs) -> pd.DataFrame:

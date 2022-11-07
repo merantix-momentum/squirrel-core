@@ -23,7 +23,7 @@ class FeatherDriver(DataFrameDriver):
             **kwargs: See DataFrameDriver.
         """
         super().__init__(url, *args, **kwargs)
-        if self.use_dask:
+        if self.engine == "dask":
             raise ValueError("Dask does not support reading feather files.")
 
     def read(self, **kwargs) -> pd.DataFrame:

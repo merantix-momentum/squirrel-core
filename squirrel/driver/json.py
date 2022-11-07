@@ -28,7 +28,7 @@ class JsonDriver(DataFrameDriver):
 
     def read(self, **kwargs) -> DataFrame | pd.DataFrame:
         """Read JSON file using dask or pandas."""
-        if self.use_dask:
+        if self.engine == "dask":
             import dask.dataframe as dd
 
             return dd.read_json(self.url, **kwargs)

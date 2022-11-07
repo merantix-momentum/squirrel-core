@@ -28,7 +28,7 @@ class ParquetDriver(DataFrameDriver):
 
     def read(self, **kwargs) -> DataFrame | pd.DataFrame:
         """Read Parquet file using pandas."""
-        if self.use_dask:
+        if self.engine == "dask":
             import dask.dataframe as dd
 
             return dd.read_parquet(self.url, **kwargs)

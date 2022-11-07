@@ -28,7 +28,7 @@ class CsvDriver(DataFrameDriver):
 
     def read(self, **kwargs) -> DataFrame | pd.DataFrame:
         """Read CSV file using dask or pandas."""
-        if self.use_dask:
+        if self.engine == "dask":
             import dask.dataframe as dd
 
             return dd.read_csv(self.url, **kwargs)

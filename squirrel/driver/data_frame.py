@@ -3,6 +3,11 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Callable, Iterable
 
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 from squirrel.constants import URL
 from squirrel.driver.file import FileDriver
 from squirrel.iterstream import Composable, IterableSource
@@ -11,13 +16,15 @@ if TYPE_CHECKING:
     import pandas as pd
     from dask.dataframe import DataFrame
 
+ENGINE = Literal["dask", "pandas"]
+
 
 class DataFrameDriver(FileDriver, metaclass=ABCMeta):
     def __init__(
         self,
         url: URL,
         storage_options: dict[str, Any] | None = None,
-        use_dask: bool = True,
+        engine: ENGINE = "pandas",
         df_hooks: Iterable[Callable] | None = None,
         read_kwargs: dict | None = None,
         **kwargs,
@@ -31,14 +38,16 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
             url (URL): URL to file. Prefix with a protocol like ``s3://`` or ``gs://`` to read from other filesystems.
                        Data type may depend on the derived class.
             storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments passed to file system initializer
-            use_dask (bool): Whether to anychronously load the dataframe with dask.
+            engine (ENGINE): Which engine to use for DataFrame loading. Currently, all drivers support "pandas" to use
+                             Pandas and some support "dask" to asynchronously load DataFrames using Dask.
             df_hooks (Iterable[Callable], optional): Preprocessing hooks to execute on the dataframe.
-                The first hook must accept a dask.dataframe.DataFrame or pandas.Dataframe in accordance with use_dask.
+                                                     The first hook must accept a dask.dataframe.DataFrame or
+                                                     pandas.Dataframe depending on the used engine.
             read_kwargs: Arguments passed to all read methods of the derived driver.
             **kwargs: Keyword arguments passed to the Driver class initializer.
         """
         super().__init__(url, storage_options, **kwargs)
-        self.use_dask = use_dask
+        self.engine = engine
         self.df_hooks = df_hooks or []
         self.read_kwargs = read_kwargs or {}
 
