@@ -182,7 +182,7 @@ class Composable:
         Acceptable keyword arguments:
 
         - initial (int, optional): Minimum number of elements in the buffer before yielding the first element.
-          Must be less than or equal to `bufsize`, otherwise will be set to `bufsize`. Defaults to 100.
+          Must be less than or equal to `size`, otherwise will be set to `size`. Defaults to 100.
 
         - rng (random.Random, optional): Either `random` module or a :py:class:`random.Random` instance. If None,
           a `random.Random()` is used.
