@@ -3,28 +3,31 @@ from __future__ import annotations
 from typing import IO, Any
 
 import fsspec
+
+from squirrel.constants import URL
 from squirrel.driver.driver import Driver
 
 
 class FileDriver(Driver):
     name = "file"
 
-    def __init__(self, path: str, storage_options: dict[str, Any] | None = None, **kwargs) -> None:
+    def __init__(self, url: URL, storage_options: dict[str, Any] | None = None, **kwargs) -> None:
         """Initializes FileDriver.
 
         Args:
-            path (str): Path to a file.
-            storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments passed to file system initializer
+            url (URL): URL to file. Prefix with a protocol like ``s3://`` or ``gs://`` to read from other filesystems.
+                       For a full list of supported types, refer to :func:`fsspec.open()`.
+            storage_options (dict[str, Any] | None): A dict with keyword arguments passed to file system initializer.
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         super().__init__(**kwargs)
-        self.path = path
+        self.url = url
         self.storage_options = storage_options or {}
 
     def open(self, mode: str = "r", create_if_not_exists: bool = False, **kwargs) -> IO:
         """Returns a handler for the file.
 
-        Uses :py:func:`squirrel.fsspec.fs.get_fs_from_url` to get a filesystem object corresponding to `self.path`.
+        Uses :py:func:`squirrel.fsspec.fs.get_fs_from_url` to get a filesystem object corresponding to `self.url`.
         Simply returns the handler returned from the `open()` method of the filesystem.
 
         Args:
@@ -40,4 +43,4 @@ class FileDriver(Driver):
             (IO) File handler for the file at `self.path`.
         """
         kwargs = {**self.storage_options, "auto_mkdir": create_if_not_exists, **kwargs}
-        return fsspec.open(self.path, mode=mode, **kwargs)
+        return fsspec.open(self.url, mode=mode, **kwargs)

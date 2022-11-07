@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Callable, Iterable
 
+from squirrel.constants import URL
 from squirrel.driver.file import FileDriver
 from squirrel.iterstream import Composable, IterableSource
 
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 class DataFrameDriver(FileDriver, metaclass=ABCMeta):
     def __init__(
         self,
-        path: str,
+        url: URL,
         storage_options: dict[str, Any] | None = None,
         use_dask: bool = True,
         df_hooks: Iterable[Callable] | None = None,
@@ -23,19 +24,20 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
     ) -> None:
         """Abstract DataFrameDriver.
 
-        This defines a common interface for all driver using different read methods to read the dataframe such as
+        This defines a common interface for all driver using different read methods to read a dataframe such as
         from .csv, .xls, .parqet etc. These derived drivers have to only specify the read() method.
 
         Args:
-            path (str): Path to a file.
+            url (URL): URL to file. Prefix with a protocol like ``s3://`` or ``gs://`` to read from other filesystems.
+                       Data type may depend on the derived class.
             storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments passed to file system initializer
             use_dask (bool): Whether to anychronously load the dataframe with dask.
             df_hooks (Iterable[Callable], optional): Preprocessing hooks to execute on the dataframe.
                 The first hook must accept a dask.dataframe.DataFrame or pandas.Dataframe in accordance with use_dask.
             read_kwargs: Arguments passed to all read methods of the derived driver.
-            **kwargs: Keyword arguments passed to the FileDriver class initializer.
+            **kwargs: Keyword arguments passed to the Driver class initializer.
         """
-        super().__init__(path, storage_options, **kwargs)
+        super().__init__(url, storage_options, **kwargs)
         self.use_dask = use_dask
         self.df_hooks = df_hooks or []
         self.read_kwargs = read_kwargs or {}
@@ -63,7 +65,7 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
                       Takes precedence over arguments specified at class initialization.
 
         Returns:
-            (dask.dataframe.DataFrame | pandas.DataFrame) Dask or Pandas DataFrame constructed from the .csv file.
+            (dask.dataframe.DataFrame | pandas.DataFrame) Dask or Pandas DataFrame constructed from the file.
         """
         result = self._read(**read_kwargs)
 
@@ -75,7 +77,7 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
     def get_iter(self, itertuples_kwargs: dict | None = None, read_kwargs: dict | None = None) -> Composable:
         """Returns an iterator over DataFrame rows.
 
-        Note that first the csv file is read into a DataFrame and then :py:meth:`df.itertuples` is called.
+        Note that first the file is read into a DataFrame and then :py:meth:`df.itertuples` is called.
 
         Args:
             itertuples_kwargs: Keyword arguments to be passed to :py:meth:`dask.dataframe.DataFrame.itertuples`.
