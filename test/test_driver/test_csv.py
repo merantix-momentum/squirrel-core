@@ -7,9 +7,9 @@ from squirrel.iterstream import IterableSource
 
 
 @pytest.fixture
-def tmp_csv(tmp_path: URL) -> URL:
+def tmp_csv(tmp_url: URL) -> URL:
     """Create a csv file under `tmp_path`. No need to teardown, pytest will tear the entire tmp_path for you."""
-    csv_path = f"{tmp_path}/test.csv"
+    csv_path = f"{tmp_url}/test.csv"
     content = "a,b,c\n1,2,3"
     with open(csv_path, "w") as f:
         f.write(content)
@@ -18,8 +18,10 @@ def tmp_csv(tmp_path: URL) -> URL:
 
 def test_csv(tmp_csv: URL) -> None:
     """Test reading csv"""
-    df = CsvDriver(tmp_csv).get_df()
+    df = CsvDriver(tmp_csv, sep=",").get_df()
     assert df["a"].compute().iloc[0] == 1
+    assert df["b"].compute().iloc[0] == 2
+    assert df["c"].compute().iloc[0] == 3
 
 
 def test_async_map_on_dataframe(tmp_csv: URL) -> None:

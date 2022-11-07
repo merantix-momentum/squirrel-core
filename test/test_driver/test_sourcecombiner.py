@@ -16,7 +16,7 @@ def test_combiner_in_catalog() -> None:
         fname = f"{tmpdir.name}/{split}.csv"
         data = pd.DataFrame(dict(split=[split]))  # one row, one col df, only value of "split" changes
         data.to_csv(fname)
-        c[split] = Source("csv", driver_kwargs={"path": fname})
+        c[split] = Source("csv", driver_kwargs={"url": fname})
 
     c["combined"] = Source(
         "source_combiner",
@@ -31,17 +31,17 @@ def test_combiner_in_catalog() -> None:
 
     d = c["combined"].get_driver()
     assert len(d.subsets) == 3
-    assert d.get_source("subset1").get_driver().path == f"{tmpdir.name}/train.csv"
-    assert d.get_source("subset2").get_driver().path == f"{tmpdir.name}/val.csv"
-    assert d.get_source("subset3").get_driver().path == f"{tmpdir.name}/test.csv"
+    assert d.get_source("subset1").get_driver().url == f"{tmpdir.name}/train.csv"
+    assert d.get_source("subset2").get_driver().url == f"{tmpdir.name}/val.csv"
+    assert d.get_source("subset3").get_driver().url == f"{tmpdir.name}/test.csv"
     all_rows = d.get_iter().collect()
     assert [r.split for r in all_rows] == ["train", "val", "test"]
 
 
-def test_copy_combiner(test_path: URL) -> None:
+def test_copy_combiner(test_url: URL) -> None:
     """Test if source combiner can be serialized"""
     c = Catalog()
-    c["train"] = Source("file", driver_kwargs={"path": test_path + "train.dummy"})
+    c["train"] = Source("file", driver_kwargs={"url": test_url + "train.dummy"})
     c["combined"] = Source(
         "source_combiner",
         driver_kwargs={
