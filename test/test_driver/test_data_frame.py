@@ -1,0 +1,140 @@
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
+from pandas import DataFrame
+import pytest
+from _pytest.fixtures import SubRequest as Request
+
+from squirrel.constants import URL
+from squirrel.catalog.source import Source
+from squirrel.catalog.catalog import CatalogSource
+from squirrel.iterstream import IterableSource
+
+ENGINE = Literal["dask", "pandas"]
+
+
+@pytest.fixture
+def data_frame_ground_truth() -> DataFrame:
+    """Create a DataFrame for testing."""
+    # a b c
+    # 1 10 100
+    # 2 20 200
+    # 3 30 300
+    return DataFrame({"a": [1, 2, 3], "b": [10, 20, 30], "c": [100, 200, 300]})
+
+
+@pytest.fixture(params=["csv", "excel", "json", "feather", "parquet"])
+def data_frame_source_path(
+    request: Request, tmp_path: URL, data_frame_ground_truth: DataFrame
+) -> tuple[str, URL, dict]:
+    """Create a temporary file for all supported file types and write a temporary DataFrame to it.
+
+    Returns:
+        Returns the name of the driver and path to the temporary file
+    """
+
+    df = data_frame_ground_truth
+    name = request.param
+    write_kwargs = {}
+    read_kwargs_pandas = {}
+    read_kwargs_dask = {}
+
+    if name == "csv":
+        ext = ".csv"
+        write_fn = df.to_csv
+        write_kwargs["index"] = False
+
+    elif name == "excel":
+        ext = ".xls"
+        write_fn = df.to_excel
+        write_kwargs["index"] = False
+
+    elif name == "feather":
+        ext = ".ft"
+        write_fn = df.to_feather
+
+    elif name == "json":
+        ext = ".json"
+        write_fn = df.to_json
+        read_kwargs_dask["orient"] = "columns"
+
+    elif name == "parquet":
+        ext = ".pq"
+        write_fn = df.to_parquet
+
+    else:
+        raise ValueError(f"Unknwon data frame driver name '{type}'.")
+
+    # Write DataFrame to temporary path
+    path = f"{tmp_path}/test.{ext}"
+    write_fn(path, **write_kwargs)
+
+    # Return name of used file type and path to temporary file
+    return name, path, dict(pandas=read_kwargs_pandas, dask=read_kwargs_dask)
+
+
+@pytest.fixture(params=["pandas", "dask"])
+def engine(request: Request) -> ENGINE:
+    """Data frame engines to use for testing."""
+    return request.param
+
+
+@pytest.fixture
+def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENGINE) -> tuple[Source, ENGINE]:
+    """Get DataFrame source for all drivers and used engines"""
+    name, path, read_kwargs = data_frame_source_path
+    read_kwargs = read_kwargs[engine]
+
+    # Skip tests for drivers that do not support Dask
+    if engine == "dask" and name in ["excel", "feather"]:
+        pytest.skip("Dask loading not supported.")
+
+    use_dask = engine == "dask"
+    source = Source(name, driver_kwargs={"url": path, "use_dask": use_dask, "read_kwargs": read_kwargs})
+    return source, engine
+
+
+def test_dataframe_drivers(data_frame_source: tuple[Source, ENGINE], data_frame_ground_truth: DataFrame) -> None:
+    """Test all DataFrameDrivers"""
+    source, engine = data_frame_source
+
+    df = CatalogSource(source, source.driver_name, None).get_driver().get_df()
+    df_gt = data_frame_ground_truth
+
+    if engine == "dask":
+        df = df.compute()
+
+    assert all(df_gt == df)
+
+
+def test_dataframe_drivers_iterable_source(
+    data_frame_source: tuple[Source, ENGINE], data_frame_ground_truth: DataFrame
+) -> None:
+    """Test async_map for all DataFrameDrivers"""
+
+    source, engine = data_frame_source
+    df_gt = data_frame_ground_truth
+
+    # Calculate base summation value of DataFrame (first column)
+    columns = df_gt.columns
+    sum_base = df_gt[columns[0]].sum()
+
+    # Define iterable sources
+    n = 3
+    sources = [source] * n
+
+    # Create IterableSource and async_map calculate sum of columns
+    iterable_source = IterableSource(sources)
+
+    for i, col in enumerate(columns):
+        res = (
+            iterable_source.async_map(lambda x: CatalogSource(x, source.driver_name, None).get_driver().get_df())
+            .async_map(lambda df: df.loc[:, col].sum())  # noqa
+            .collect()
+        )
+        if engine == "dask":
+            res = [val.compute() for val in res]
+
+        assert res == [sum_base * 10**i] * n
