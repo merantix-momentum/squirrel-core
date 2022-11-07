@@ -5,7 +5,6 @@ from typing import Any, Iterable, TYPE_CHECKING
 import more_itertools
 
 from squirrel.driver.driver import MapDriver
-from squirrel.driver.data_frame import DataFrameDriver
 from squirrel.iterstream.source import IterableSamplerSource, IterableSource
 
 if TYPE_CHECKING:
@@ -19,7 +18,7 @@ if TYPE_CHECKING:
     from squirrel.store import AbstractStore
 
 
-class SourceCombiner(MapDriver, DataFrameDriver):
+class SourceCombiner(MapDriver):
     name = "source_combiner"
 
     def __init__(self, subsets: dict[str, CatalogKey], catalog: Catalog, **kwargs) -> None:
@@ -101,7 +100,7 @@ class SourceCombiner(MapDriver, DataFrameDriver):
             **kwargs: Keyword arguments passed to the subset driver.
 
         Returns:
-            (DataFrame) Data of the subset driver `subset` as a Dask DataFrame.
+            (DataFrame) Data of the subset driver `subset` as a Dask or Pandas DataFrame.
         """
         return self.get_source(subset).get_driver().get_df(*kwargs)
 

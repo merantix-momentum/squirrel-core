@@ -38,10 +38,10 @@ def test_combiner_in_catalog() -> None:
     assert [r.split for r in all_rows] == ["train", "val", "test"]
 
 
-def test_copy_combiner(test_url: URL) -> None:
+def test_copy_combiner(test_path: URL) -> None:
     """Test if source combiner can be serialized"""
     c = Catalog()
-    c["train"] = Source("file", driver_kwargs={"url": test_url + "train.dummy"})
+    c["train"] = Source("file", driver_kwargs={"url": test_path + "train.dummy"})
     c["combined"] = Source(
         "source_combiner",
         driver_kwargs={
