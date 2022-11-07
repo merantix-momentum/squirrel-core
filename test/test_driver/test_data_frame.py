@@ -3,6 +3,7 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
+import pandas as pd
 from pandas import DataFrame
 import pytest
 from _pytest.fixtures import SubRequest as Request
@@ -99,14 +100,20 @@ def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENG
 def test_dataframe_drivers(data_frame_source: tuple[Source, ENGINE], data_frame_ground_truth: DataFrame) -> None:
     """Test all DataFrameDrivers"""
     source, engine = data_frame_source
-
-    df = CatalogSource(source, source.driver_name, None).get_driver().get_df()
+    driver = CatalogSource(source, source.driver_name, None).get_driver()
+    df = driver.get_df()
     df_gt = data_frame_ground_truth
 
     if engine == "dask":
         df = df.compute()
 
     assert all(df_gt == df)
+
+    for (row, series_gt), data in zip(df_gt.iterrows(), driver.get_iter()):
+        d = data._asdict()
+        del d["Index"]
+        series = pd.Series(data=d, name=row)
+        assert all(series_gt == series)
 
 
 def test_dataframe_drivers_iterable_source(
