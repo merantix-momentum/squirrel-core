@@ -42,7 +42,7 @@ def data_frame_source_path(
         write_kwargs["index"] = False
 
     elif name == "excel":
-        ext = ".xls"
+        ext = ".xlsx"
         write_fn = df.to_excel
         write_kwargs["index"] = False
 
