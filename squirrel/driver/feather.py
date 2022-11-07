@@ -26,7 +26,7 @@ class FeatherDriver(DataFrameDriver):
         if self.engine == "dask":
             raise ValueError("Dask does not support reading feather files.")
 
-    def read(self, **kwargs) -> pd.DataFrame:
+    def _read(self, **kwargs) -> pd.DataFrame:
         """Read Parquet file using pandas."""
         import pandas as pd
 

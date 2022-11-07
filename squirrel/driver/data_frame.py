@@ -52,19 +52,19 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
         self.read_kwargs = read_kwargs or {}
 
     @abstractmethod
-    def read(self, **kwargs) -> DataFrame | pd.DataFrame:
+    def _read(self, **kwargs) -> DataFrame | pd.DataFrame:
         """Read DataFrame from file."""
         raise NotImplementedError("This needs to be implemented by the derived class.")
 
-    def _read(self, **kwargs) -> DataFrame | pd.DataFrame:
+    def _read_handle_kwargs(self, **kwargs) -> DataFrame | pd.DataFrame:
         """Read DataFrame.
         Wraps the underlying read() to handle read arguments and storage options.
         """
-        # Join kwargs for read()
-        # Passed kwargs takes precedence over self.read_kwargs and self.storage_kwargs
+        # Join kwargs for _read()
+        # Passed kwargs take precedence over self.read_kwargs and self.storage_kwargs
         storage_kwargs = {"storage_options": self.storage_options} if self.storage_options else {}
         read_kwargs = {**self.read_kwargs, **storage_kwargs, **kwargs}
-        return self.read(**read_kwargs)
+        return self._read(**read_kwargs)
 
     def get_df(self, **read_kwargs) -> DataFrame | pd.DataFrame:
         """Returns the data as a DataFrame.
@@ -76,7 +76,7 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
         Returns:
             (dask.dataframe.DataFrame | pandas.DataFrame) Dask or Pandas DataFrame constructed from the file.
         """
-        result = self._read(**read_kwargs)
+        result = self._read_handle_kwargs(**read_kwargs)
 
         for hook in self.df_hooks:
             result = hook(result)
@@ -97,8 +97,6 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
         Returns:
             (squirrel.iterstream.Composable) Iterable over the rows of the data frame as namedtuples.
         """
-        if itertuples_kwargs is None:
-            itertuples_kwargs = {}
-        if read_kwargs is None:
-            read_kwargs = {}
+        itertuples_kwargs = itertuples_kwargs or {}
+        read_kwargs = read_kwargs or {}
         return IterableSource(self.get_df(**read_kwargs).itertuples(**itertuples_kwargs))

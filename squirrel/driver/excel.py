@@ -25,7 +25,7 @@ class ExcelDriver(DataFrameDriver):
         if self.engine == "dask":
             raise ValueError("Dask does not support reading Excel files.")
 
-    def read(self, **kwargs) -> pd.DataFrame:
+    def _read(self, **kwargs) -> pd.DataFrame:
         """Read Excel file using pandas."""
         import pandas as pd
 
