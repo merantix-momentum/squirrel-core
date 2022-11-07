@@ -7,9 +7,9 @@ from squirrel.iterstream import IterableSource
 
 
 @pytest.fixture
-def tmp_csv(tmp_url: URL) -> URL:
+def tmp_csv(tmp_path: URL) -> URL:
     """Create a csv file under `tmp_path`. No need to teardown, pytest will tear the entire tmp_path for you."""
-    csv_path = f"{tmp_url}/test.csv"
+    csv_path = f"{tmp_path}/test.csv"
     content = "a,b,c\n1,2,3"
     with open(csv_path, "w") as f:
         f.write(content)
