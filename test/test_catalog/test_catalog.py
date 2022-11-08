@@ -166,7 +166,7 @@ def test_catalog_loadyaml(tmp_yaml_1: URL) -> None:
     cat = Catalog.from_files([tmp_yaml_1])
     df = cat["cs"].get_driver().get_df()
 
-    assert df["a"].compute().iloc[0] == 1
+    assert df["a"].iloc[0] == 1
 
 
 @pytest.fixture
