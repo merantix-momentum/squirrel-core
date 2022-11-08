@@ -106,7 +106,7 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
 # Add logo and favicon
-html_logo = "_static/logo_xs.png"
+html_logo = "_static/logo.png"
 html_favicon = "_static/favicon.ico"
 
 # Document Python Code

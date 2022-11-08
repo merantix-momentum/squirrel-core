@@ -8,3 +8,7 @@ wandb
 mlflow
 pre-commit==2.16.0
 pip-tools>=6.6.2
+sphinx
+sphinx-autoapi
+sphinxcontrib-mermaid
+sphinx_rtd_theme

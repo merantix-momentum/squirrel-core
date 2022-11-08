@@ -353,6 +353,18 @@ def test_filepathgenerator_nested() -> None:
     assert len(files) == 4
 
 
+def test_zip_index() -> None:
+    """Test zip_index method"""
+    res1 = IterableSource(list(range(3))).zip_index().map(lambda x: x[0]).collect()
+    assert res1 == [0, 1, 2]
+
+    res2 = IterableSource(list(range(3))).zip_index(pad_length=3).map(lambda x: x[0]).collect()
+    assert res2 == ["000", "001", "002"]
+
+    res3 = IterableSource(list(range(101))).zip_index(pad_length=2).map(lambda x: x[0]).collect()
+    assert res3[0] == "00" and res3[-2] == "99" and res3[-1] == "100"
+
+
 @pytest.fixture
 def samples() -> t.List[SampleType]:
     """A fixture to get a list of samples"""

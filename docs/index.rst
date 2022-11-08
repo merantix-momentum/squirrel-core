@@ -1,10 +1,10 @@
 .. squirrel documentation master file:
 
-Welcome to Squirrel´s documentation!
-====================================
+Squirrel Documentation
+======================
 .. toctree::
    :maxdepth: 1
-   :caption: Getting Started:
+   :caption: Getting Started
 
    getting_started/installation
    getting_started/introduction
@@ -12,7 +12,7 @@ Welcome to Squirrel´s documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Basic Usage:
+   :caption: Basic Usage
 
    usage/architecture_overview
    usage/driver
@@ -22,23 +22,25 @@ Welcome to Squirrel´s documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Advanced:
+   :caption: Advanced
 
    advanced/store
    advanced/iterstream
+   advanced/randomness
 
 .. toctree::
    :maxdepth: 1
-   :caption: Integration:
+   :caption: Integration
 
    integration/pytorch.rst
    integration/monitoring_mlflow_wandb.rst
    integration/spark.rst
    integration/dask.rst
+   integration/squirrel_datasets_drivers.rst
 
 .. toctree::
    :maxdepth: 1
-   :caption: Developer Guide:
+   :caption: Developer Guide
 
    developer/code_of_conduct
    developer/contribute

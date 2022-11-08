@@ -211,6 +211,15 @@ class Composable:
         """
         return _LoopIterable(self, n)
 
+    def zip_index(self, pad_length: int = None) -> Composable:
+        """Zip the item in the stream with its index and yield Tuple[index, item]
+
+        Args:
+            pad_length: if provided, all indexes will be padded with zeros if they have less digits than pad_length,
+                in which case all indexes are str rather than int.
+        """
+        return _ZipIndexIterable(self, pad_length=pad_length)
+
     def join(self) -> None:
         """A method to consume the stream"""
         for _ in self:
@@ -330,6 +339,30 @@ class _LoopIterable(Composable):
         else:
             for _ in range(self.n):
                 yield from iter(deepcopy(self.source))
+
+
+class _ZipIndexIterable(Composable):
+    def __init__(self, source: t.Iterable, pad_length: int = None) -> None:
+        """Init"""
+        super().__init__(source)
+        self.idx = 0
+        self.pad_length = pad_length
+
+    def __iter__(self) -> t.Iterator:
+        """Zip the index and the data"""
+        for i in self.source:
+            yield self._next_idx(), i
+
+    def _next_idx(self) -> t.Union[int, str]:
+        _idx = None
+        if self.pad_length is not None:
+            str_idx = str(self.idx)
+
+            _idx = "0" * (self.pad_length - len(str_idx)) + str_idx
+        else:
+            _idx = self.idx
+        self.idx += 1
+        return _idx
 
 
 class _AsyncMap(Composable):

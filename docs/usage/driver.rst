@@ -1,5 +1,5 @@
 Driver
-==============
+======
 
 Driver is the Squirrel component that is used for accessing data.
 Combined with the :ref:`usage/iterstream:IterStream` functionalities, drivers provide a powerful and intuitive way of
@@ -22,7 +22,8 @@ accessing data:
     train_loader = DataLoader(train_data, batch_size=None)
     # ... have fun training your model
 
-Drivers differ in the way they provide access to data.
+You can pass ``storage_options`` to any driver to customize storage backend. Drivers differ in the
+way they provide access to data.
 
 .. contents::
     :local:

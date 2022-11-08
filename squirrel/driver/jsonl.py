@@ -14,18 +14,27 @@ class JsonlDriver(StoreDriver):
 
     name = "jsonl"
 
-    def __init__(self, url: str, deser_hook: t.Optional[t.Callable] = None, **kwargs):
+    def __init__(
+        self,
+        url: str,
+        deser_hook: t.Optional[t.Callable] = None,
+        storage_options: dict[str, t.Any] | None = None,
+        **kwargs,
+    ):
         """Initializes JsonlDriver with default serializer.
 
         Args:
             url (str): Path to the root directory. If this path does not exist, it will be created.
             deser_hook (Callable): Callable that is passed as `object_hook` to :py:class:`JsonDecoder` during json
                 deserialization. Defaults to None.
+            storage_options (Dict): a dictionary containing storage_options to be passed to fsspec.
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         if "store" in kwargs:
             raise ValueError("Store of JsonlDriver is fixed, `store` cannot be provided.")
-        super().__init__(url=url, serializer=JsonSerializer(deser_hook=deser_hook), **kwargs)
+        super().__init__(
+            url=url, serializer=JsonSerializer(deser_hook=deser_hook), storage_options=storage_options, **kwargs
+        )
 
     def get_iter(
         self,
