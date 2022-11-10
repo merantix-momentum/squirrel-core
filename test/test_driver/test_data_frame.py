@@ -20,7 +20,7 @@ def data_frame_ground_truth() -> DataFrame:
     return DataFrame({"a": [1, 2, 3], "b": [10, 20, 30], "c": [100, 200, 300]})
 
 
-@pytest.fixture(params=["csv", "excel", "json", "feather", "parquet"])
+@pytest.fixture(params=["csv", "excel", "feather", "parquet"])
 def data_frame_source_path(
     request: Request, tmp_path: URL, data_frame_ground_truth: DataFrame
 ) -> tuple[str, URL, dict]:
