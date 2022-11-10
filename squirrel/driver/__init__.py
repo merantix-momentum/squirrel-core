@@ -3,7 +3,6 @@ from squirrel.driver.data_frame import DataFrameDriver
 from squirrel.driver.driver import Driver, IterDriver, MapDriver
 from squirrel.driver.file import FileDriver
 from squirrel.driver.feather import FeatherDriver
-from squirrel.driver.json import JsonDriver
 from squirrel.driver.jsonl import JsonlDriver
 from squirrel.driver.msgpack import MessagepackDriver
 from squirrel.driver.parquet import ParquetDriver
@@ -19,7 +18,6 @@ __all__ = [
     "FeatherDriver",
     "FileDriver",
     "IterDriver",
-    "JsonDriver",
     "JsonlDriver",
     "MapDriver",
     "MessagepackDriver",
