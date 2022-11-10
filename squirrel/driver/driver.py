@@ -6,16 +6,13 @@ import functools
 from abc import ABC, abstractmethod
 from functools import partial
 from inspect import isclass
-from typing import Any, Callable, Iterable, TYPE_CHECKING
+from typing import Any, Callable, Iterable
 
 from squirrel.catalog import Catalog
 from squirrel.iterstream import Composable, IterableSource
 
-if TYPE_CHECKING:
-    from pandas import DataFrame
 
-
-__all__ = ["Driver", "IterDriver", "MapDriver", "DataFrameDriver"]
+__all__ = ["Driver", "IterDriver", "MapDriver"]
 
 
 class Driver(ABC):  # noqa: B024, we want to make it explicit that this class is abstract
@@ -164,9 +161,3 @@ class MapDriver(IterDriver):
             _map = _map.flatten()
 
         return _map.shuffle(size=shuffle_item_buffer, **item_shuffle_kwargs)
-
-
-class DataFrameDriver(Driver):
-    @abstractmethod
-    def get_df(self, **kwargs) -> DataFrame:
-        """Returns a dataframe of the data."""

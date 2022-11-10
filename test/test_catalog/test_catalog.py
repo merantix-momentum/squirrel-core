@@ -16,7 +16,7 @@ def test_catalog_createempty() -> None:
 def test_catalog_createsimple() -> None:
     """Test creating a Catalog"""
     cat = Catalog()
-    cat["s"] = Source("csv", driver_kwargs={"path": "./test.csv"})
+    cat["s"] = Source("csv", driver_kwargs={"url": "./test.csv"})
 
     assert "s" in cat
     assert "s1" not in cat
@@ -25,11 +25,11 @@ def test_catalog_createsimple() -> None:
 def test_catalog_versioning() -> None:
     """Test versioning a source in a Catalog using all allowed identifier types."""
     cat = Catalog()
-    cat["s"] = Source("csv", driver_kwargs={"path": "./test1.csv"})
-    cat["s"][cat["s"].version + 1] = Source("csv", driver_kwargs={"path": "./test2.csv"})
-    cat["s", cat["s"].version + 1] = Source("csv", driver_kwargs={"path": "./test3.csv"})
+    cat["s"] = Source("csv", driver_kwargs={"url": "./test1.csv"})
+    cat["s"][cat["s"].version + 1] = Source("csv", driver_kwargs={"url": "./test2.csv"})
+    cat["s", cat["s"].version + 1] = Source("csv", driver_kwargs={"url": "./test3.csv"})
     key = CatalogKey("s", cat["s"].version + 1)
-    cat[key] = Source("csv", driver_kwargs={"path": "./test4.csv"})
+    cat[key] = Source("csv", driver_kwargs={"url": "./test4.csv"})
     bad_id = "non-existing"
 
     # check contains
@@ -53,7 +53,7 @@ def test_catalog_versioning() -> None:
     assert cat["s", -1] == cat["s"]
     assert cat[CatalogKey("s", -1)] == cat["s"]
     for ver in range(1, 5):
-        assert cat["s", ver].driver_kwargs["path"] == f"./test{ver}.csv"
+        assert cat["s", ver].driver_kwargs["url"] == f"./test{ver}.csv"
 
     # check entries distinct
     assert cat["s"][1] != cat["s"][2]
@@ -76,7 +76,7 @@ def test_wrong_identifier_type() -> None:
     """Test against common wrong identifier types."""
     cat = Catalog()
     iden, ver = "s", 2
-    cat[iden, ver] = Source("csv", driver_kwargs={"path": "./test1.csv"})
+    cat[iden, ver] = Source("csv", driver_kwargs={"url": "./test1.csv"})
     with pytest.raises(TypeError):
         cat[1337]
     with pytest.raises(KeyError):
@@ -92,8 +92,8 @@ def test_wrong_identifier_type() -> None:
 def test_catalog_copy() -> None:
     """Test deep copying  a Catalog"""
     cat = Catalog()
-    cat["s"] = Source("csv", driver_kwargs={"path": "./test.csv"})
-    cat["s"] = Source("csv", driver_kwargs={"path": "./test.csv"})
+    cat["s"] = Source("csv", driver_kwargs={"url": "./test.csv"})
+    cat["s"] = Source("csv", driver_kwargs={"url": "./test.csv"})
 
     assert cat == cat
     assert cat.copy() == cat
@@ -103,15 +103,15 @@ def test_catalog_copy() -> None:
 def test_catalog_setapi() -> None:
     """Test merging of Catalogs"""
     cat1 = Catalog()
-    cat1["s0"] = Source("csv", driver_kwargs={"path": "./test0.csv"})
-    cat1["s1"] = Source("csv", driver_kwargs={"path": "./test1.csv"})
-    cat1["s2"] = Source("csv", driver_kwargs={"path": "./test2.csv"})
+    cat1["s0"] = Source("csv", driver_kwargs={"url": "./test0.csv"})
+    cat1["s1"] = Source("csv", driver_kwargs={"url": "./test1.csv"})
+    cat1["s2"] = Source("csv", driver_kwargs={"url": "./test2.csv"})
 
     cat2 = Catalog()
-    cat2["s0"] = Source("csv", driver_kwargs={"path": "./test0.csv"})
-    cat2["s1"][1] = Source("csv", driver_kwargs={"path": "./test1.csv"})
-    cat2["s1"][2] = Source("csv", driver_kwargs={"path": "./test11.csv"})
-    cat2["s3"] = Source("csv", driver_kwargs={"path": "./test3.csv"})
+    cat2["s0"] = Source("csv", driver_kwargs={"url": "./test0.csv"})
+    cat2["s1"][1] = Source("csv", driver_kwargs={"url": "./test1.csv"})
+    cat2["s1"][2] = Source("csv", driver_kwargs={"url": "./test11.csv"})
+    cat2["s3"] = Source("csv", driver_kwargs={"url": "./test3.csv"})
 
     intersection = cat1.intersection(cat2)
     assert "s0" in intersection
@@ -153,7 +153,7 @@ def test_catalog_saveandload(test_path: URL) -> None:
     fp = f"{test_path}/example.yaml"
 
     cat1 = Catalog()
-    cat1["s"] = Source("csv", driver_kwargs={"path": "./test.csv"})
+    cat1["s"] = Source("csv", driver_kwargs={"url": "./test.csv"})
 
     cat1.to_file(fp)
     cat2 = Catalog.from_files([fp])
@@ -166,7 +166,7 @@ def test_catalog_loadyaml(tmp_yaml_1: URL) -> None:
     cat = Catalog.from_files([tmp_yaml_1])
     df = cat["cs"].get_driver().get_df()
 
-    assert df["a"].compute().iloc[0] == 1
+    assert df["a"].iloc[0] == 1
 
 
 def test_catalog_repr() -> None:
@@ -194,7 +194,7 @@ def tmp_yaml_1(test_path: URL) -> URL:
       identifier: cs
       driver_name: csv
       driver_kwargs:
-        path: {csv_path}
+        url: {csv_path}
     """
     with fsspec.open(f_path, "w") as f:
         f.write(content)
@@ -234,7 +234,7 @@ def test_catalog_plugin_driver() -> None:
 
 def test_catalog_plugin_source() -> None:
     """Test plugin source"""
-    s = Source("csv", driver_kwargs={"path": "./test1.csv"}, metadata={"hello": "world"})
+    s = Source("csv", driver_kwargs={"url": "./test1.csv"}, metadata={"hello": "world"})
     register_source("mysource", s)
 
     cat = Catalog.from_plugins()

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from squirrel.driver.store_driver import StoreDriver
+from squirrel.driver.store import StoreDriver
 from squirrel.serialization import MessagepackSerializer
 
 __all__ = [

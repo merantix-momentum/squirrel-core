@@ -74,6 +74,9 @@ todo_include_todos = False
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+    "dask": ("https://docs.dask.org/en/stable/", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+    "fsspec": ("https://filesystem-spec.readthedocs.io/en/latest/", None),
     "squirrel-datasets": ("https://squirrel-datasets-core.readthedocs.io/en/latest", None),
 }
 
