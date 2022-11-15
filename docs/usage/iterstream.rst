@@ -81,7 +81,7 @@ To see how you can chain custom Composables with `compose()`, see the advanced s
 
 .. note::
 
-    Note that when defining a custom Composable that is meant to be used as `Source`, i.e. the first step in the pipeline, the `source` argument in the constructor must be present, but if it is `Transformation` or `Terminal`, i.e. any step except the first step in the pipeline, you have to omit the `source` argument in the constructor signature of the custom Composable class because because the `source` of your custom Composable is automatically set by Squirrel to the Composable that it operates on.
+    Note that when defining a custom Composable that is meant to be used as `Source`, i.e. the first step in the pipeline, the `source` argument in the constructor must be present, but if it is `Transformation` or `Terminal`, i.e. any step except the first step in the pipeline, you have to omit the `source` argument in the constructor signature of the custom Composable class because the `source` of your custom Composable is automatically set by Squirrel to the Composable that it operates on.
 
 Combining multiple iterables can be achieved using `IterableSamplerSource`:
 
