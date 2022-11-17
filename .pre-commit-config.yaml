@@ -16,7 +16,7 @@ repos:
     hooks:
       - id: autopep8
         additional_dependencies: [--index-url=https://pypi.org/simple/]
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/pycqa/flake8
     rev: 5.0.4
     hooks:
       - id: flake8 # Apply flake 8 python file linter
