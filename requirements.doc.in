@@ -6,5 +6,6 @@ sphinx_versions
 sphinx_rtd_theme
 sphinx-autoapi
 sphinxcontrib-mermaid
+myst_nb    # to use jupyter notebooks in docs
 Jinja2<3.1 # remove when sphinx is updated to 4.4, https://github.com/sphinx-doc/sphinx/issues/1029
 click<8.1  # remove when update docs, https://github.com/streamlit/streamlit/issues/4555

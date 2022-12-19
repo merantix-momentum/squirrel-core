@@ -48,7 +48,9 @@ extensions = [
     "sphinx.ext.todo",
     "autoapi.extension",
     "sphinxcontrib.mermaid",
+    "myst_nb",
 ]
+nb_execution_mode = "off"
 
 # Add any paths that contain templates here, relative to this directory.
 # Add any paths that contain templates here, relative to this directory.cv

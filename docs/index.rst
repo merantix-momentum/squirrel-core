@@ -37,6 +37,7 @@ Squirrel Documentation
    integration/spark.rst
    integration/dask.rst
    integration/squirrel_datasets_drivers.rst
+   examples/squirrel_dali.ipynb
 
 .. toctree::
    :maxdepth: 1
