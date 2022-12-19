@@ -2,6 +2,7 @@ import typing as t
 from pathlib import Path
 
 import numpy as np
+
 from squirrel.driver.msgpack import MessagepackDriver
 from squirrel_datasets_core.driver.huggingface import HuggingfaceDriver
 
@@ -19,6 +20,15 @@ def create_sq_ds_from_hf(
     squirrel_url: str = None,
     **hf_kwargs,
 ) -> None:
+    """Creates a squirrel Messagepack dataset from a Huggingface dataset.
+
+    Args:
+        hf_ds (str): The Huggingface dataset name.
+        hf_split (str): The Huggingface split name.
+        to_np_dict (t.Callable[[t.Any], t.Dict[str, np.ndarray]]): Function converting data to numpy arrays.
+        shard_size (int): Shard size of the squirrel dataset.
+        squirrel_url (str, optional): Where to save squirrel dataset. Defaults to None.
+    """
 
     it = HuggingfaceDriver(hf_ds, **hf_kwargs).get_iter(hf_split)
 
@@ -32,7 +42,7 @@ def create_sq_ds_from_hf(
 
     print("creating squirrel dataset under", url, "...")
     (
-        it.tqdm()  #  prints "12345it [00:08, 5810.89it/s]"
+        it.tqdm()  # prints "12345it [00:08, 5810.89it/s]"
         .map(to_np_dict)
         .batched(shard_size, drop_last_if_not_full=False)
         .map(store.set)
