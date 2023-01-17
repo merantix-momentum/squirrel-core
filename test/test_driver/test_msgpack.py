@@ -1,3 +1,4 @@
+import shutil
 import tempfile
 
 import torch.utils.data as tud
@@ -5,7 +6,7 @@ import torch.utils.data as tud
 from squirrel.constants import URL
 from squirrel.driver import MessagepackDriver
 from squirrel.iterstream import IterableSource
-from squirrel.iterstream.torch_composables import TorchIterable, SplitByWorker
+from squirrel.iterstream.torch_composables import SplitByWorker, TorchIterable
 from squirrel.serialization import MessagepackSerializer
 from squirrel.store import SquirrelStore
 
@@ -36,13 +37,18 @@ def test_get_iter(dummy_msgpack_store: SquirrelStore, num_samples: int) -> None:
 
 def test_clean_store() -> None:
     """Test instantiating a store and removing all it's content"""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        _ = SquirrelStore(tmp_dir, clean=True, serializer=MessagepackSerializer())
-        driver = MessagepackDriver(url=tmp_dir)
-        IterableSource([{f"k{i}": f"v{i}"} for i in range(4)]).batched(2).async_map(driver.store.set).join()
-        assert len(list(driver.store.keys())) == 2
-        store = SquirrelStore(tmp_dir, clean=True, serializer=MessagepackSerializer())
-        assert len(list(store.keys())) == 0
+    tmp_dir = tempfile.mkdtemp()
+    _ = SquirrelStore(tmp_dir, clean=True, serializer=MessagepackSerializer())
+    driver = MessagepackDriver(url=tmp_dir)
+    IterableSource([{f"k{i}": f"v{i}"} for i in range(4)]).batched(2).async_map(driver.store.set).join()
+    assert len(list(driver.store.keys())) == 2
+    store = SquirrelStore(tmp_dir, clean=True, serializer=MessagepackSerializer())
+    assert len(list(store.keys())) == 0
+
+    try:
+        shutil.rmtree(tmp_dir)
+    except FileNotFoundError:
+        pass
 
 
 def test_shard_no_key() -> None:
