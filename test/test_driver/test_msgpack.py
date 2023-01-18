@@ -1,4 +1,5 @@
 import tempfile
+from typing import Tuple
 
 import torch.utils.data as tud
 
@@ -6,8 +7,9 @@ from squirrel.constants import URL
 from squirrel.driver import MessagepackDriver
 from squirrel.iterstream import IterableSource
 from squirrel.iterstream.torch_composables import TorchIterable, SplitByWorker
-from squirrel.serialization import MessagepackSerializer
+from squirrel.serialization import MessagepackSerializer, JsonSerializer
 from squirrel.store import SquirrelStore
+from squirrel.store.squirrel_store import CacheStore, CacheStoreSource
 
 
 def test_dataloader_2_workers(local_msgpack_url: URL, num_samples: int) -> None:

@@ -10,7 +10,10 @@ __all__ = ["JsonlDriver"]
 
 
 class JsonlDriver(StoreDriver):
-    """A StoreDriver that by default uses SquirrelStore with jsonl serialization."""
+    """
+    A StoreDriver that by default uses SquirrelStore with jsonl serialization.  Please see the parent class for
+    additional configuration
+    """
 
     name = "jsonl"
 

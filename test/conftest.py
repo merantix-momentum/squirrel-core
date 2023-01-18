@@ -21,7 +21,7 @@ from pytest import FixtureRequest
 from zarr.hierarchy import Group
 
 from squirrel.constants import URL
-from squirrel.driver import JsonlDriver, MessagepackDriver
+from squirrel.driver import JsonlDriver, MessagepackDriver, MapDriver
 from squirrel.integration_test.helpers import SHAPE, get_sample
 from squirrel.integration_test.shared_fixtures import *  # noqa: F401, F403
 from squirrel.iterstream import Composable, IterableSource
@@ -164,3 +164,16 @@ def local_msgpack_url(num_samples: int) -> str:
             store.set
         ).join()
         yield tmp_dir
+
+
+@pytest.fixture(params=["jsonl", "msgpack"])
+def cached_uri_and_respective_driver(request: FixtureRequest) -> Tuple[str, str, MapDriver]:
+    """Create two urls and an instance of a driver"""
+    if request.param == "msgpack":
+        with tempfile.TemporaryDirectory() as tmp_dir_msg:
+            with tempfile.TemporaryDirectory() as tmp_dir_msg_cache:
+                yield tmp_dir_msg, tmp_dir_msg_cache, MessagepackDriver
+    elif request.param == "jsonl":
+        with tempfile.TemporaryDirectory() as tmp_dir_jsonl:
+            with tempfile.TemporaryDirectory() as tmp_dir_jsonl_cache:
+                yield tmp_dir_jsonl, tmp_dir_jsonl_cache, JsonlDriver
