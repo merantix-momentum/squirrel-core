@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 import pandas as pd
-from pandas import DataFrame
 import pytest
 from _pytest.fixtures import SubRequest as Request
+from pandas import DataFrame
 
-from squirrel.constants import URL
-from squirrel.catalog.source import Source
 from squirrel.catalog.catalog import CatalogSource
+from squirrel.catalog.source import Source
+from squirrel.constants import URL
 from squirrel.driver.data_frame import ENGINE
 from squirrel.iterstream import IterableSource
 

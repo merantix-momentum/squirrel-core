@@ -41,9 +41,4 @@ def test_cached_store_with_driver(cached_uri_and_respective_driver: Tuple) -> No
 
     it2 = driver.get_iter().collect()
     assert it2 == it
-    assert (
-        list(driver.keys())
-        == list(driver.store.keys())
-        == list(driver.store._cache.keys())
-        == ["test_key"]
-    )
+    assert list(driver.keys()) == list(driver.store.keys()) == list(driver.store._cache.keys()) == ["test_key"]
