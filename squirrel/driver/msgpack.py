@@ -16,7 +16,7 @@ class MessagepackDriver(StoreDriver):
     name = "messagepack"
 
     def __init__(self, url: str, storage_options: dict[str, Any] | None = None, **kwargs):
-        """Initializes MessagepackDriver with default serializer.
+        """Initializes MessagepackDriver with default serializer. See parent class for more options.
 
         Args:
             url (str): Path to the root directory. If this path does not exist, it will be created.

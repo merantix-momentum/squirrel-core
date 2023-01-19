@@ -6,7 +6,7 @@ import torch.utils.data as tud
 from squirrel.constants import URL
 from squirrel.driver import MessagepackDriver
 from squirrel.iterstream import IterableSource
-from squirrel.iterstream.torch_composables import SplitByWorker, TorchIterable
+from squirrel.iterstream.torch_composables import TorchIterable, SplitByWorker
 from squirrel.serialization import MessagepackSerializer
 from squirrel.store import SquirrelStore
 
