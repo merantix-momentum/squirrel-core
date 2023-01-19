@@ -24,8 +24,9 @@ class StoreDriver(MapDriver):
         self,
         url: str,
         serializer: SquirrelSerializer,
-        cache_url: str = None,
+        cache_url: str | None = None,
         storage_options: dict[str, Any] | None = None,
+        cash_storage_options: dict[str, Any] | None = None,
         **kwargs,
     ) -> None:
         """Initializes StoreDriver.
@@ -35,12 +36,15 @@ class StoreDriver(MapDriver):
             serializer (SquirrelSerializer): serializer to be passed to SquirrelStore
             cache_url (str): if provided, the data will be cached in a store at this url
             storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments to be passed to store initializer
+            cash_storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments to be passed to
+                cache store initializer
             **kwargs: Keyword arguments to pass to the super class initializer.
         """
         super().__init__(**kwargs)
         self.url = url
         self.serializer = serializer
         self.storage_options = storage_options if storage_options is not None else {}
+        self.cash_storage_options = cash_storage_options if cash_storage_options is not None else {}
         self.cache_url = cache_url
         self._store = None
 
@@ -99,6 +103,6 @@ class StoreDriver(MapDriver):
                 self._store = SquirrelStore(url=self.url, serializer=self.serializer, **self.storage_options)
             else:
                 self._store = CacheStore(
-                    url=self.url, serializer=self.serializer, cache_url=self.cache_url, cache_serializer=self.serializer
+                    url=self.url, serializer=self.serializer, cache_url=self.cache_url, **self.cash_storage_options
                 )
         return self._store

@@ -1,5 +1,9 @@
 import tempfile
+from random import random
 from typing import Tuple
+
+import pytest
+import torch.utils.data as tud
 
 from squirrel.driver import MessagepackDriver
 from squirrel.serialization import MessagepackSerializer, JsonSerializer
@@ -42,3 +46,24 @@ def test_cached_store_with_driver(cached_uri_and_respective_driver: Tuple) -> No
     it2 = driver.get_iter().collect()
     assert it2 == it
     assert list(driver.keys()) == list(driver.store.keys()) == list(driver.store._cache.keys()) == ["test_key"]
+
+
+@pytest.mark.parametrize("num_workers", [0, 1, 2, 4])
+def test_cache_with_pytorch(cached_uri_and_respective_driver: Tuple, num_workers: int) -> None:
+    """Test if cache works with pytorch multiprocessing"""
+    uri, uri_cache, driver_ = cached_uri_and_respective_driver
+    samples = list(range(20))
+
+    driver = driver_(uri, cache_url=uri_cache, storage_option={}, cash_storage_options={})
+    ser = MessagepackSerializer() if isinstance(driver, MessagepackDriver) else JsonSerializer()
+    s = SquirrelStore(url=uri, serializer=ser)
+    for i in range(len(samples)):
+        s.set(value=[{f"{i}": i}], key=f"{i}_key")
+
+    if random() > 0.5:
+        _ = driver.get_iter().split_by_worker_pytorch().to_torch_iterable().collect()
+    it = driver.get_iter().split_by_worker_pytorch().to_torch_iterable().collect()
+    dl = tud.DataLoader(it, num_workers=num_workers)
+
+    out = [int(list(i.keys())[0]) for i in list(dl)]
+    assert set(out) == set(samples)

@@ -79,6 +79,7 @@ class CacheStore(SquirrelStore):
         serializer: SquirrelSerializer,
         cache_url: str,
         clean: bool = False,
+        cash_storage_options: dict[str, t.Any] | None = None,
         **storage_options,
     ):
         """
@@ -92,7 +93,8 @@ class CacheStore(SquirrelStore):
         multiple iterations.
         """
         super().__init__(url=url, serializer=serializer, clean=clean, **storage_options)
-        self._cache = SquirrelStore(cache_url, serializer)
+        cash_storage_options = cash_storage_options if cash_storage_options is not None else {}
+        self._cache = SquirrelStore(cache_url, serializer, **cash_storage_options)
 
     def get(self, key: str, **kwargs) -> t.Iterator[SampleType]:
         """
