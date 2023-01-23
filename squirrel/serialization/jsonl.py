@@ -109,7 +109,11 @@ class JsonSerializer(SquirrelSerializer):
 
     @staticmethod
     def deserialize_shard_from_file(
-        fp: str, fs: t.Optional[AbstractFileSystem] = None, mode: str = "rb", **open_kwargs
+        fp: str,
+        fs: t.Optional[AbstractFileSystem] = None,
+        mode: str = "rb",
+        loader_kwargs: t.Optional[t.Dict] = None,
+        **open_kwargs,
     ) -> t.Iterable[t.Any]:
         """Reads a shard from file and returns an iterable over its samples.
 
@@ -118,12 +122,15 @@ class JsonSerializer(SquirrelSerializer):
             fs (AbstractFileSystem, optional): Filesystem to use for opening the file. If not provided, `fsspec` will
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "rb".
+            loader_kwargs (Dict, optional): Keyword arguments passed to `json.loads()`.
             **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`. `open_kwargs` will always have
                 `compression="gzip"` set.
 
         Yields:
             (Any) Values of the samples of the shard.
         """
+        loader_kwargs = {} if loader_kwargs is None else loader_kwargs
+
         open_kwargs["mode"] = mode
         open_kwargs["compression"] = "gzip"
 
@@ -132,4 +139,4 @@ class JsonSerializer(SquirrelSerializer):
 
         with fs.open(fp, **open_kwargs) as f:
             for sample_bytes in f:
-                yield json.loads(sample_bytes, cls=SquirrelJsonDecoder)
+                yield json.loads(sample_bytes, cls=SquirrelJsonDecoder, **loader_kwargs)

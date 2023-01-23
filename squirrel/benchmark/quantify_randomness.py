@@ -18,7 +18,7 @@ class DummyShardedDriver(MapDriver):
         self.key_it = range(num_shard)
         self.data = np.arange(num_shard * shard_size)
 
-    def get(self, key: str) -> int:
+    def get(self, key: str, **kwargs) -> int:
         """Get item with key"""
         return self.data[int(key) * self.shard_size : (int(key) + 1) * self.shard_size]
 

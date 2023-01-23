@@ -59,7 +59,7 @@ class MessagepackSerializer(SquirrelSerializer):
         fp: str,
         fs: t.Optional[AbstractFileSystem] = None,
         mode: str = "rb",
-        unpacker_kwargs: t.Optional[t.Dict] = None,
+        loader_kwargs: t.Optional[t.Dict] = None,
         **open_kwargs,
     ) -> t.Iterable[t.Any]:
         """Reads a shard from file and returns an iterable over its samples.
@@ -69,7 +69,7 @@ class MessagepackSerializer(SquirrelSerializer):
             fs (AbstractFileSystem, optional): Filesystem to use for opening the file. If not provided, `fsspec` will
                 pick a filesystem suitable for `fp`. Defaults to None.
             mode (str): IO mode to use. Passed to :py:meth:`fs.open`. Defaults to "rb".
-            unpacker_kwargs (Dict, optional): Kwargs to be passed to `msgpack.Unpacker()`.
+            loader_kwargs (Dict, optional): Keyword arguments passed to `msgpack.Unpacker()`.
                 If `use_list` not given, it will be set to False.
             **open_kwargs: Other keyword arguments passed to :py:meth:`fs.open`. `open_kwargs` will always have
                 `compression="gzip"` set.
@@ -77,16 +77,17 @@ class MessagepackSerializer(SquirrelSerializer):
         Yields:
             (Any) Values of the samples of the shard.
         """
+        loader_kwargs = {} if loader_kwargs is None else loader_kwargs
+
         open_kwargs["mode"] = mode
         open_kwargs["compression"] = "gzip"
-        unpacker_kwargs = {} if unpacker_kwargs is None else unpacker_kwargs
-        if "use_list" not in unpacker_kwargs:
-            unpacker_kwargs["use_list"] = False
-        if "object_hook" not in unpacker_kwargs:
-            unpacker_kwargs["object_hook"] = msgpack_numpy.decode
+        if "use_list" not in loader_kwargs:
+            loader_kwargs["use_list"] = False
+        if "object_hook" not in loader_kwargs:
+            loader_kwargs["object_hook"] = msgpack_numpy.decode
 
         if fs is None:
             fs = fsspec
 
         with fs.open(fp, **open_kwargs) as f:
-            yield from msgpack.Unpacker(f, **unpacker_kwargs)
+            yield from msgpack.Unpacker(f, **loader_kwargs)

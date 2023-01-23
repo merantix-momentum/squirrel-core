@@ -25,7 +25,7 @@ class SquirrelStore(FilesystemStore):
         """
         super().__init__(url=url, serializer=serializer, clean=clean, **storage_options)
 
-    def get(self, key: str, **kwargs) -> t.Iterator[SampleType]:
+    def get(self, key: str, loader_kwargs: t.Optional[t.Dict] = None, **kwargs) -> t.Iterator[SampleType]:
         """Yields the item with the given key.
 
         If the store has a serializer, data read from the file will be deserialized.
@@ -38,7 +38,8 @@ class SquirrelStore(FilesystemStore):
             (Any) Item with the given key.
         """
         fp = f"{self.url}/{key}.gz"
-        yield from self.serializer.deserialize_shard_from_file(fp, fs=self.fs, **kwargs)
+        loader_kwargs = {} if loader_kwargs is None else loader_kwargs
+        yield from self.serializer.deserialize_shard_from_file(fp, fs=self.fs, loader_kwargs=loader_kwargs, **kwargs)
 
     def set(self, value: t.Union[SampleType, ShardType], key: t.Optional[str] = None, **kwargs) -> None:
         """Persists a shard or sample with the given key.
@@ -96,18 +97,19 @@ class CacheStore(SquirrelStore):
         cash_storage_options = cash_storage_options if cash_storage_options is not None else {}
         self._cache = SquirrelStore(cache_url, serializer, **cash_storage_options)
 
-    def get(self, key: str, **kwargs) -> t.Iterator[SampleType]:
+    def get(self, key: str, loader_kwargs: t.Optional[t.Dict] = None, **kwargs) -> t.Iterator[SampleType]:
         """
         If the item is cached, read from cache, otherwise read from the original source, cache it and stream the items
         from the shard
 
         """
+        loader_kwargs = {} if loader_kwargs is None else loader_kwargs
         if not self._is_cached(key):
             shard = list(super().get(key, **kwargs))
             self._cache.set(value=shard, key=key)
             yield from shard
         else:
-            yield from self._cache.get(key, **kwargs)
+            yield from self._cache.get(key, loader_kwargs=loader_kwargs, **kwargs)
 
     def _is_cached(self, key: str) -> bool:
         p = f"{self._cache.url}/{key}.gz"

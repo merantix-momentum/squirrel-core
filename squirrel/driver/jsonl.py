@@ -42,6 +42,7 @@ class JsonlDriver(StoreDriver):
     def get_iter(
         self,
         get_kwargs: t.Optional[t.Dict] = None,
+        loader_kwargs: t.Optional[t.Dict] = None,
         **kwargs,
     ) -> Composable:
         """Returns an iterable of samples as specified by `fetcher_func`.
@@ -49,12 +50,16 @@ class JsonlDriver(StoreDriver):
         Args:
             get_kwargs (Dict): Keyword arguments that will be passed as `get_kwargs` to :py:meth:`MapDriver.get_iter`.
                 `get_kwargs` will always have `compression="gzip"`. Defaults to None.
+            loader_kwargs (Dict): Keyword arguments that will be passed
+                as `loader_kwargs` to :py:meth:`MapDriver.get_iter`.
             **kwargs: Other keyword arguments that will be passed to :py:meth:`MapDriver.get_iter`.
 
         Returns:
             (Composable) Iterable over the items in the store.
         """
-        if get_kwargs is None:
-            get_kwargs = {}
+        get_kwargs = {} if get_kwargs is None else get_kwargs
         get_kwargs["compression"] = "gzip"
-        return super().get_iter(get_kwargs=get_kwargs, **kwargs)
+
+        loader_kwargs = {} if loader_kwargs is None else loader_kwargs
+
+        return super().get_iter(get_kwargs=get_kwargs, loader_kwargs=loader_kwargs, **kwargs)

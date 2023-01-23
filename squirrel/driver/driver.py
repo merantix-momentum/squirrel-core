@@ -11,7 +11,6 @@ from typing import Any, Callable, Iterable
 from squirrel.catalog import Catalog
 from squirrel.iterstream import Composable, IterableSource
 
-
 __all__ = ["Driver", "IterDriver", "MapDriver"]
 
 
@@ -73,6 +72,7 @@ class MapDriver(IterDriver):
         flatten: bool = False,
         keys_kwargs: dict | None = None,
         get_kwargs: dict | None = None,
+        loader_kwargs: dict | None = None,
         key_shuffle_kwargs: dict | None = None,
         item_shuffle_kwargs: dict | None = None,
     ) -> Composable:
@@ -126,6 +126,7 @@ class MapDriver(IterDriver):
         """
         keys_kwargs = {} if keys_kwargs is None else keys_kwargs
         get_kwargs = {} if get_kwargs is None else get_kwargs
+        loader_kwargs = {} if loader_kwargs is None else loader_kwargs
         key_shuffle_kwargs = {} if key_shuffle_kwargs is None else key_shuffle_kwargs
         item_shuffle_kwargs = {} if item_shuffle_kwargs is None else item_shuffle_kwargs
         keys_it = keys_iterable if keys_iterable is not None else partial(self.keys, **keys_kwargs)
@@ -151,7 +152,7 @@ class MapDriver(IterDriver):
                         f"of Composable"
                     )
 
-        map_fn = partial(self.get, **get_kwargs)
+        map_fn = partial(self.get, loader_kwargs=loader_kwargs, **get_kwargs)
         _map = (
             it.map(map_fn)
             if max_workers is not None and max_workers <= 1
