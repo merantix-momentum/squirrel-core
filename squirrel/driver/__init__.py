@@ -5,6 +5,7 @@ from squirrel.driver.file import FileDriver
 from squirrel.driver.feather import FeatherDriver
 from squirrel.driver.jsonl import JsonlDriver
 from squirrel.driver.msgpack import MessagepackDriver
+from squirrel.driver.deltalake import DeltalakeDriver
 from squirrel.driver.parquet import ParquetDriver
 from squirrel.driver.source_combiner import SourceCombiner
 from squirrel.driver.store import StoreDriver
@@ -21,6 +22,7 @@ __all__ = [
     "JsonlDriver",
     "MapDriver",
     "MessagepackDriver",
+    "DeltalakeDriver",
     "ParquetDriver",
     "SourceCombiner",
     "StoreDriver",
