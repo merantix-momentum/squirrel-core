@@ -213,6 +213,32 @@ def test_batched(samples: t.List[SampleType]) -> None:
     assert all(len(batch) == 3 for batch in res_drop)
 
 
+def test_sliding() -> None:
+    """Test sliding"""
+    inp = list(range(10))
+    assert IterableSource(inp).sliding(5, deepcopy=False, stride=1).collect() == [
+        [0, 1, 2, 3, 4],
+        [1, 2, 3, 4, 5],
+        [2, 3, 4, 5, 6],
+        [3, 4, 5, 6, 7],
+        [4, 5, 6, 7, 8],
+        [5, 6, 7, 8, 9],
+    ]
+    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2).collect() == [
+        [0, 1, 2, 3, 4],
+        [2, 3, 4, 5, 6],
+        [4, 5, 6, 7, 8],
+    ]
+    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=False).collect() == [
+        [0, 1, 2, 3, 4],
+        [2, 3, 4, 5, 6],
+        [4, 5, 6, 7, 8],
+        [6, 7, 8, 9],
+        [8, 9],
+    ]
+    assert IterableSource(inp).sliding(20, deepcopy=False, stride=1).collect() == []
+
+
 def test_shuffle(samples: t.List[SampleType]) -> None:
     """Test shuffle"""
     ids = [s["key"] for s in samples]

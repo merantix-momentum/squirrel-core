@@ -173,6 +173,40 @@ class Composable:
             drop_last_if_not_full=drop_last_if_not_full,
         )
 
+    def sliding(
+        self,
+        window_size: int,
+        *,
+        deepcopy: bool,
+        stride: int = 1,
+        drop_last_if_not_full: bool = True,
+        min_window_size: int = 1,
+    ) -> Composable:
+        """
+        Apply sliding window over the stream.
+
+        Args:
+            window_size (int): the length of the window
+            deepcopy (bool): If True, each window will be returned as a deepcopy. If items are mutated in the
+                subsequent steps of the pipeline, this should be set to True, otherwise it should be False.
+                Note that deepcopy may incur a substantial cost, so set this parameter carefully.
+            stride (int): the distance that the window moves at each step
+            drop_last_if_not_full (bool): If True, it would only return windows of size `window_size` and drops the
+                last items which have fewer items.
+            min_window_size (int): The minimum length of the window. This argument is only relevant if
+                `drop_last_if_not_full` is set to False, otherwise it's ignored.
+
+        """
+        assert window_size >= 1 and min_window_size >= 1 and stride >= 1
+        return _SlidingIter(
+            source=self,
+            window_size=window_size,
+            deepcopy=deepcopy,
+            stride=stride,
+            drop_last_if_not_full=drop_last_if_not_full,
+            min_window_size=min_window_size,
+        )
+
     def shuffle(self, size: int, **kw) -> Composable:
         """Shuffles items in the buffer, defined by `size`, to simulate IID sample retrieval.
 
@@ -315,6 +349,59 @@ class _Iterable(Composable):
         assert self.source is not None, f"must set source before calling iter {self.f} {self.args} {self.kw}"
         assert callable(self.f), self.f
         return self.f(iter(self.source), *self.args, **self.kw)
+
+
+class _SlidingIter(Composable):
+    def __init__(
+        self,
+        source: t.Iterable,
+        window_size: int,
+        deepcopy: bool,
+        stride: int = 1,
+        drop_last_if_not_full: bool = True,
+        min_window_size: int = 1,
+    ):
+        """Init"""
+        super().__init__(source=source)
+        self.window_size = window_size
+        self.deepcopy = deepcopy
+        self.stride = stride
+        self.drop_last_if_not_full = drop_last_if_not_full
+        self.min_window_size = min_window_size
+
+    def __iter__(self):
+        it = iter(self.source)
+        _win = []
+
+        while len(_win) < self.window_size:
+            try:
+                _win.append(next(it))
+            except StopIteration:
+                if not self.drop_last_if_not_full:
+                    yield _win
+                return
+
+        while True:
+            if self.deepcopy:
+                yield deepcopy(_win)
+            else:
+                yield _win
+            _win = self._step(_win, it)
+            if _win is None or len(_win) < self.min_window_size:
+                return
+
+    def _step(self, win_: t.List, it_: t.Iterable) -> t.List | None:
+        _new_items = []
+        for _ in range(self.stride):
+            try:
+                _new_items.append(next(it_))
+            except StopIteration:
+                if not self.drop_last_if_not_full:
+                    return win_[self.stride :] + _new_items
+                else:
+                    return
+
+        return win_[self.stride :] + _new_items
 
 
 class _LoopIterable(Composable):
