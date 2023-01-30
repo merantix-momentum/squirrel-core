@@ -237,6 +237,9 @@ def test_sliding() -> None:
         [8, 9],
     ]
     assert IterableSource(inp).sliding(20, deepcopy=False, stride=1).collect() == []
+    assert (
+        IterableSource(inp).sliding(5, deepcopy=False, stride=5).collect() == IterableSource(inp).batched(5).collect()
+    )
 
 
 def test_shuffle(samples: t.List[SampleType]) -> None:
