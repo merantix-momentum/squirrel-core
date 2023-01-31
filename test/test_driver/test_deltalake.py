@@ -7,6 +7,7 @@ import numpy as np
 import pyarrow as pa
 from deltalake import DeltaTable
 import pytest
+import polars as pl
 
 from squirrel.driver.deltalake import DeltalakeDriver
 from squirrel.store.deltalake import PersistToDeltalake
@@ -91,6 +92,43 @@ def test_get_subset_of_columns(np_dataset) -> None:
         assert len(retrieved_labels[0].keys()) == 1
         assert [i["lable"] for i in retrieved_labels] == [i["lable"] for i in samples]
 
+
+def test_polars_join():
+    """Test joining two separate delta tables with Polars"""
+    a = [
+        {"id": 1, "value": 11},
+        {"id": 2, "value": 22},
+        {"id": 3, "value": 33},
+        {"id": 4, "value": 44},
+        {"id": 7, "value": 77},
+    ]
+    b = [
+        {"id": 1, "value": 55},
+        {"id": 5, "value": 56},
+        {"id": 3, "value": 57},
+    ]
+    schema = pa.schema(
+        [
+            ("id", pa.int64()),
+            ("value", pa.int64()),
+        ]
+    )
+    with tempfile.TemporaryDirectory() as tmp_dir1:
+        with tempfile.TemporaryDirectory() as tmp_dir2:
+
+            IterableSource(a).compose(
+                partial(PersistToDeltalake, uri=tmp_dir1, shard_size=2, schema=schema, mode="append")
+            ).join()
+
+            IterableSource(b).compose(
+                partial(PersistToDeltalake, uri=tmp_dir2, shard_size=2, schema=schema, mode="append")
+            ).join()
+
+            aa = pl.scan_delta(tmp_dir1)
+            bb = pl.scan_delta(tmp_dir2)
+
+            res = aa.join(bb, on="id", how="inner").collect(streaming=True)
+            assert len(res) == 2
 
 def temporal_dataset(start, size, factor) -> Tuple[List[Dict[str, Any]], pa.Schema]:
     samples = [{"timestamp": i, "value": i * factor} for i in range(start, start + size)]
