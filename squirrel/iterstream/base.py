@@ -181,6 +181,7 @@ class Composable:
         stride: int = 1,
         drop_last_if_not_full: bool = True,
         min_window_size: int = 1,
+        fill_nan_on_partial: bool = False,
     ) -> Composable:
         """
         Apply sliding window over the stream.
@@ -193,11 +194,20 @@ class Composable:
             stride (int): the distance that the window moves at each step
             drop_last_if_not_full (bool): If True, it would only return windows of size `window_size` and drops the
                 last items which have fewer items.
-            min_window_size (int): The minimum length of the window. This argument is only relevant if
-                `drop_last_if_not_full` is set to False, otherwise it's ignored.
+            min_window_size (int): The minimum length of the window for the last remaining elements.
+                This argument is only relevant if `drop_last_if_not_full` is set to False, otherwise it's ignored.
+            fill_nan_on_partial (bool): If `drop_last_if_not_full` is False, the length of the last few windows
+                will be less than `window_size`. This argument fill the missing values with None if set to True.
+                This argument take precedence over If `min_window_size`.
 
         """
-        assert window_size >= 1 and min_window_size >= 1 and stride >= 1
+        if not window_size > 1:
+            raise ValueError("window_size must be > 1")
+        if not window_size > min_window_size >= 1:
+            raise ValueError("window_size must be greater than min_window_size, and min_window_size >= 1")
+        if not window_size >= stride >= 1:
+            raise ValueError("stride should be smaller or equal to window_size, and greater or equal to 1")
+
         return _SlidingIter(
             source=self,
             window_size=window_size,
@@ -205,6 +215,7 @@ class Composable:
             stride=stride,
             drop_last_if_not_full=drop_last_if_not_full,
             min_window_size=min_window_size,
+            fill_nan_on_partial=fill_nan_on_partial,
         )
 
     def shuffle(self, size: int, **kw) -> Composable:
@@ -360,6 +371,7 @@ class _SlidingIter(Composable):
         stride: int = 1,
         drop_last_if_not_full: bool = True,
         min_window_size: int = 1,
+        fill_nan_on_partial: bool = False,
     ):
         """Init"""
         super().__init__(source=source)
@@ -368,6 +380,7 @@ class _SlidingIter(Composable):
         self.stride = stride
         self.drop_last_if_not_full = drop_last_if_not_full
         self.min_window_size = min_window_size
+        self.fill_nan_on_partial = fill_nan_on_partial
 
     def __iter__(self):
         it = iter(self.source)
@@ -378,16 +391,17 @@ class _SlidingIter(Composable):
                 _win.append(next(it))
             except StopIteration:
                 if not self.drop_last_if_not_full:
-                    yield _win
+                    yield from self._yield(self._fill_na(_win))
                 return
 
         while True:
-            if self.deepcopy:
-                yield deepcopy(_win)
-            else:
-                yield _win
+            yield from self._yield(_win)
             _win = self._step(_win, it)
-            if _win is None or len(_win) < self.min_window_size:
+            if (
+                _win is None
+                or (len(_win) < self.min_window_size and not self.fill_nan_on_partial)
+                or all([i is None for i in _win])
+            ):
                 return
 
     def _step(self, win_: t.List, it_: t.Iterable) -> t.List | None:
@@ -397,11 +411,24 @@ class _SlidingIter(Composable):
                 _new_items.append(next(it_))
             except StopIteration:
                 if not self.drop_last_if_not_full:
-                    return win_[self.stride :] + _new_items
+                    return self._fill_na(win_[self.stride :] + _new_items)
                 else:
                     return
-
         return win_[self.stride :] + _new_items
+
+    def _yield(self, _win: t.List):
+        if self.deepcopy:
+            yield deepcopy(_win)
+        else:
+            yield _win
+
+    def _fill_na(self, _win: t.List) -> t.List | None:
+        if all([i is None for i in _win]):
+            return
+        if self.fill_nan_on_partial and len(_win) < self.window_size:
+            return _win + [None for _ in range(self.window_size - len(_win))]
+        else:
+            return _win
 
 
 class _LoopIterable(Composable):

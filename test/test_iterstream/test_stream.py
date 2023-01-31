@@ -224,18 +224,44 @@ def test_sliding() -> None:
         [4, 5, 6, 7, 8],
         [5, 6, 7, 8, 9],
     ]
-    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2).collect() == [
+    with pytest.raises(ValueError):
+        IterableSource(inp).sliding(2, deepcopy=False, stride=3).collect()
+    with pytest.raises(ValueError):
+        IterableSource(inp).sliding(1, deepcopy=False, stride=1).collect()
+
+    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2).collect() == IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=True, fill_nan_on_partial=True).collect()  == [
         [0, 1, 2, 3, 4],
         [2, 3, 4, 5, 6],
         [4, 5, 6, 7, 8],
     ]
-    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=False).collect() == [
+    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=False).collect()  == [
         [0, 1, 2, 3, 4],
         [2, 3, 4, 5, 6],
         [4, 5, 6, 7, 8],
         [6, 7, 8, 9],
         [8, 9],
     ]
+    assert IterableSource(inp).sliding(
+        5, deepcopy=False, stride=2, drop_last_if_not_full=False, min_window_size=3, fill_nan_on_partial=True).collect()  == [
+        [0, 1, 2, 3, 4],
+        [2, 3, 4, 5, 6],
+        [4, 5, 6, 7, 8],
+        [6, 7, 8, 9, None],
+        [8, 9, None, None, None],
+    ]
+    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=False, fill_nan_on_partial=True).collect() == [
+        [0, 1, 2, 3, 4],
+        [2, 3, 4, 5, 6],
+        [4, 5, 6, 7, 8],
+        [6, 7, 8, 9, None],
+        [8, 9, None, None, None],
+    ]
+    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=True, fill_nan_on_partial=True).collect() == [
+        [0, 1, 2, 3, 4],
+        [2, 3, 4, 5, 6],
+        [4, 5, 6, 7, 8],
+    ]
+
     assert IterableSource(inp).sliding(20, deepcopy=False, stride=1).collect() == []
     assert (
         IterableSource(inp).sliding(5, deepcopy=False, stride=5).collect() == IterableSource(inp).batched(5).collect()
