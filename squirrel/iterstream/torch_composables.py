@@ -1,5 +1,4 @@
 import logging
-import warnings
 from functools import partial
 from itertools import islice
 from typing import Callable, Iterable, Iterator, Optional
@@ -69,14 +68,12 @@ class TorchIterable(Composable, IterableDataset):
     def __iter__(self) -> Iterator:
         """Method to iterate over the source"""
         if _in_multi_rank_env():
-            warnings.warn("In multi rank environment")
             if not self._contains_rank_split(self.source):
                 raise PyTorchSplittingException(
                     "Composable was not split by rank. This will lead to unexpected iteration behaviour."
                     "Add a 'split_by_rank_pytorch' call to your composable to avoid this error. "
                 )
         if _in_multi_worker_env():
-            warnings.warn("In mulit worker environment")
             if not self._contains_worker_split(self.source):
                 raise PyTorchSplittingException(
                     "Composable was not split by worker. This will lead to unexpected iteration behaviour."
@@ -139,6 +136,6 @@ def _in_multi_rank_env() -> bool:
     if torch.distributed.is_available() and torch.distributed.is_initialized():
         group = torch.distributed.group.WORLD
         size = torch.distributed.get_world_size(group=group)
-        return True if torch.distributed.is_available() and size > 1 else False
+        return True if size > 1 else False
     else:
         return False
