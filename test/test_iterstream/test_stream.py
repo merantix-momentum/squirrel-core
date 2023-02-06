@@ -213,58 +213,161 @@ def test_batched(samples: t.List[SampleType]) -> None:
     assert all(len(batch) == 3 for batch in res_drop)
 
 
-def test_sliding() -> None:
+@pytest.mark.parametrize(
+    "window_size,deepcopy,stride,drop_last_if_not_full,min_window_size,fill_nan_on_partial,expected",
+    [
+        (
+            5,
+            False,
+            1,
+            True,
+            1,
+            False,
+            [
+                [0, 1, 2, 3, 4],
+                [1, 2, 3, 4, 5],
+                [2, 3, 4, 5, 6],
+                [3, 4, 5, 6, 7],
+                [4, 5, 6, 7, 8],
+                [5, 6, 7, 8, 9],
+            ],
+        ),
+        (
+            5,
+            False,
+            2,
+            True,
+            1,
+            False,
+            [
+                [0, 1, 2, 3, 4],
+                [2, 3, 4, 5, 6],
+                [4, 5, 6, 7, 8],
+            ],
+        ),
+        (
+            5,
+            False,
+            2,
+            True,
+            1,
+            True,
+            [
+                [0, 1, 2, 3, 4],
+                [2, 3, 4, 5, 6],
+                [4, 5, 6, 7, 8],
+            ],
+        ),
+        (
+            5,
+            False,
+            2,
+            False,
+            1,
+            False,
+            [
+                [0, 1, 2, 3, 4],
+                [2, 3, 4, 5, 6],
+                [4, 5, 6, 7, 8],
+                [6, 7, 8, 9],
+                [8, 9],
+            ],
+        ),
+        (
+            5,
+            False,
+            2,
+            False,
+            3,
+            True,
+            [
+                [0, 1, 2, 3, 4],
+                [2, 3, 4, 5, 6],
+                [4, 5, 6, 7, 8],
+                [6, 7, 8, 9, None],
+                [8, 9, None, None, None],
+            ],
+        ),
+        (
+            5,
+            False,
+            2,
+            False,
+            1,
+            True,
+            [
+                [0, 1, 2, 3, 4],
+                [2, 3, 4, 5, 6],
+                [4, 5, 6, 7, 8],
+                [6, 7, 8, 9, None],
+                [8, 9, None, None, None],
+            ],
+        ),
+        (
+            5,
+            False,
+            2,
+            True,
+            1,
+            True,
+            [
+                [0, 1, 2, 3, 4],
+                [2, 3, 4, 5, 6],
+                [4, 5, 6, 7, 8],
+            ],
+        ),
+        (
+            20,
+            False,
+            1,
+            True,
+            1,
+            False,
+            [],
+        ),
+    ],
+)
+def test_sliding(
+    window_size: int,
+    deepcopy: bool,
+    stride: int,
+    drop_last_if_not_full: bool,
+    min_window_size: int,
+    fill_nan_on_partial: bool,
+    expected: t.List,
+) -> None:
     """Test sliding"""
     inp = list(range(10))
-    assert IterableSource(inp).sliding(5, deepcopy=False, stride=1).collect() == [
-        [0, 1, 2, 3, 4],
-        [1, 2, 3, 4, 5],
-        [2, 3, 4, 5, 6],
-        [3, 4, 5, 6, 7],
-        [4, 5, 6, 7, 8],
-        [5, 6, 7, 8, 9],
-    ]
+    assert (
+        IterableSource(inp)
+        .sliding(
+            window_size=window_size,
+            deepcopy=deepcopy,
+            stride=stride,
+            drop_last_if_not_full=drop_last_if_not_full,
+            min_window_size=min_window_size,
+            fill_nan_on_partial=fill_nan_on_partial,
+        )
+        .collect()
+        == expected
+    )
+
+
+def test_sliding_raise() -> None:
+    """Test sliding exception for invalid arguments"""
+    inp = list(range(10))
     with pytest.raises(ValueError):
         IterableSource(inp).sliding(2, deepcopy=False, stride=3).collect()
     with pytest.raises(ValueError):
         IterableSource(inp).sliding(1, deepcopy=False, stride=1).collect()
 
-    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2).collect() == IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=True, fill_nan_on_partial=True).collect()  == [
-        [0, 1, 2, 3, 4],
-        [2, 3, 4, 5, 6],
-        [4, 5, 6, 7, 8],
-    ]
-    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=False).collect()  == [
-        [0, 1, 2, 3, 4],
-        [2, 3, 4, 5, 6],
-        [4, 5, 6, 7, 8],
-        [6, 7, 8, 9],
-        [8, 9],
-    ]
-    assert IterableSource(inp).sliding(
-        5, deepcopy=False, stride=2, drop_last_if_not_full=False, min_window_size=3, fill_nan_on_partial=True).collect()  == [
-        [0, 1, 2, 3, 4],
-        [2, 3, 4, 5, 6],
-        [4, 5, 6, 7, 8],
-        [6, 7, 8, 9, None],
-        [8, 9, None, None, None],
-    ]
-    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=False, fill_nan_on_partial=True).collect() == [
-        [0, 1, 2, 3, 4],
-        [2, 3, 4, 5, 6],
-        [4, 5, 6, 7, 8],
-        [6, 7, 8, 9, None],
-        [8, 9, None, None, None],
-    ]
-    assert IterableSource(inp).sliding(5, deepcopy=False, stride=2, drop_last_if_not_full=True, fill_nan_on_partial=True).collect() == [
-        [0, 1, 2, 3, 4],
-        [2, 3, 4, 5, 6],
-        [4, 5, 6, 7, 8],
-    ]
 
-    assert IterableSource(inp).sliding(20, deepcopy=False, stride=1).collect() == []
+def test_sliding_and_batched_equivalence() -> None:
+    """Test equivalence of sliding and batched when window_size==stride"""
+    inp = list(range(10))
+    s = 5
     assert (
-        IterableSource(inp).sliding(5, deepcopy=False, stride=5).collect() == IterableSource(inp).batched(5).collect()
+        IterableSource(inp).sliding(s, deepcopy=False, stride=s).collect() == IterableSource(inp).batched(s).collect()
     )
 
 

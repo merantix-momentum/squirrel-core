@@ -416,7 +416,7 @@ class _SlidingIter(Composable):
                     return
         return win_[self.stride :] + _new_items
 
-    def _yield(self, _win: t.List):
+    def _yield(self, _win: t.List) -> t.Generator[t.List[t.Any], None, None]:
         if self.deepcopy:
             yield deepcopy(_win)
         else:
