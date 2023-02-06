@@ -130,6 +130,19 @@ def test_polars_join():
             res = aa.join(bb, on="id", how="inner").collect(streaming=True)
             assert len(res) == 2
 
+            c = pl.SQLContext()
+            c.register("aa", aa)
+            c.register("bb", bb)
+            sql_res = c.query(
+                """
+                SELECT * FROM aa
+                INNER JOIN bb
+                ON aa.id = bb.id
+            """
+            )
+            assert (sql_res.to_numpy() - res.to_numpy() == 0).all()
+
+
 def temporal_dataset(start, size, factor) -> Tuple[List[Dict[str, Any]], pa.Schema]:
     samples = [{"timestamp": i, "value": i * factor} for i in range(start, start + size)]
     schema = pa.schema(
