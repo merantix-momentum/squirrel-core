@@ -173,6 +173,51 @@ class Composable:
             drop_last_if_not_full=drop_last_if_not_full,
         )
 
+    def sliding(
+        self,
+        window_size: int,
+        *,
+        deepcopy: bool,
+        stride: int = 1,
+        drop_last_if_not_full: bool = True,
+        min_window_size: int = 1,
+        fill_nan_on_partial: bool = False,
+    ) -> Composable:
+        """
+        Apply sliding window over the stream.
+
+        Args:
+            window_size (int): the length of the window
+            deepcopy (bool): If True, each window will be returned as a deepcopy. If items are mutated in the
+                subsequent steps of the pipeline, this should be set to True, otherwise it should be False.
+                Note that deepcopy may incur a substantial cost, so set this parameter carefully.
+            stride (int): the distance that the window moves at each step
+            drop_last_if_not_full (bool): If True, it would only return windows of size `window_size` and drops the
+                last items which have fewer items.
+            min_window_size (int): The minimum length of the window for the last remaining elements.
+                This argument is only relevant if `drop_last_if_not_full` is set to False, otherwise it's ignored.
+            fill_nan_on_partial (bool): If `drop_last_if_not_full` is False, the length of the last few windows
+                will be less than `window_size`. This argument fill the missing values with None if set to True.
+                This argument take precedence over If `min_window_size`.
+
+        """
+        if not window_size > 1:
+            raise ValueError("window_size must be > 1")
+        if not window_size > min_window_size >= 1:
+            raise ValueError("window_size must be greater than min_window_size, and min_window_size >= 1")
+        if not window_size >= stride >= 1:
+            raise ValueError("stride should be smaller or equal to window_size, and greater or equal to 1")
+
+        return _SlidingIter(
+            source=self,
+            window_size=window_size,
+            deepcopy=deepcopy,
+            stride=stride,
+            drop_last_if_not_full=drop_last_if_not_full,
+            min_window_size=min_window_size,
+            fill_nan_on_partial=fill_nan_on_partial,
+        )
+
     def shuffle(self, size: int, **kw) -> Composable:
         """Shuffles items in the buffer, defined by `size`, to simulate IID sample retrieval.
 
@@ -315,6 +360,75 @@ class _Iterable(Composable):
         assert self.source is not None, f"must set source before calling iter {self.f} {self.args} {self.kw}"
         assert callable(self.f), self.f
         return self.f(iter(self.source), *self.args, **self.kw)
+
+
+class _SlidingIter(Composable):
+    def __init__(
+        self,
+        source: t.Iterable,
+        window_size: int,
+        deepcopy: bool,
+        stride: int = 1,
+        drop_last_if_not_full: bool = True,
+        min_window_size: int = 1,
+        fill_nan_on_partial: bool = False,
+    ):
+        """Init"""
+        super().__init__(source=source)
+        self.window_size = window_size
+        self.deepcopy = deepcopy
+        self.stride = stride
+        self.drop_last_if_not_full = drop_last_if_not_full
+        self.min_window_size = min_window_size
+        self.fill_nan_on_partial = fill_nan_on_partial
+
+    def __iter__(self):
+        it = iter(self.source)
+        _win = []
+
+        while len(_win) < self.window_size:
+            try:
+                _win.append(next(it))
+            except StopIteration:
+                if not self.drop_last_if_not_full:
+                    yield from self._yield(self._fill_na(_win))
+                return
+
+        while True:
+            yield from self._yield(_win)
+            _win = self._step(_win, it)
+            if (
+                _win is None
+                or (len(_win) < self.min_window_size and not self.fill_nan_on_partial)
+                or all([i is None for i in _win])
+            ):
+                return
+
+    def _step(self, win_: t.List, it_: t.Iterable) -> t.List | None:
+        _new_items = []
+        for _ in range(self.stride):
+            try:
+                _new_items.append(next(it_))
+            except StopIteration:
+                if not self.drop_last_if_not_full:
+                    return self._fill_na(win_[self.stride :] + _new_items)
+                else:
+                    return
+        return win_[self.stride :] + _new_items
+
+    def _yield(self, _win: t.List) -> t.Generator[t.List[t.Any], None, None]:
+        if self.deepcopy:
+            yield deepcopy(_win)
+        else:
+            yield _win
+
+    def _fill_na(self, _win: t.List) -> t.List | None:
+        if all([i is None for i in _win]):
+            return
+        if self.fill_nan_on_partial and len(_win) < self.window_size:
+            return _win + [None for _ in range(self.window_size - len(_win))]
+        else:
+            return _win
 
 
 class _LoopIterable(Composable):
