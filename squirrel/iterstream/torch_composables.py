@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import IterableDataset
 
 from squirrel.iterstream.base import Composable
+from squirrel.framework.exceptions import PyTorchSplittingException
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,37 @@ class TorchIterable(Composable, IterableDataset):
 
     def __iter__(self) -> Iterator:
         """Method to iterate over the source"""
+        if _in_multi_rank_env():
+            if not self._contains_rank_split(self.source):
+                raise PyTorchSplittingException(
+                    "Composable was not split by rank. This will lead to unexpected iteration behaviour."
+                    "Add a 'split_by_rank_pytorch' call to your composable to avoid this error. "
+                )
+        if _in_multi_worker_env():
+            if not self._contains_worker_split(self.source):
+                raise PyTorchSplittingException(
+                    "Composable was not split by worker. This will lead to unexpected iteration behaviour."
+                    "Add a 'split_by_worker_pytorch' call to your composable to avoid this error. "
+                )
         yield from self.source
+
+    def _contains_rank_split(self, source: Composable) -> bool:
+        """Check if SplitByRank was chained to this Composable"""
+        if isinstance(source, SplitByRank):
+            return True
+        elif not isinstance(source, Composable):
+            return False
+        else:
+            return self._contains_rank_split(source.source)
+
+    def _contains_worker_split(self, source: Composable) -> bool:
+        """Check if SplitByWorker was chained to this Composable"""
+        if isinstance(source, SplitByWorker):
+            return True
+        elif not isinstance(source, Composable):
+            return False
+        else:
+            return self._contains_worker_split(source.source)
 
 
 def _skip_k(it: Iterable, start: int, step: int) -> Iterator:
@@ -93,3 +124,18 @@ def skip_k(rank: int, world_size: int) -> Callable[[Iterable], Iterator]:
         world_size: int denoting the full world size.
     """
     return partial(_skip_k, start=rank, step=world_size)
+
+
+def _in_multi_worker_env() -> bool:
+    """Check if currently in multi-worker environment"""
+    return False if torch.utils.data.get_worker_info() is None else True
+
+
+def _in_multi_rank_env() -> bool:
+    """Check if currently in multi-rank environment"""
+    if torch.distributed.is_available() and torch.distributed.is_initialized():
+        group = torch.distributed.group.WORLD
+        size = torch.distributed.get_world_size(group=group)
+        return True if size > 1 else False
+    else:
+        return False

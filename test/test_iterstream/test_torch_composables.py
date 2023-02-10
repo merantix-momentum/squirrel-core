@@ -2,6 +2,7 @@ import tempfile
 from functools import partial
 from typing import List, Any
 from unittest import mock
+from collections import namedtuple
 
 import pytest
 import torch
@@ -11,6 +12,7 @@ from squirrel.driver import MessagepackDriver
 from squirrel.iterstream.iterators import map_
 from squirrel.iterstream.source import IterableSource
 from squirrel.iterstream.torch_composables import SplitByRank, SplitByWorker, TorchIterable, skip_k
+from squirrel.framework.exceptions import PyTorchSplittingException
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -175,3 +177,51 @@ def test_multi_rank_multi_worker_torch_iterable(
             dl3 = tud.DataLoader(it3, num_workers=num_workers)
             out3 = torch.Tensor(list(dl3))
             assert sorted(out3.cpu().flatten().numpy().tolist()) == expected
+
+
+@mock.patch("torch.distributed.is_available", mock.MagicMock(return_value=True))
+@mock.patch("torch.distributed.is_initialized", mock.MagicMock(return_value=True))
+@mock.patch("torch.distributed.group.WORLD", mock.MagicMock(return_value="WORLD"))
+@mock.patch("torch.distributed.get_rank", mock.MagicMock(return_value=4))
+@mock.patch("torch.distributed.get_world_size", mock.MagicMock(return_value=4))
+@mock.patch("torch.utils.data.get_worker_info")
+def test_error_when_not_splitting_in_mp(mock_get_worker_info: Any, samples: List[int]) -> None:
+    """Test that a ValueError is thrown when composable is not split by rank and worker if calling to_torch_iterable"""
+    # Needed for multi-worker env
+    num_workers = 3
+    worker_id = 0
+    WorkerInfo = namedtuple("WorkerInfo", ["id", "num_workers"])
+    mock_get_worker_info.return_value = WorkerInfo(id=worker_id, num_workers=num_workers)
+
+    # Needed for multi-rank env
+    rank = torch.distributed.get_rank()
+    world_size = torch.distributed.get_world_size()
+
+    # Not splitting by worker
+    with pytest.raises(PyTorchSplittingException):
+        it = IterableSource(samples).split_by_rank_pytorch().to_torch_iterable()
+        next(iter(it))
+
+    # Not splitting by rank
+    with pytest.raises(PyTorchSplittingException):
+        it = IterableSource(samples).split_by_worker_pytorch().to_torch_iterable()
+        next(iter(it))
+
+    # None of the above
+    with pytest.raises(PyTorchSplittingException):
+        it = IterableSource(samples).to_torch_iterable()
+        next(iter(it))
+
+    # Split by rank and worker, this should work
+
+    # ADD SIMPLE MAP FN
+    it = (
+        IterableSource(samples)
+        .split_by_worker_pytorch()
+        .split_by_rank_pytorch()
+        .async_map(_times_two)
+        .to_torch_iterable()
+    )
+    dl = tud.DataLoader(it, num_workers=num_workers)
+    out = torch.Tensor(list(dl))
+    assert len(out.cpu().flatten().numpy().tolist()) == len(samples[rank::world_size])

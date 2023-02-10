@@ -4,3 +4,7 @@ class SourceExistsError(Exception):
 
 class SourceArgumentsCombinationException(Exception):
     pass
+
+
+class PyTorchSplittingException(Exception):
+    pass
