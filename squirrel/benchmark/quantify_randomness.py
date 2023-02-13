@@ -3,6 +3,7 @@ from typing import Callable, Iterable
 import numpy as np
 from scipy.stats import kendalltau
 
+from squirrel.constants import SeedType
 from squirrel.driver import MapDriver
 from squirrel.iterstream.base import Composable
 
@@ -44,6 +45,8 @@ def quantify_randomness(
     initial: int,
     n_samples: int = 250,
     metric: Callable = kendalltau_metric,
+    seed1: SeedType = None,
+    seed2: SeedType = None,
 ) -> float:
     """Quantify the randomness of sampling from a driver with the given shuffle parameters.
     This function assumes that we always fully shuffle all keys and the parameters for the item buffer is what we
@@ -56,6 +59,8 @@ def quantify_randomness(
         initial (int): initial size of item shuffle buffer
         n_samples (int): influences the accuracy of the estimate by controlling the number of sampled trajectories
         metric (Callable): how to measure the distance
+        seed1 (SeedType): seed for the first trajectory
+        seed2 (SeedType): seed for the second trajectory
 
     Returns:
         float: randomness measure computed from the kendall tau coefficient. Values between 0 and 1 while 1 means
@@ -67,10 +72,16 @@ def quantify_randomness(
     for _ in range(n_samples):
         # sample two random trajectories
         result1 = driver.get_iter(
-            shuffle_key_buffer=num_shard, shuffle_item_buffer=buffer_size, item_shuffle_kwargs={"initial": initial}
+            shuffle_key_buffer=num_shard,
+            shuffle_item_buffer=buffer_size,
+            item_shuffle_kwargs={"initial": initial, "seed": seed1},
+            key_shuffle_kwargs={"seed": seed1},
         ).collect()
         result2 = driver.get_iter(
-            shuffle_key_buffer=num_shard, shuffle_item_buffer=buffer_size, item_shuffle_kwargs={"initial": initial}
+            shuffle_key_buffer=num_shard,
+            shuffle_item_buffer=buffer_size,
+            item_shuffle_kwargs={"initial": initial, "seed": seed2},
+            key_shuffle_kwargs={"seed": seed2},
         ).collect()
 
         # and get their distance via the kendall tau function
