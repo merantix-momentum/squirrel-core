@@ -13,8 +13,11 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.9",
-    "Typing :: Typed"
+    "Typing :: Typed",
 ]
+
+[tool.poetry.plugins."fsspec.specs"]
+"gs" = "squirrel.fsspec.custom_gcsfs.CustomGCSFileSystem"
 
 [tool.poetry.dependencies]
 python = "^3.9"
