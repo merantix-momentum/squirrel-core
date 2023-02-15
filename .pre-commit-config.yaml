@@ -58,5 +58,4 @@ repos:
     hooks:
       - id: poetry-check
       - id: poetry-export
-        args: [-f, requirements.txt, -o, requirements.txt, --with=dev, --with=doc, -Eazure, -Edask, -Eexcel, -Efeather, -Egcp,
-          -Eparquet, -Es3, -Etorch, -Ezarr]
+        args: [-f, requirements.txt, -o, requirements.txt, --with=dev, --with=doc, -Eall]
