@@ -95,3 +95,19 @@ recursive = true
 [tool.black]
 line-length = 120
 include = '\.pyi?$'
+
+[tool.pytest.ini_options]
+testpaths = [
+    "test",
+    "squirrel/integration_test",
+]
+addopts = "-p no:warnings -v"
+norecursedirs = [
+    ".*",
+    "build",
+    "dist",
+    "CVS",
+    "_darcs",
+    "{arch}",
+    "*.egg",
+]
