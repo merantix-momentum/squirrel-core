@@ -565,9 +565,9 @@ fastjsonschema==2.16.2 ; python_version >= "3.9" and python_version < "4.0" \
 filelock==3.9.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:7b319f24340b51f55a2bf7a12ac0755a9b03e718311dac567a0f4f7fabd2f5de \
     --hash=sha256:f58d535af89bb9ad5cd4df046f741f8553a418c01a7856bf0d173bbc9f6bd16d
-flask==2.2.2 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:642c450d19c4ad482f96729bd2a8f6d32554aa1e231f4f6b4e7e5264b16cca2b \
-    --hash=sha256:b9c46cc36662a7949f34b52d8ec7bb59c0d74ba08ba6cb9ce9adc1d8676d9526
+flask==2.2.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:7eb373984bf1c770023fce9db164ed0c3353cd0b53f130f4693da0ca756a2e6d \
+    --hash=sha256:c0bec9477df1cb867e5a67c9e1ab758de9cb4a3e52dd70681f59fa40a62b3f2d
 fonttools==4.38.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:2bb244009f9bf3fa100fc3ead6aeb99febe5985fa20afbfbaa2f8946c2fbdaf1 \
     --hash=sha256:820466f43c8be8c3009aef8b87e785014133508f0de64ec469e4efb643ae54fb
