@@ -59,6 +59,7 @@ if "--version_tag" in sys.argv:
 
 
 if __name__ == "__main__":
+    # Kinda hacky way to inject our modified package version to the build process.
     subprocess.run(
         (
             f"sed -r -i.bak 's/^version.*$/version = \"{version}\"/' pyproject.toml && "
