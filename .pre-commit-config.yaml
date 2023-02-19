@@ -58,6 +58,8 @@ repos:
     hooks:
       - id: poetry-check
       - id: poetry-lock
-        args: [--check]
+        args: [--no-update]
+        files: ^pyproject.toml$
       - id: poetry-export
         args: [-f, requirements.txt, -o, requirements.txt, --with=dev, --with=doc, -Eall]
+        files: ^(pyproject.toml|poetry.lock)$
