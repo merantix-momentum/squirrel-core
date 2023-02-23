@@ -149,15 +149,15 @@ def test_dataframe_drivers_iterable_source(
 def test_pandas_local_caching(data_frame_source, data_frame_ground_truth) -> None:
     source, engine = data_frame_source
     if engine != "pandas":
-        pytest.skip("only pandas is supported with local_caching.")
+        pytest.skip("only pandas is supported with local caching.")
     df_gt = data_frame_ground_truth
 
-    with tempfile.TemporaryDirectory() as cach_dir:
+    with tempfile.TemporaryDirectory() as cache_dir:
         with tempfile.TemporaryDirectory() as data_dir:
             df_gt.to_csv(data_dir + "/test.csv", index=False)
 
-            res = CsvDriver(data_dir + "/test.csv", local_caching=cach_dir + "/test.csv").get_df()
+            res = CsvDriver(data_dir + "/test.csv", local_cache_dir=cache_dir + "/test.csv").get_df()
             assert res.sum().sum() == df_gt.sum().sum()
         assert not Path(data_dir + "/test.csv").exists()
-        res_2 = CsvDriver(data_dir + "/test.csv", local_caching=cach_dir + "/test.csv").get_df()
+        res_2 = CsvDriver(data_dir + "/test.csv", local_cache_dir=cache_dir + "/test.csv").get_df()
         assert res_2.sum().sum() == df_gt.sum().sum()

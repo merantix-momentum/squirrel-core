@@ -49,7 +49,7 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
         """
         super().__init__(url, storage_options, **kwargs)
         if engine != "pandas" and local_cache_dir:
-            raise ValueError("local_caching is only supported for pandas")
+            raise ValueError("local caching is only supported for pandas")
         self.engine = engine
         self.df_hooks = df_hooks or []
         self.read_kwargs = read_kwargs or {}
