@@ -35,4 +35,10 @@ class CsvDriver(DataFrameDriver):
         else:
             import pandas as pd
 
-            return pd.read_csv(self.url, **kwargs)
+            if self.local_caching:
+                try:
+                    return pd.read_csv(self.local_caching, **kwargs)
+                except FileNotFoundError:
+                    df = pd.read_csv(self.url, **kwargs)
+                    df.to_csv(self.local_caching, index=False)
+                    return df

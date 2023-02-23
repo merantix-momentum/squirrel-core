@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import tempfile
+from pathlib import Path
+
 import pandas as pd
 import pytest
 from _pytest.fixtures import SubRequest as Request
@@ -8,6 +11,7 @@ from pandas import DataFrame
 from squirrel.catalog.catalog import CatalogSource
 from squirrel.catalog.source import Source
 from squirrel.constants import URL
+from squirrel.driver import CsvDriver
 from squirrel.driver.data_frame import ENGINE
 from squirrel.iterstream import IterableSource
 
@@ -140,3 +144,20 @@ def test_dataframe_drivers_iterable_source(
             res = [val.compute() for val in res]
 
         assert res == [sum_base * 10**i] * n
+
+
+def test_pandas_local_caching(data_frame_source, data_frame_ground_truth) -> None:
+    source, engine = data_frame_source
+    if engine != "pandas":
+        pytest.skip("only pandas is supported with local_caching.")
+    df_gt = data_frame_ground_truth
+
+    with tempfile.TemporaryDirectory() as cach_dir:
+        with tempfile.TemporaryDirectory() as data_dir:
+            df_gt.to_csv(data_dir + "/test.csv", index=False)
+
+            res = CsvDriver(data_dir + "/test.csv", local_caching=cach_dir + "/test.csv").get_df()
+            assert res.sum().sum() == df_gt.sum().sum()
+        assert not Path(data_dir + "/test.csv").exists()
+        res_2 = CsvDriver(data_dir + "/test.csv", local_caching=cach_dir + "/test.csv").get_df()
+        assert res_2.sum().sum() == df_gt.sum().sum()

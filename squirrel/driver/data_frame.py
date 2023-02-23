@@ -27,6 +27,7 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
         engine: ENGINE = "pandas",
         df_hooks: Iterable[Callable] | None = None,
         read_kwargs: dict | None = None,
+        local_cache_dir: str = None,
         **kwargs,
     ) -> None:
         """Abstract DataFrameDriver.
@@ -47,9 +48,12 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
             **kwargs: Keyword arguments passed to the Driver class initializer.
         """
         super().__init__(url, storage_options, **kwargs)
+        if engine != "pandas" and local_cache_dir:
+            raise ValueError("local_caching is only supported for pandas")
         self.engine = engine
         self.df_hooks = df_hooks or []
         self.read_kwargs = read_kwargs or {}
+        self.local_caching = local_cache_dir
 
     @abstractmethod
     def _read(self, **kwargs) -> DataFrame | pd.DataFrame:
