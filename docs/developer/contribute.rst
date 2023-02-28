@@ -6,14 +6,17 @@ To contribute to the development of this package, check out its Github repositor
 How do we handle dependencies?
 ----------------------------------
 
-We use poetry for resolving and installing dependencies:
+We use poetry for resolving and installing dependencies.
+For an overview of poetry basic commands, visit the `official documentation: <https://python-poetry.org/docs>`_
 
 #. `Install poetry <https://python-poetry.org/docs/#installation>`_
 #. Install the dependencies: ``poetry install --all-extras``. Poetry creates a virtual environment for you.
-#. Add packages manually to ``pyproject.toml`` and run ``poetry lock --no-update`` or use ``poetry add [my-package]``.
+#. You can activate the venv using ``poetry shell`` or temporarily ``poetry run [command]``.
+#. When adding new dependencies, use ``poetry add [my-package]`` or
+   add them manually to ``pyproject.toml`` and update the lockfile ``poetry lock --no-update``.
 #. ``requirements.txt`` will be updated via a pre-commit hook.
-#. Commit ``poetry.lock`` and ``requirements.txt`` in a PR. Once merged to main, Cloudbuild will build the
-   image with the new dependencies.
+#. Commit ``poetry.lock`` and ``requirements.txt`` in a PR.
+   Once merged to main, Cloudbuild will build the image with the new dependencies.
 
 
 Tests
