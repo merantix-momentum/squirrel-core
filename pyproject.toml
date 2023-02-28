@@ -20,7 +20,7 @@ classifiers = [
 "gs" = "squirrel.fsspec.custom_gcsfs.CustomGCSFileSystem"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 fsspec = ">=2021.7.0"
 msgpack = "^1.0.4"
 msgpack-numpy = "^0.4.8"
