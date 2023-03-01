@@ -22,7 +22,7 @@ For an overview of poetry basic commands, visit the `official documentation: <ht
 Tests
 -----
 
-You can run tests by executing ``poetry run pytest``.
+You can run tests by executing ``poetry run pytest -n auto``.
 
 Build the documentation locally
 -------------------------------
