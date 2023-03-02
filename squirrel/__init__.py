@@ -1,1 +1,3 @@
-__version__ = "0.18.4"
+from importlib import metadata
+
+__version__ = metadata.version("squirrel-core")

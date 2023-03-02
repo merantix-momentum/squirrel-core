@@ -3,29 +3,33 @@ Contribute
 
 To contribute to the development of this package, check out its Github repository and push commits there.
 
-How do we handle pip requirements?
+How do we handle dependencies?
 ----------------------------------
 
-We mostly follow `this workflow <https://kennethreitz.org/essays/2016/02/25/a-better-pip-workflow>`_:
+We use poetry for resolving and installing dependencies.
+For an overview of poetry basic commands, visit the `official documentation: <https://python-poetry.org/docs>`_
 
-#. Add packages to ``requirements.in``. Only pin versions that need to be pinned to make the code runnable.
-#. Run the pip-compile command shown at the top of the ``requirements.txt`` to freeze requirements.
-#. Commit ``requirements.in`` and ``requirements.txt`` in a PR. Once merged to main, Cloudbuild will build the
-   image with the new dependencies.
+#. `Install poetry <https://python-poetry.org/docs/#installation>`_
+#. Install the dependencies: ``poetry install --all-extras``. Poetry creates a virtual environment for you.
+#. You can activate the venv using ``poetry shell`` or temporarily ``poetry run [command]``.
+#. When adding new dependencies, use ``poetry add [my-package]`` or
+   add them manually to ``pyproject.toml`` and update the lockfile ``poetry lock --no-update``.
+#. ``requirements.txt`` will be updated via a pre-commit hook.
+#. Commit ``poetry.lock`` and ``requirements.txt`` in a PR.
+   Once merged to main, Cloudbuild will build the image with the new dependencies.
 
 
 Tests
 -----
 
-You can run tests by executing ``pytest``. Prior make sure that you installed the testing extras via
-``pip install -e '.[dev,dask,gcp,torch,zarr]'``.
+You can run tests by executing ``poetry run pytest -n auto``.
 
 Build the documentation locally
 -------------------------------
 
-To build the documentation locally, make sure you install dev requirements by running
-``pip install -r requirements.dev.in``. Running ``sphinx-build ./docs ./docs/build`` from the root
-directory will generate the documentation.
+Running ``poetry run sphinx-build ./docs ./docs/build`` from the root directory will generate the documentation.
+Currently, this only works on python3.9.
+You can use poetry with python3.9 by running ``poetry env use 3.9`` before ``poetry install --all-extras``.
 
 
 Python Code Style Guide

@@ -4,9 +4,10 @@
 # Specifically add all files that should not be ignored
 !requirements.txt
 !setup.py
+!pyproject.toml
+!poetry.lock
+!README.md
 !src
-!pytest.ini
 !.flake8
 !scripts
 !squirrel
-!requirements.*.in
