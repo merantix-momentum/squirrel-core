@@ -11,12 +11,12 @@ Specific fixtures for integration or unit tests can then be defined in the respe
 import itertools
 import os
 import random
+import string
 import time
 from typing import List, Tuple
 from unittest.mock import MagicMock
 
 import pytest
-import random_name
 from pytest import FixtureRequest
 
 from squirrel.constants import URL, SQUIRREL_TMP_DATA_BUCKET
@@ -48,7 +48,8 @@ def test_gcs_url() -> str:
     random.seed(os.getpid() + time.time())
     # Use random name as the tmp dataset to avoid reading and writing the same dataset from two endpoints,
     # when there are two users run squirrel tests at the same time.
-    tmp_gcs_path = f"{SQUIRREL_TMP_DATA_BUCKET}/test-data/tmp/{random_name.generate_name()}"
+    random_name = "".join(random.choice(string.ascii_lowercase) for i in range(20))
+    tmp_gcs_path = f"{SQUIRREL_TMP_DATA_BUCKET}/test-data/tmp/{random_name}"
     yield tmp_gcs_path
     # teardown
     fs = get_fs_from_url(tmp_gcs_path)
