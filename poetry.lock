@@ -2718,14 +2718,14 @@ files = [
 
 [[package]]
 name = "mlflow"
-version = "2.1.1"
+version = "2.2.2"
 description = "MLflow: A Platform for ML Development and Productionization"
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "mlflow-2.1.1-py3-none-any.whl", hash = "sha256:42cfb0c4c316398217237cc08f2b08604fb29f21057c83d6705157d18b47565c"},
-    {file = "mlflow-2.1.1.tar.gz", hash = "sha256:a116b3cd45bbfb509a1723bfd4388bdb566a3e5045e3cde5390e667f591498a6"},
+    {file = "mlflow-2.2.2-py3-none-any.whl", hash = "sha256:b501278bc68db40febd3d578dd514d34a745f515d2042c04d046db2821fb613e"},
+    {file = "mlflow-2.2.2.tar.gz", hash = "sha256:3ef2c2ee20c9a7adedff34e756c6edac62cf4d905765ad0e8074bc9daa0c580c"},
 ]
 
 [package.dependencies]
@@ -2738,7 +2738,7 @@ entrypoints = "<1"
 Flask = "<3"
 gitpython = ">=2.1.0,<4"
 gunicorn = {version = "<21", markers = "platform_system != \"Windows\""}
-importlib-metadata = ">=3.7.0,<4.7.0 || >4.7.0,<6"
+importlib-metadata = ">=3.7.0,<4.7.0 || >4.7.0,<7"
 Jinja2 = [
     {version = ">=2.11,<4", markers = "platform_system != \"Windows\""},
     {version = ">=3.0,<4", markers = "platform_system == \"Windows\""},
@@ -2746,10 +2746,10 @@ Jinja2 = [
 markdown = ">=3.3,<4"
 matplotlib = "<4"
 numpy = "<2"
-packaging = "<23"
-pandas = "<2"
+packaging = "<24"
+pandas = "<3"
 protobuf = ">=3.12.0,<5"
-pyarrow = ">=4.0.0,<11"
+pyarrow = ">=4.0.0,<12"
 pytz = "<2023"
 pyyaml = ">=5.1,<7"
 querystring-parser = "<2"
@@ -2757,13 +2757,13 @@ requests = ">=2.17.3,<3"
 scikit-learn = "<2"
 scipy = "<2"
 shap = ">=0.40,<1"
-sqlalchemy = ">=1.4.0,<2"
+sqlalchemy = ">=1.4.0,<3"
 sqlparse = ">=0.4.0,<1"
 waitress = {version = "<3", markers = "platform_system == \"Windows\""}
 
 [package.extras]
 aliyun-oss = ["aliyunstoreplugin"]
-extras = ["azureml-core (>=1.2.0)", "boto3", "google-cloud-storage (>=1.30.0)", "kubernetes", "mlserver (>=1.2.0.dev13)", "mlserver-mlflow (>=1.2.0.dev13)", "prometheus-flask-exporter", "pyarrow", "pysftp", "requests-auth-aws-sigv4", "scikit-learn", "virtualenv"]
+extras = ["azureml-core (>=1.2.0)", "boto3", "google-cloud-storage (>=1.30.0)", "kubernetes", "mlserver (>=1.2.0.dev13)", "mlserver-mlflow (>=1.2.0.dev13)", "prometheus-flask-exporter", "pyarrow", "pysftp", "requests-auth-aws-sigv4", "virtualenv"]
 sqlserver = ["mlflow-dbstore"]
 
 [[package]]
