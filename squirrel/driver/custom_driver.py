@@ -3,8 +3,10 @@ from squirrel.driver import IterDriver
 from squirrel.iterstream import Composable
 
 class CustomDriver(IterDriver):
+    # TODO: change name
 
     def __init__(
+            # TODO: change input to `root` (str) and `splits` (dict(str))
             self, 
             train_driver: Composable | None = None, 
             test_driver: Composable | None = None, 
