@@ -20,6 +20,9 @@ ENGINE = Literal["dask", "pandas"]
 
 
 class DataFrameDriver(FileDriver, metaclass=ABCMeta):
+
+    name = "dataframe"
+
     def __init__(
         self,
         url: URL,
