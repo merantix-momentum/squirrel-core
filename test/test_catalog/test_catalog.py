@@ -1,6 +1,5 @@
 import fsspec
 import pytest
-
 from squirrel.catalog import Catalog, Source
 from squirrel.catalog.catalog import CatalogKey, DummyCatalogSource
 from squirrel.constants import URL
@@ -179,6 +178,30 @@ def test_catalog_repr() -> None:
     assert cat.__repr__() == "['a', 'ab', 'b', 'c']"
 
 
+def test_get_driver_storage_options() -> None:
+    """
+    Tests whether storage_options updating mechanism works. The mechanism enables users to update
+    the existing storage_options of a CatalogSource via the get_driver method.
+    """
+
+    # some dummy storage_options
+    so_cache = {
+        "protocol": "simplecache",
+        "target_protocol": "gs",
+        "cache_storage": "/tmp/cache",
+    }
+    so_rp = {"requester_pays": True}
+
+    # create source and register in catalog
+    cat = Catalog()
+    cat["source"] = Source("csv", driver_kwargs={"url": "gs://some-bucket/test.csv", "storage_options": so_rp})
+
+    # update storage_options via get_driver
+    driver = cat["source"].get_driver(storage_options=so_cache)
+    so_all = {**so_rp, **so_cache}
+    assert driver.storage_options == so_all
+
+
 @pytest.fixture
 def tmp_yaml_1(test_path: URL) -> URL:
     """Create a tmp yaml file under the path `f_path`. No need to teardown, cuz pytest will tear the entire tmp_path
@@ -214,7 +237,7 @@ def test_catalog_plugin_driver() -> None:
         name = "testdriver"
 
         def __init__(self, welcome: str, **kwargs) -> None:
-            super().__init__(*kwargs)
+            super().__init__(**kwargs)
             self.welcome = welcome
 
         def get_store(self, **kwargs) -> None:
