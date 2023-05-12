@@ -1,6 +1,6 @@
 from squirrel.catalog import Catalog, Source
 
-# user 1 creates a catalog, saves it, and shares it with user 2 
+# user 1 creates a catalog, saves it, and shares it with user 2
 cat = Catalog()
 cat["source"] = Source(
     "csv",

@@ -23,7 +23,7 @@ def time_epoch(driver_init: t.Callable[[], MessagepackDriver]) -> float:
     return time.time() - start
 
 
-def benchmark(driver_types: t.Dict[str, t.Any], num_epochs: int = 10):
+def benchmark(driver_types: t.Dict[str, t.Any], num_epochs: int = 10) -> DataFrame:
     """Benchmarks loading speed of the `driver_types` over `num_epochs` epochs."""
     df = DataFrame()
     for k, v in driver_types.items():

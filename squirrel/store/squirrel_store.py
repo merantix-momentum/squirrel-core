@@ -70,4 +70,3 @@ class SquirrelStore(FilesystemStore):
             # we only set .gz files, so we only read .gz files
             if k.endswith(".gz"):
                 yield k.rsplit(".gz", 1)[0]
-
