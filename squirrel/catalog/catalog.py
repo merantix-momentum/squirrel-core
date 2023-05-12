@@ -357,6 +357,9 @@ class CatalogSource(Source):
         for plugin in plugins:
             for driver_cls in plugin:
                 if driver_cls.name == self.driver_name:
+                    # below line ensures that providing storage_options in the kwargs does not overwrite the present storage_options, 
+                    # but rather updates them with the newly provided ones.
+                    kwargs['storage_options'] = {**self.driver_kwargs.get('storage_options', {}), **kwargs.get('storage_options', {})}
                     return driver_cls(catalog=self._catalog, **{**self.driver_kwargs, **kwargs})
 
         raise ValueError(f"driver {self.driver_name} not found")
