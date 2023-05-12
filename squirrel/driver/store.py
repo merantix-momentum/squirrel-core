@@ -24,7 +24,6 @@ class StoreDriver(MapDriver):
         url: str,
         serializer: SquirrelSerializer,
         storage_options: dict[str, Any] | None = None,
-        cash_storage_options: dict[str, Any] | None = None,
         **kwargs,
     ) -> None:
         """Initializes StoreDriver.
@@ -33,15 +32,12 @@ class StoreDriver(MapDriver):
             url (str): the url of the store
             serializer (SquirrelSerializer): serializer to be passed to SquirrelStore
             storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments to be passed to store initializer
-            cash_storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments to be passed to
-                cache store initializer
             **kwargs: Keyword arguments to pass to the super class initializer.
         """
         super().__init__(**kwargs)
         self.url = url
         self.serializer = serializer
         self.storage_options = storage_options if storage_options is not None else {}
-        self.cash_storage_options = cash_storage_options if cash_storage_options is not None else {}
         self._store = None
 
     def get_iter(self, flatten: bool = True, **kwargs) -> Composable:
