@@ -163,7 +163,7 @@ FileDriver
     import torch.nn as nn
     import torch.nn.functional as F
 
-    from squirrel.driver.file_driver import FileDriver
+    from squirrel.driver.file import FileDriver
 
 
     class Model(nn.Module):
