@@ -449,7 +449,7 @@ class _LoopIterable(Composable):
                 except StopIteration:
                     if not _started:
                         return
-                current_ = iter(deepcopy(self.source))
+                    current_ = iter(deepcopy(self.source))
         else:
             for _ in range(self.n):
                 yield from iter(deepcopy(self.source))

@@ -191,6 +191,17 @@ def test_loop(samples: t.List[SampleType], n: int) -> None:
     assert IterableSource([1, 2, 3]).loop(3).collect() == [1, 2, 3, 1, 2, 3, 1, 2, 3]
 
 
+def test_loop_infinite() -> None:
+    """Test infinite loop"""
+    it = IterableSource([1, 2, 3]).loop()
+    data = []
+    for i, x in enumerate(it):
+        data.append(x)
+        if i == 8:
+            break
+    assert data == [1, 2, 3, 1, 2, 3, 1, 2, 3]
+
+
 def test_take_side_effect() -> None:
     """Test that take_ fetches correct number of elements from an iterator."""
     lst = [1, 2, 3, 4]
