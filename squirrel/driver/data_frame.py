@@ -27,6 +27,8 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
         engine: ENGINE = "pandas",
         df_hooks: Iterable[Callable] | None = None,
         read_kwargs: dict | None = None,
+        itertuples_kwargs: dict | None = None,
+        convert_row_to_dict: bool = False,
         **kwargs,
     ) -> None:
         """Abstract DataFrameDriver.
@@ -50,6 +52,8 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
         self.engine = engine
         self.df_hooks = df_hooks or []
         self.read_kwargs = read_kwargs or {}
+        self.itertuples_kwargs = itertuples_kwargs or {}
+        self.convert_row_to_dict = convert_row_to_dict
 
     @abstractmethod
     def _read(self, **kwargs) -> DataFrame | pd.DataFrame:
@@ -98,5 +102,11 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
             (squirrel.iterstream.Composable) Iterable over the rows of the data frame as namedtuples.
         """
         itertuples_kwargs = itertuples_kwargs or {}
+        itertuples_kwargs = {**itertuples_kwargs, **self.itertuples_kwargs}
         read_kwargs = read_kwargs or {}
-        return IterableSource(self.get_df(**read_kwargs).itertuples(**itertuples_kwargs))
+        it = IterableSource(self.get_df(**read_kwargs).itertuples(**itertuples_kwargs))
+        if self.convert_row_to_dict:
+            def _f(x):
+                """convert to dict"""
+            it = it.map(_f)
+        return it
