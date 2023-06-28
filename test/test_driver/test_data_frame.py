@@ -62,7 +62,7 @@ def data_frame_source_path(
         write_fn = df.to_parquet
 
     else:
-        raise ValueError(f"Unknwon data frame driver name '{type}'.")
+        raise ValueError(f"Unknown data frame driver name '{type}'.")
 
     # Write DataFrame to temporary path
     path = f"{tmp_path}/test.{ext}"
@@ -78,8 +78,20 @@ def engine(request: Request) -> ENGINE:
     return request.param
 
 
+@pytest.fixture(params=[True, False])
+def convert_row_to_dict(request: Request) -> bool:
+    """Convert row to dict."""
+    return request.param
+
+
+@pytest.fixture(params=[True, False])
+def itertuples_kwargs(request: Request) -> dict:
+    """temp."""
+    return {"index": request.param}
+
+
 @pytest.fixture
-def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENGINE) -> tuple[Source, ENGINE]:
+def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENGINE, convert_row_to_dict: bool, itertuples_kwargs: dict) -> tuple[Source, ENGINE]: #
     """Get DataFrame source and engine for all drivers and used engines."""
     name, path, read_kwargs = data_frame_source_path
     read_kwargs = read_kwargs[engine]
@@ -88,7 +100,7 @@ def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENG
     if engine == "dask" and name in ["excel", "feather"]:
         pytest.skip("Dask loading not supported.")
 
-    source = Source(name, driver_kwargs={"url": path, "engine": engine, "read_kwargs": read_kwargs})
+    source = Source(name, driver_kwargs={"url": path, "engine": engine, "read_kwargs": read_kwargs, "convert_row_to_dict": convert_row_to_dict, "itertuples_kwargs": itertuples_kwargs})  #
     return source, engine
 
 
@@ -105,8 +117,16 @@ def test_dataframe_drivers(data_frame_source: tuple[Source, ENGINE], data_frame_
     assert all(df_gt == df)
 
     for (row, series_gt), data in zip(df_gt.iterrows(), driver.get_iter()):
-        d = data._asdict()
-        del d["Index"]
+        if driver.convert_row_to_dict:
+            assert isinstance(data, dict), "Data should be a dict if convert_row_to_dict is True."
+            d = data
+        else: 
+            d = data._asdict()
+        itertuples_index = driver.itertuples_kwargs.get("index", None)
+        if itertuples_index == False:
+            assert "Index" not in d, "Index should not be in data if itertuples_kwargs['index'] is False."
+        else:
+            del d["Index"]
         series = pd.Series(data=d, name=row)
         assert all(series_gt == series)
 

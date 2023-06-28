@@ -106,7 +106,7 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
         read_kwargs = read_kwargs or {}
         it = IterableSource(self.get_df(**read_kwargs).itertuples(**itertuples_kwargs))
         if self.convert_row_to_dict:
-            def _f(x):
-                """convert to dict"""
-            it = it.map(_f)
+            def row_to_dict(x):
+                return x._asdict()
+            it = it.map(row_to_dict)
         return it
