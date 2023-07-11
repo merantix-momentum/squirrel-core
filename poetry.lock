@@ -5575,6 +5575,7 @@ dask = ["dask"]
 excel = ["odfpy", "openpyxl", "pyxlsb", "xlrd"]
 feather = ["pyarrow"]
 gcp = ["gcsfs"]
+numba = ["numba"]
 parquet = ["pyarrow"]
 s3 = ["s3fs"]
 torch = ["torch"]
@@ -5583,4 +5584,4 @@ zarr = ["zarr"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "57c0ae51ac552a500cf27fd8cc142600ca61fedd9a6cf0ba41b177b6f73f093b"
+content-hash = "1dd8cfb8b29c7010924a4890b12b25795a4885051fe005195be92c24695cb441"

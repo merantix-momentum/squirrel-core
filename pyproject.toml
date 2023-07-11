@@ -81,6 +81,7 @@ s3 = ["s3fs"]
 torch = ["torch"]
 zarr = ["zarr"]
 all = ["adlfs", "dask", "odfpy", "openpyxl", "pyxlsb", "xlrd", "pyarrow", "gcsfs", "s3fs", "torch", "zarr"]
+numba = ["numba"]
 
 [build-system]
 requires = ["poetry-core"]
