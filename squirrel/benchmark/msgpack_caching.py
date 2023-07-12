@@ -6,7 +6,7 @@ import seaborn as sns
 from pandas import DataFrame
 from squirrel.driver import MessagepackDriver
 
-remote_path = "gs://mxm-safetrain-data/msgpack-cache-demo-data"
+remote_path = "gs://your-bucket/msgpack-cache-demo-data"
 so = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "/tmp/cache"}
 
 driver_types = {

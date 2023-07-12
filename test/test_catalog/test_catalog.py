@@ -196,10 +196,22 @@ def test_get_driver_storage_options() -> None:
     cat = Catalog()
     cat["source"] = Source("csv", driver_kwargs={"url": "gs://some-bucket/test.csv", "storage_options": so_rp})
 
+    # use default storage_options
+    driver = cat["source"].get_driver()
+    assert driver.storage_options == {"requester_pays": True}
+
     # update storage_options via get_driver
     driver = cat["source"].get_driver(storage_options=so_cache)
-    so_all = {**so_rp, **so_cache}
-    assert driver.storage_options == so_all
+    assert driver.storage_options == {
+        "protocol": "simplecache",
+        "target_protocol": "gs",
+        "cache_storage": "/tmp/cache",
+        "requester_pays": True,
+    }
+
+    # update some kwarg of the driver that is not storage options
+    driver = cat["source"].get_driver(url="gs://some-bucket/test2.csv")
+    assert driver.url == "gs://some-bucket/test2.csv"
 
 
 @pytest.fixture

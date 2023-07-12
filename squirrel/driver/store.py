@@ -32,6 +32,8 @@ class StoreDriver(MapDriver):
             url (str): the url of the store
             serializer (SquirrelSerializer): serializer to be passed to SquirrelStore
             storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments to be passed to store initializer
+                Example of storage_options if you want to enable `fsspec` caching: 
+                `storage_options = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "/tmp/cache"}`
             **kwargs: Keyword arguments to pass to the super class initializer.
         """
         super().__init__(**kwargs)

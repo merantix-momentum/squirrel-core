@@ -35,9 +35,12 @@ def get_fs_from_url(url: URL, **storage_options) -> FILESYSTEM:
     The protocol can be overriden via the `storage_options`. This is important if people want to use the fsspec caching
     functionality, which requires the protocol to be, e.g., `simplecache`.
     """
+    
     protocol, _ = split_protocol(url)
-    return fsspec.filesystem(**{"protocol": protocol, **storage_options})
-
+    
+    # Provided storage_options take precedence
+    storage_options = {"protocol": protocol, **storage_options}
+    return fsspec.filesystem(**storage_options)
 
 def get_protocol(url: str) -> str:
     """Get the protocol from a url, return empty string if local"""

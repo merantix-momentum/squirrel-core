@@ -21,6 +21,8 @@ class MessagepackDriver(StoreDriver):
         Args:
             url (str): Path to the root directory. If this path does not exist, it will be created.
             storage_options (Dict): a dictionary containing storage_options to be passed to fsspec.
+                Example of storage_options if you want to enable `fsspec` caching: 
+                `storage_options = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "/tmp/cache"}`
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         if "store" in kwargs:
