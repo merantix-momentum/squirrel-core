@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "squirrel-core"
-version = "0.19.1"
+version = "0.19.2"
 description = "Squirrel is a Python library that enables ML teams to share, load, and transform data in a collaborative, flexible and efficient way."
 authors = ["Merantix Momentum"]
 license = "Apache 2.0"
@@ -28,12 +28,12 @@ more-itertools = "^9.0.0"
 pluggy = "^1.0.0"
 ruamel-yaml = "^0.17.21"
 tqdm = "^4.64.1"
-numba = "^0.56.4"
 numpy = "^1.23.5"
 pyjwt = "^2.4.0"
 mako = "^1.2.2"
 oauthlib = "^3.2.1"
 aiohttp = "^3.7.4"
+numba = {version = "^0.56.4", optional = true}
 adlfs = {version = "<2021.10", optional = true}
 dask = {version = ">=2021.7.0", optional = true, extras = ["dataframe", "distributed"]}
 odfpy = {version = "^1.4.1", optional = true}
