@@ -2,16 +2,23 @@ from __future__ import annotations
 
 import io
 import json
-from typing import Any, Callable, Iterable, Iterator, KeysView, MutableMapping, NamedTuple, TYPE_CHECKING
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterable,
+    Iterator,
+    KeysView,
+    MutableMapping,
+    NamedTuple,
+)
 
 import fsspec
-
 from squirrel.catalog.source import Source
 from squirrel.fsspec.fs import get_fs_from_url
 
 if TYPE_CHECKING:
     from ruamel.yaml import Constructor, Representer, SequenceNode
-
     from squirrel.driver import Driver
 
 __all__ = ["Catalog", "CatalogKey", "CatalogSource"]
@@ -132,7 +139,11 @@ class Catalog(MutableMapping):
     def copy(self) -> Catalog:
         """Return a deep copy of catalog"""
         # To be 100% save, serialize to string and back
-        from squirrel.catalog.yaml import catalog2yamlcatalog, prep_yaml, yamlcatalog2catalog
+        from squirrel.catalog.yaml import (
+            catalog2yamlcatalog,
+            prep_yaml,
+            yamlcatalog2catalog,
+        )
 
         yaml = prep_yaml()
         ret = None
@@ -357,8 +368,15 @@ class CatalogSource(Source):
         for plugin in plugins:
             for driver_cls in plugin:
                 if driver_cls.name == self.driver_name:
-                    # below line ensures that providing storage_options in the kwargs does not overwrite
-                    # the present storage_options, but rather updates them with the newly provided ones.
+                    # Problem: If users provide "storage_options" in the `kwargs` and the `self.driver_kwargs`
+                    # already defines "storage_options", then vanilla dict merging
+                    # (i.e., {**self.driver_kwargs, **kwargs}) will overwrite the "storage_options" in
+                    # `self.driver_kwargs` entirely. This is undesired, since important information like
+                    # bucket configurations (e.g., "requester_pays") may be stored in the `self.driver_kwargs`
+                    # "storage_options", which users don't want to provide again using `kwargs`.
+                    # Solution: The below mechanism merges the "storage_options" in `kwargs` with the existing
+                    # "storage_options" in `self.driver_kwargs` (while the newly passed "storage_options"
+                    # in `kwargs` take precendence).
                     kwargs["storage_options"] = {
                         **self.driver_kwargs.get("storage_options", {}),
                         **kwargs.get("storage_options", {}),
