@@ -1,10 +1,13 @@
 import fsspec
 import pytest
+from fsspec.asyn import AsyncFileSystem
+from fsspec.implementations.cached import SimpleCacheFileSystem
 from squirrel.catalog import Catalog, Source
 from squirrel.catalog.catalog import CatalogKey, DummyCatalogSource
 from squirrel.constants import URL
 from squirrel.driver import Driver
 from squirrel.framework.plugins.plugin_manager import register_driver, register_source
+from squirrel.fsspec.fs import get_fs_from_url
 
 
 def test_catalog_createempty() -> None:
@@ -176,6 +179,30 @@ def test_catalog_repr() -> None:
     cat["ab"] = Source("dummy")
     cat["c"] = Source("dummy")
     assert cat.__repr__() == "['a', 'ab', 'b', 'c']"
+
+
+def test_get_fs_from_url() -> None:
+    """
+    Tests argument combinations given to the get_fs_from_url.
+    """
+
+    fs = get_fs_from_url("gs://some-bucket/test.csv")
+    assert isinstance(fs, AsyncFileSystem)
+    assert fs.protocol == ("gcs", "gs")
+
+    storage_options = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "path/to/cache"}
+    fs = get_fs_from_url("gs://some-bucket/test.csv", **storage_options)
+    assert isinstance(fs, SimpleCacheFileSystem)
+    # fsspec automatically detects the protocol via target_protocol
+    assert fs.protocol == ("gcs", "gs")
+    # fsspec deletes the "protocol" key from the storage_options
+    assert fs.storage_options == {"target_protocol": "gs", "cache_storage": "path/to/cache"}
+
+    # users have to provide the target_protocol even if they provide a url that starts with the protocol
+    storage_options = {"protocol": "simplecache", "cache_storage": "path/to/cache"}
+    with pytest.raises(Exception) as exc_info:
+        fs = get_fs_from_url("gs://some-bucket/test.csv", **storage_options)
+    assert exc_info.errisinstance(ValueError)
 
 
 def test_get_driver_storage_options() -> None:
