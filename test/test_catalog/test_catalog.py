@@ -188,7 +188,7 @@ def test_get_driver_storage_options() -> None:
     so_cache = {
         "protocol": "simplecache",
         "target_protocol": "gs",
-        "cache_storage": "/tmp/cache",
+        "cache_storage": "path/to/cache",
     }
     so_rp = {"requester_pays": True}
 
@@ -205,7 +205,7 @@ def test_get_driver_storage_options() -> None:
     assert driver.storage_options == {
         "protocol": "simplecache",
         "target_protocol": "gs",
-        "cache_storage": "/tmp/cache",
+        "cache_storage": "path/to/cache",
         "requester_pays": True,
     }
 

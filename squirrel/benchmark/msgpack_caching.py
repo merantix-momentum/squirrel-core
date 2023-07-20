@@ -7,7 +7,7 @@ from pandas import DataFrame
 from squirrel.driver import MessagepackDriver
 
 remote_path = "gs://your-bucket/msgpack-cache-demo-data"
-so = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "/tmp/cache"}
+so = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "path/to/cache"}
 
 driver_types = {
     "Caching": lambda: MessagepackDriver(remote_path, storage_options=so),

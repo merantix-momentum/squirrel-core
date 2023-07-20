@@ -38,8 +38,8 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
             url (URL): URL to file. Prefix with a protocol like ``s3://`` or ``gs://`` to read from other filesystems.
                        Data type may depend on the derived class.
             storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments passed to file system initializer.
-                Example of storage_options if you want to enable `fsspec` caching: 
-                `storage_options = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "/tmp/cache"}`
+                Example of storage_options if you want to enable `fsspec` caching:
+                `storage_options={"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "path/to/cache"}`
             engine (ENGINE): Which engine to use for DataFrame loading. Currently, all drivers support "pandas" to use
                              Pandas and some support "dask" to asynchronously load DataFrames using Dask.
             df_hooks (Iterable[Callable], optional): Preprocessing hooks to execute on the dataframe.

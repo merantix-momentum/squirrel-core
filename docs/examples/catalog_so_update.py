@@ -17,7 +17,7 @@ driver = cat["source"].get_driver(
     storage_options={
         "protocol": "simplecache",
         "target_protocol": "gs",
-        "cache_storage": "/tmp/cache",
+        "cache_storage": "path/to/cache",
     }
 )
 
@@ -26,5 +26,5 @@ assert driver.storage_options == {
     "requester_pays": True,
     "protocol": "simplecache",
     "target_protocol": "gs",
-    "cache_storage": "/tmp/cache",
+    "cache_storage": "path/to/cache",
 }

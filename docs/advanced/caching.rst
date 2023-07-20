@@ -23,7 +23,7 @@ Caching to the Rescue
 In Machine Learning workloads, models are often trained over multiple epochs, meaning you may need
 to fetch the same data multiple times during a run. To optimize this process, imagine if you could
 load the remote data only in the first pass (first epoch), store it locally, and subsequently
-access the data from the fast and inexpensive local disc or RAM (e.g., using ``/tmp`` which is 
+access the data from the fast and inexpensive local disc or RAM (e.g., using ``/tmp`` which is
 typically residing on RAM using tmpfs). Precisely this functionality is offered through caching.
 
 Squirrel leverages the capabilities of the ``fsspec`` library, which includes a powerful caching
@@ -42,7 +42,7 @@ The code below shows an example of configuring caching for several drivers. Note
 
     from squirrel.driver import CsvDriver, FileDriver, MessagepackDriver
 
-    so = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "/tmp/cache"}
+    so = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "path/to/cache"}
 
     CsvDriver("gs://bucket/data.csv", engine="pandas", storage_options=so)  # inherits from DataFrameDriver
     MessagepackDriver("gs://bucket/data-dir", storage_options=so)  # inherits from StoreDriver
@@ -52,7 +52,7 @@ Let's observe the performance benefits of caching in action. The below code comp
 a :py:class:`~squirrel.driver.MessagepackDriver` with and without caching. The generated plot shows that
 the non-cached driver has a similar loading speed for all epochs. However, the cached driver stores the
 data on the local disk in the first epoch and reads it from the local disk in the subsequent epochs,
-making it much faster than the non-cached driver. You can check the code to generate the below figure 
+making it much faster than the non-cached driver. You can check the code to generate the below figure
 out `here <https://github.com/merantix-momentum/squirrel-core/blob/main/squirrel/benchmark/msgpack_caching.py>`_.
 
 .. image:: ./msgpack_caching.svg
