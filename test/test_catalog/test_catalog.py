@@ -185,11 +185,12 @@ def test_get_fs_from_url() -> None:
     """
     Tests argument combinations given to the get_fs_from_url.
     """
-
+    # test without storage_options
     fs = get_fs_from_url("gs://some-bucket/test.csv")
     assert isinstance(fs, AsyncFileSystem)
     assert fs.protocol == ("gcs", "gs")
 
+    # correct way of using storage_options
     storage_options = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "path/to/cache"}
     fs = get_fs_from_url("gs://some-bucket/test.csv", **storage_options)
     assert isinstance(fs, SimpleCacheFileSystem)
@@ -198,7 +199,8 @@ def test_get_fs_from_url() -> None:
     # fsspec deletes the "protocol" key from the storage_options
     assert fs.storage_options == {"target_protocol": "gs", "cache_storage": "path/to/cache"}
 
-    # users have to provide the target_protocol even if they provide a url that starts with the protocol
+    # incorrect way of using storage_options (note: users have to provide the target_protocol
+    # even if they provide a url that starts with the protocol) 
     storage_options = {"protocol": "simplecache", "cache_storage": "path/to/cache"}
     with pytest.raises(Exception) as exc_info:
         fs = get_fs_from_url("gs://some-bucket/test.csv", **storage_options)
