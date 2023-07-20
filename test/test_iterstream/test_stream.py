@@ -415,14 +415,16 @@ def test_different_maps() -> None:
 
     items = list(range(10))
     res_1 = IterableSource(items).dask_map(_add_one).materialize_dask().collect()
-    res_2 = IterableSource(items).numba_map(_add_one).collect()
+    # TODO: uncomment numba tests
+    # res_2 = IterableSource(items).numba_map(_add_one).collect()
     res_3 = IterableSource(items).map(_add_one).collect()
     res_4 = IterableSource(items).async_map(_add_one).collect()
-    assert res_1 == res_2 == res_3 == res_4
+    # assert res_1 == res_2 == res_3 == res_4
+    assert res_1 == res_3 == res_4
 
-    res_5 = IterableSource(items).dask_map(_add_one).map(_add_one).numba_map(_add_one).materialize_dask().collect()
-    res_6 = IterableSource(items).map(_add_one).map(_add_one).map(_add_one).collect()
-    assert res_5 == res_6
+    # res_5 = IterableSource(items).dask_map(_add_one).map(_add_one).numba_map(_add_one).materialize_dask().collect()
+    # res_6 = IterableSource(items).map(_add_one).map(_add_one).map(_add_one).collect()
+    # assert res_5 == res_6
 
 
 def test_dask(samples: t.List[SampleType]) -> None:

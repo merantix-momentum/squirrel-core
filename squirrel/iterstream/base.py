@@ -560,10 +560,7 @@ class _NumbaMap(Composable):
 
     def __iter__(self) -> t.Iterator:
         """An iterator"""
-        try:
-            from numba import jit
-        except ImportError:
-            raise ImportError("numba not found!")
+        from numba import jit
 
         @jit(forceobj=True)  # need `force object` mode to pass custom types of python objects to numba
         def _iter_in_jit(source: t.Iterable, callback: t.Callable) -> t.Iterator:
