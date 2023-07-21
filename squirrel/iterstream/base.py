@@ -8,8 +8,6 @@ from concurrent.futures import Executor, ThreadPoolExecutor
 from copy import deepcopy
 from functools import partial
 
-from numba import jit
-
 from squirrel.constants import MetricsType
 from squirrel.iterstream.iterators import (
     batched_,
@@ -562,16 +560,18 @@ class _NumbaMap(Composable):
 
     def __iter__(self) -> t.Iterator:
         """An iterator"""
-        yield from self._iter_in_jit(self.source, self.callback)
+        from numba import jit
 
-    @jit(forceobj=True)  # need `force object` mode to pass custom types of python objects to numba
-    def _iter_in_jit(self, source: t.Iterable, callback: t.Callable) -> t.Iterator:
-        """
-        Wrap the iterator around numba JIT framework to speed up the iteration, instead of doing asynchronous speed
-        up in a message queue (the default `_AsyncMap` behavior). Only evoked when `executor='numba'` is set.
-        """
-        for item in source:
-            yield callback(item)
+        @jit(forceobj=True)  # need `force object` mode to pass custom types of python objects to numba
+        def _iter_in_jit(source: t.Iterable, callback: t.Callable) -> t.Iterator:
+            """
+            Wrap the iterator around numba JIT framework to speed up the iteration, instead of doing asynchronous speed
+            up in a message queue (the default `_AsyncMap` behavior). Only evoked when `executor='numba'` is set.
+            """
+            for item in source:
+                yield callback(item)
+
+        yield from _iter_in_jit(self.source, self.callback)
 
 
 class _DaskMaterializer(_AsyncMap):
