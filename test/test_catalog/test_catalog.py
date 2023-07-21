@@ -200,7 +200,7 @@ def test_get_fs_from_url() -> None:
     assert fs.storage_options == {"target_protocol": "gs", "cache_storage": "path/to/cache"}
 
     # incorrect way of using storage_options (note: users have to provide the target_protocol
-    # even if they provide a url that starts with the protocol) 
+    # even if they provide a url that starts with the protocol)
     storage_options = {"protocol": "simplecache", "cache_storage": "path/to/cache"}
     with pytest.raises(Exception) as exc_info:
         fs = get_fs_from_url("gs://some-bucket/test.csv", **storage_options)
@@ -237,6 +237,11 @@ def test_get_driver_storage_options() -> None:
         "cache_storage": "path/to/cache",
         "requester_pays": True,
     }
+
+    # check if updating of existing storage_options works
+    assert driver.storage_options["requester_pays"] == True
+    driver = cat["source"].get_driver(storage_options={"requester_pays": False})
+    assert driver.storage_options["requester_pays"] == False
 
     # update some kwarg of the driver that is not storage options
     driver = cat["source"].get_driver(url="gs://some-bucket/test2.csv")
