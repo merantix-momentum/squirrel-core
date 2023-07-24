@@ -182,9 +182,7 @@ def test_catalog_repr() -> None:
 
 
 def test_get_fs_from_url() -> None:
-    """
-    Tests argument combinations given to the get_fs_from_url.
-    """
+    """Tests argument combinations given to the get_fs_from_url."""
     # test without storage_options
     fs = get_fs_from_url("gs://some-bucket/test.csv")
     assert isinstance(fs, AsyncFileSystem)
@@ -239,9 +237,9 @@ def test_get_driver_storage_options() -> None:
     }
 
     # check if updating of existing storage_options works
-    assert driver.storage_options["requester_pays"] == True
+    assert driver.storage_options["requester_pays"] == True  # noqa: E712
     driver = cat["source"].get_driver(storage_options={"requester_pays": False})
-    assert driver.storage_options["requester_pays"] == False
+    assert driver.storage_options["requester_pays"] == False  # noqa: E712
 
     # update some kwarg of the driver that is not storage options
     driver = cat["source"].get_driver(url="gs://some-bucket/test2.csv")
