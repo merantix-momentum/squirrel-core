@@ -86,12 +86,12 @@ def convert_row_to_dict(request: Request) -> bool:
 
 @pytest.fixture(params=[True, False])
 def itertuples_kwargs(request: Request) -> dict:
-    """temp."""
+    """Example itertuples_kwargs."""
     return {"index": request.param}
 
 
 @pytest.fixture
-def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENGINE, convert_row_to_dict: bool, itertuples_kwargs: dict) -> tuple[Source, ENGINE]: #
+def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENGINE, convert_row_to_dict: bool, itertuples_kwargs: dict) -> tuple[Source, ENGINE]:
     """Get DataFrame source and engine for all drivers and used engines."""
     name, path, read_kwargs = data_frame_source_path
     read_kwargs = read_kwargs[engine]
@@ -100,7 +100,7 @@ def data_frame_source(data_frame_source_path: tuple[str, URL, dict], engine: ENG
     if engine == "dask" and name in ["excel", "feather"]:
         pytest.skip("Dask loading not supported.")
 
-    source = Source(name, driver_kwargs={"url": path, "engine": engine, "read_kwargs": read_kwargs, "convert_row_to_dict": convert_row_to_dict, "itertuples_kwargs": itertuples_kwargs})  #
+    source = Source(name, driver_kwargs={"url": path, "engine": engine, "read_kwargs": read_kwargs, "convert_row_to_dict": convert_row_to_dict, "itertuples_kwargs": itertuples_kwargs}) 
     return source, engine
 
 
@@ -123,7 +123,7 @@ def test_dataframe_drivers(data_frame_source: tuple[Source, ENGINE], data_frame_
         else: 
             d = data._asdict()
         itertuples_index = driver.itertuples_kwargs.get("index", None)
-        if itertuples_index == False:
+        if not itertuples_index:
             assert "Index" not in d, "Index should not be in data if itertuples_kwargs['index'] is False."
         else:
             del d["Index"]
