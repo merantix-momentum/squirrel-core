@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Iterable, NamedTuple
 
 try:
     from typing import Literal
@@ -47,7 +47,8 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
                                                      pandas.Dataframe depending on the used engine.
             read_kwargs: Arguments passed to all read methods of the derived driver.
             itertuples_kwargs: Arguments passed to the itertuples() method of the derived driver.
-            convert_row_to_dict: a boolean indicating whether to convert the row should be retured as a dict. If False a pandas row tuple is returned.
+            convert_row_to_dict: a boolean indicating whether to convert the row should be retured as a dict. If False
+                a pandas row tuple is returned.
             **kwargs: Keyword arguments passed to the Driver class initializer.
         """
         super().__init__(url, storage_options, **kwargs)
@@ -108,15 +109,17 @@ class DataFrameDriver(FileDriver, metaclass=ABCMeta):
         read_kwargs = read_kwargs or {}
         it = IterableSource(self.get_df(**read_kwargs).itertuples(**itertuples_kwargs))
         if self.convert_row_to_dict:
-            def row_to_dict(x: t.NamedTuple):
+
+            def row_to_dict(x: NamedTuple) -> dict:
                 """Converts as tuple of a row to a dict.
 
                 Args:
-                    x (_type_): _description_
+                    x (NamedTuple): The pandas tuple to convert into a dictionary
 
                 Returns:
-                    _type_: _description_
+                    dict: dictionary
                 """
                 return x._asdict()
+
             it = it.map(row_to_dict)
         return it
