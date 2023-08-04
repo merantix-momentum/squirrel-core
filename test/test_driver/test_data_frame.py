@@ -85,7 +85,7 @@ def convert_row_to_dict(request: Request) -> bool:
 
 
 @pytest.fixture(params=[True, False])
-def itertuples_kwargs(request: Request) -> dict:
+def itertuples_kwargs(request: Request) -> dict[str, bool]:
     """Example itertuples_kwargs."""
     return {"index": request.param}
 
