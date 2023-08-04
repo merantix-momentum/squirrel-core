@@ -1,4 +1,5 @@
 import os
+import random
 
 import fsspec
 import numpy as np
@@ -23,7 +24,7 @@ def test_caching_csv(cache_dir: str) -> None:
     df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 
     # upload example data to remote bucket
-    remote_path = REMOTE_DIR + "/test.csv"
+    remote_path = REMOTE_DIR + f"/test_{random.randint(1, 100000)}.csv"
     df.to_csv(remote_path, index=False)
     driver = CsvDriver(
         remote_path,
@@ -62,7 +63,7 @@ def test_caching_messagepack(cache_dir: str) -> None:
 
     # upload example data to remote bucket
     store = MessagepackDriver(REMOTE_DIR).store
-    key = "0001"  # all data in one shard
+    key = str(random.randint(1, 100000))  # all data in one shard
     store.set(key=key, value=data)
 
     # download example data from remote bucket
