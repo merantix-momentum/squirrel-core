@@ -31,9 +31,16 @@ def get_fs_from_url(url: URL, **storage_options) -> FILESYSTEM:
     GCSFileSystem.` I suggest you instead of passing `requester_pays=True` to `storage_options` in fsspec, simply
     switch to the right project by `gcloud config set project PROJECT_ID` where you have the right role(s). The problem
     should be resolved by itself.
+
+    The protocol can be overriden via the `storage_options`. This is important if people want to use the fsspec caching
+    functionality, which requires the protocol to be, e.g., `simplecache`.
     """
+
     protocol, _ = split_protocol(url)
-    return fsspec.filesystem(protocol, **storage_options)
+
+    # Provided storage_options take precedence
+    storage_options = {"protocol": protocol, **storage_options}
+    return fsspec.filesystem(**storage_options)
 
 
 def get_protocol(url: str) -> str:

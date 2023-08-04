@@ -1,11 +1,13 @@
 import fsspec
 import pytest
-
+from fsspec.asyn import AsyncFileSystem
+from fsspec.implementations.cached import SimpleCacheFileSystem
 from squirrel.catalog import Catalog, Source
 from squirrel.catalog.catalog import CatalogKey, DummyCatalogSource
 from squirrel.constants import URL
 from squirrel.driver import Driver
 from squirrel.framework.plugins.plugin_manager import register_driver, register_source
+from squirrel.fsspec.fs import get_fs_from_url
 
 
 def test_catalog_createempty() -> None:
@@ -179,6 +181,71 @@ def test_catalog_repr() -> None:
     assert cat.__repr__() == "['a', 'ab', 'b', 'c']"
 
 
+def test_get_fs_from_url() -> None:
+    """Tests argument combinations given to the get_fs_from_url."""
+    # test without storage_options
+    fs = get_fs_from_url("gs://some-bucket/test.csv")
+    assert isinstance(fs, AsyncFileSystem)
+    assert fs.protocol == ("gcs", "gs")
+
+    # correct way of using storage_options
+    storage_options = {"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "path/to/cache"}
+    fs = get_fs_from_url("gs://some-bucket/test.csv", **storage_options)
+    assert isinstance(fs, SimpleCacheFileSystem)
+    # fsspec automatically detects the protocol via target_protocol
+    assert fs.protocol == ("gcs", "gs")
+    # fsspec deletes the "protocol" key from the storage_options
+    assert fs.storage_options == {"target_protocol": "gs", "cache_storage": "path/to/cache"}
+
+    # incorrect way of using storage_options (note: users have to provide the target_protocol
+    # even if they provide a url that starts with the protocol)
+    storage_options = {"protocol": "simplecache", "cache_storage": "path/to/cache"}
+    with pytest.raises(Exception) as exc_info:
+        fs = get_fs_from_url("gs://some-bucket/test.csv", **storage_options)
+    assert exc_info.errisinstance(ValueError)
+
+
+def test_get_driver_storage_options() -> None:
+    """
+    Tests whether storage_options updating mechanism works. The mechanism enables users to update
+    the existing storage_options of a CatalogSource via the get_driver method.
+    """
+
+    # some dummy storage_options
+    so_cache = {
+        "protocol": "simplecache",
+        "target_protocol": "gs",
+        "cache_storage": "path/to/cache",
+    }
+    so_rp = {"requester_pays": True}
+
+    # create source and register in catalog
+    cat = Catalog()
+    cat["source"] = Source("csv", driver_kwargs={"url": "gs://some-bucket/test.csv", "storage_options": so_rp})
+
+    # use default storage_options
+    driver = cat["source"].get_driver()
+    assert driver.storage_options == {"requester_pays": True}
+
+    # update storage_options via get_driver
+    driver = cat["source"].get_driver(storage_options=so_cache)
+    assert driver.storage_options == {
+        "protocol": "simplecache",
+        "target_protocol": "gs",
+        "cache_storage": "path/to/cache",
+        "requester_pays": True,
+    }
+
+    # check if updating of existing storage_options works
+    assert driver.storage_options["requester_pays"] == True  # noqa: E712
+    driver = cat["source"].get_driver(storage_options={"requester_pays": False})
+    assert driver.storage_options["requester_pays"] == False  # noqa: E712
+
+    # update some kwarg of the driver that is not storage options
+    driver = cat["source"].get_driver(url="gs://some-bucket/test2.csv")
+    assert driver.url == "gs://some-bucket/test2.csv"
+
+
 @pytest.fixture
 def tmp_yaml_1(test_path: URL) -> URL:
     """Create a tmp yaml file under the path `f_path`. No need to teardown, cuz pytest will tear the entire tmp_path
@@ -214,7 +281,7 @@ def test_catalog_plugin_driver() -> None:
         name = "testdriver"
 
         def __init__(self, welcome: str, **kwargs) -> None:
-            super().__init__(*kwargs)
+            super().__init__(**kwargs)
             self.welcome = welcome
 
         def get_store(self, **kwargs) -> None:

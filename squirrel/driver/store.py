@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Iterable
 
 from squirrel.driver.driver import MapDriver
 from squirrel.serialization import SquirrelSerializer
 from squirrel.store import SquirrelStore
-from squirrel.store.squirrel_store import CacheStore
 
 if TYPE_CHECKING:
     from squirrel.iterstream import Composable
@@ -24,9 +23,7 @@ class StoreDriver(MapDriver):
         self,
         url: str,
         serializer: SquirrelSerializer,
-        cache_url: str | None = None,
         storage_options: dict[str, Any] | None = None,
-        cash_storage_options: dict[str, Any] | None = None,
         **kwargs,
     ) -> None:
         """Initializes StoreDriver.
@@ -34,18 +31,15 @@ class StoreDriver(MapDriver):
         Args:
             url (str): the url of the store
             serializer (SquirrelSerializer): serializer to be passed to SquirrelStore
-            cache_url (str): if provided, the data will be cached in a store at this url
             storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments to be passed to store initializer
-            cash_storage_options (Optional[Dict[str, Any]]): a dict with keyword arguments to be passed to
-                cache store initializer
+                Example of storage_options if you want to enable `fsspec` caching:
+                `storage_options={"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "path/to/cache"}`
             **kwargs: Keyword arguments to pass to the super class initializer.
         """
         super().__init__(**kwargs)
         self.url = url
         self.serializer = serializer
         self.storage_options = storage_options if storage_options is not None else {}
-        self.cash_storage_options = cash_storage_options if cash_storage_options is not None else {}
-        self.cache_url = cache_url
         self._store = None
 
     def get_iter(self, flatten: bool = True, **kwargs) -> Composable:
@@ -99,10 +93,5 @@ class StoreDriver(MapDriver):
     def store(self) -> AbstractStore:
         """Store that is used by the driver."""
         if self._store is None:
-            if self.cache_url is None:
-                self._store = SquirrelStore(url=self.url, serializer=self.serializer, **self.storage_options)
-            else:
-                self._store = CacheStore(
-                    url=self.url, serializer=self.serializer, cache_url=self.cache_url, **self.cash_storage_options
-                )
+            self._store = SquirrelStore(url=self.url, serializer=self.serializer, **self.storage_options)
         return self._store

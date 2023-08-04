@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import IO, Any
 
 import fsspec
-
 from squirrel.constants import URL
 from squirrel.driver.driver import Driver
 
@@ -18,6 +17,8 @@ class FileDriver(Driver):
             url (URL): URL to file. Prefix with a protocol like ``s3://`` or ``gs://`` to read from other filesystems.
                        For a full list of supported types, refer to :func:`fsspec.open()`.
             storage_options (dict[str, Any] | None): A dict with keyword arguments passed to file system initializer.
+                Example of storage_options if you want to enable `fsspec` caching:
+                `storage_options={"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "path/to/cache"}`
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         super().__init__(**kwargs)

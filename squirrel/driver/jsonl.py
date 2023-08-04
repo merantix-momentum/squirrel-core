@@ -31,6 +31,8 @@ class JsonlDriver(StoreDriver):
             deser_hook (Callable): Callable that is passed as `object_hook` to :py:class:`JsonDecoder` during json
                 deserialization. Defaults to None.
             storage_options (Dict): a dictionary containing storage_options to be passed to fsspec.
+                Example of storage_options if you want to enable `fsspec` caching:
+                `storage_options={"protocol": "simplecache", "target_protocol": "gs", "cache_storage": "path/to/cache"}`
             **kwargs: Keyword arguments passed to the super class initializer.
         """
         if "store" in kwargs:
