@@ -61,19 +61,21 @@ class SplitByWorker(Composable):
 class TorchIterable(Composable, IterableDataset):
     """Mixin-Composable to have squirrel pipeline inherit from PyTorch IterableDataset"""
 
-    def __init__(self) -> None:
+    def __init__(self, enforce_rank_check: bool = True, enforce_worker_check: bool = True) -> None:
         """Init"""
         super().__init__()
+        self.enforce_rank_check = enforce_rank_check
+        self.enforce_worker_check = enforce_worker_check
 
     def __iter__(self) -> Iterator:
         """Method to iterate over the source"""
-        if _in_multi_rank_env():
+        if self.enforce_rank_check and _in_multi_rank_env():
             if not self._contains_rank_split(self.source):
                 raise PyTorchSplittingException(
                     "Composable was not split by rank. This will lead to unexpected iteration behaviour."
                     "Add a 'split_by_rank_pytorch' call to your composable to avoid this error. "
                 )
-        if _in_multi_worker_env():
+        if self.enforce_worker_check and _in_multi_worker_env():
             if not self._contains_worker_split(self.source):
                 raise PyTorchSplittingException(
                     "Composable was not split by worker. This will lead to unexpected iteration behaviour."
