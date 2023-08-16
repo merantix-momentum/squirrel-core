@@ -434,6 +434,7 @@ class _LoopIterable(Composable):
         """Init"""
         super().__init__(source=source)
         self.n = n
+        self.counter = 0
 
     def __iter__(self) -> t.Iterator:
         """Iterate over the iterable n times"""
@@ -447,9 +448,11 @@ class _LoopIterable(Composable):
                 except StopIteration:
                     if not _started:
                         return
+                    self.counter += 1
                     current_ = iter(deepcopy(self.source))
         else:
             for _ in range(self.n):
+                self.counter += 1
                 yield from iter(deepcopy(self.source))
 
 
