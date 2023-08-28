@@ -202,7 +202,16 @@ def test_loop_infinite() -> None:
     assert data == [1, 2, 3, 1, 2, 3, 1, 2, 3]
 
 
-def test_loop_counter() -> None:
+def test_loop_finite_counter() -> None:
+    """Test loop counter"""
+    it = IterableSource([1, 2, 3]).loop(n=3)
+    counter = []
+    for _ in it:
+        counter.append(it.counter)
+    assert counter == [0, 0, 0, 1, 1, 1, 2, 2, 2]
+
+
+def test_loop_infinite_counter() -> None:
     """Test loop counter"""
     it = IterableSource([1, 2, 3]).loop()
     counter = []
