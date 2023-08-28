@@ -452,8 +452,8 @@ class _LoopIterable(Composable):
                     current_ = iter(deepcopy(self.source))
         else:
             for _ in range(self.n):
-                self.counter += 1
                 yield from iter(deepcopy(self.source))
+                self.counter += 1
 
 
 class _ZipIndexIterable(Composable):
