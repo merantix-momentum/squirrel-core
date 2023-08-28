@@ -202,6 +202,17 @@ def test_loop_infinite() -> None:
     assert data == [1, 2, 3, 1, 2, 3, 1, 2, 3]
 
 
+def test_loop_counter() -> None:
+    """Test loop counter"""
+    it = IterableSource([1, 2, 3]).loop()
+    counter = []
+    for i, _ in enumerate(it):
+        counter.append(it.counter)
+        if i == 8:
+            break
+    assert counter == [0, 0, 0, 1, 1, 1, 2, 2, 2]
+
+
 def test_take_side_effect() -> None:
     """Test that take_ fetches correct number of elements from an iterator."""
     lst = [1, 2, 3, 4]
