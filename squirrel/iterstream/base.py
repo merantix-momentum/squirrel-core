@@ -324,11 +324,23 @@ class Composable:
 
         return self.compose(SplitByRank, torch_dist_group)
 
-    def to_torch_iterable(self) -> Composable:
-        """Convert the stream to a torch iterable."""
+    def to_torch_iterable(self, enforce_rank_check: bool = True, enforce_worker_check: bool = True) -> Composable:
+        """
+        Convert the stream to a torch iterable.
+
+        Args:
+            enforce_rank_check: if set to true, checks that the method `split_by_rank_pytorch` has been called prior to
+                calling `to_torch_iterable`. This is important to avoid loading the same sample more than once in the
+                multi-rank pytorch environment.
+            enforce_worker_check: if set to true, checks that the method `split_by_worker_pytorch` has been called
+                prior to calling `to_torch_iterable`. This is important to avoid loading the same sample more than
+                once in the multi-worker pytorch environment.
+        """
         from squirrel.iterstream.torch_composables import TorchIterable
 
-        return self.compose(TorchIterable)
+        return self.compose(
+            partial(TorchIterable, enforce_rank_check=enforce_rank_check, enforce_worker_check=enforce_worker_check)
+        )
 
 
 class _Iterable(Composable):

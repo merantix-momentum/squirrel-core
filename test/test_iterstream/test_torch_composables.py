@@ -212,6 +212,9 @@ def test_error_when_not_splitting_in_mp(mock_get_worker_info: Any, samples: List
         it = IterableSource(samples).to_torch_iterable()
         next(iter(it))
 
+    res = IterableSource(samples).to_torch_iterable(enforce_worker_check=False, enforce_rank_check=False).collect()
+    assert res == samples
+
     # Split by rank and worker, this should work
 
     # ADD SIMPLE MAP FN
