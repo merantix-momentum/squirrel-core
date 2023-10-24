@@ -42,7 +42,7 @@ pyxlsb = {version = "^1.0.10", optional = true}
 xlrd = {version = "^2.0.1", optional = true}
 gcsfs = {version = ">=2021.7.0", optional = true}
 s3fs = {version = ">=2021.7.0", optional = true}
-torch = {version = ">=1.13.1", optional = true}
+torch = {version = ">=1.13.1, <=2.0.0", optional = true}
 zarr = {version = "^2.10.3", optional = true}
 pyarrow = {version = "^10.0.1", optional = true}
 
