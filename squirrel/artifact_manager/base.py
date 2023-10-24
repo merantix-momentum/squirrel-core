@@ -1,32 +1,22 @@
 from abc import abstractmethod, ABC
 from pathlib import Path
-from typing import Optional, List, Union, Iterable, Tuple
+from typing import Optional, List, Union, Any, Iterable
 
-from squirrel.catalog import Catalog, Source
-from squirrel.catalog.catalog import CatalogKey
-from squirrel.iterstream import Composable
+from squirrel.catalog import Catalog
+from squirrel.catalog.catalog import CatalogSource
 from squirrel.store import AbstractStore
 
 
 class ArtifactManager(ABC):
     def __init__(self, backend_store: AbstractStore):
+        """
+        Artifact manager interface for various backends
+
+        Maintains a mapping of artifact names to backend objects to facilitate logging and retrieval of arbitrary
+        artifacts.
+        """
         self.backend: AbstractStore = backend_store
         self._collection = "default"
-
-    @abstractmethod
-    def _key_to_artifact(self, key: str) -> Tuple[str, str, str]:
-        """Transform key of underlying store to (collection, artifact, version) tuple."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def _artifact_to_key(self, collection: str, artifact: str, version: str) -> str:
-        """Transform (collection, artifact, version) tuple to key of underlying store."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_artifact_location(self, artifact, collection: Optional[str] = None, version: Optional[int] = None) -> str:
-        """Get full qualified path or wandb directory of artifact"""
-        raise NotImplementedError
 
     @property
     def collection(self) -> str:
@@ -34,8 +24,8 @@ class ArtifactManager(ABC):
         Collections act as folders of artifacts.
 
         The manager maintains an 'active' collections which it logs to by default.
-        Depending on the backend, the collection can also point to a nested collection
-        (e.g. a subfolder on a filesystem).
+        To avoid incompatibility between different backends, collections cannot be nested (e.g. as subfolders on a
+        filesystem).
         """
         return self._collection
 
@@ -45,45 +35,54 @@ class ArtifactManager(ABC):
         assert len(value) > 0 and "\\" not in value, "Invalid collection name - must not be empty and cannot be nested."
         self._collection = value
 
-    def get_catalog(self) -> Catalog:
-        """Return catalog of artifacts"""
-        cat = Catalog()
-        for key in self.backend.keys():
-            collection, name, version = self._key_to_artifact(key)
-            cat[CatalogKey(f"{collection}/{name}", int(version))] = Source("file", ...)
-        return cat
-
-    def get_collections(self) -> List[str]:
-        return list(set([self._key_to_artifact(entry)[0] for entry in self.backend.keys()]))
-
-    def get_artifacts(self) -> Iterable:
-        """Iterator over all known artifacts"""
-        return Composable(self.backend.keys()).map(self._key_to_artifact)
-
-    def get_collection_artifacts(self, collection: Optional[str] = None) -> List[str]:
-        """List all artifacts belonging to specific collection"""
-        if collection is None:
-            collection = self.collection
-        raise Composable(self.backend.keys()).map(self._key_to_artifact).filter(lambda x: x[0] == collection)
-
-    def get_artifact_versions(self, artifact, collection: Optional[str] = None) -> List[str]:
-        """Get all available versions of artifact"""
+    @abstractmethod
+    def list_collection_names(self) -> Iterable:
+        """Return list of all collections in the artifact store"""
         raise NotImplementedError
 
-    def fetch_artifact(
-        self, name: str, collection: Optional[str] = None, version: Optional[int] = None, to: Path = "./"
-    ):
-        """Retrieve file (from current collection) to specific location. Retrieve latest version unless specified."""
+    @abstractmethod
+    def store_to_catalog(self) -> Catalog:
+        """Provide a catalog of all stored artifacts."""
         raise NotImplementedError
 
-    def fetch_collection(self, collection: Optional[str] = None, to: Path = "./"):
-        """Retrieve file (from current collection) to specific location. Retrieve latest version unless specified."""
+    @abstractmethod
+    def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
+        """Catalog of all artifacts within a specific collection."""
+
+    @abstractmethod
+    def get_artifact(self, artifact: str, collection: Optional[str] = None) -> CatalogSource:
+        """Catalog entry for a specific artifact"""
         raise NotImplementedError
 
-    def log_artifact(self, local_path: Path, name: str, collection: Optional[str] = None) -> None:
+    @abstractmethod
+    def get_artifact_location(
+        self, artifact_name: str, collection: Optional[str] = None, version: Optional[int] = None
+    ) -> str:
+        """Get full qualified path or wandb directory of artifact"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> CatalogSource:
         """Upload file into (current) collection, increment version automatically"""
+
+    @abstractmethod
+    def log_collection(self, files: Union[Path, List[Path]], collection_name: Optional[str] = None) -> Catalog:
+        """Upload folder or collection of files"""
         raise NotImplementedError
 
-    def log_collection(self, files: Union[Path, List[Path]], collection_name: Optional[str] = None) -> None:
-        """Upload folder or collection of files"""
+    @abstractmethod
+    def log_object(self, obj: Any, name: str, collection: Optional[str] = None) -> CatalogSource:
+        """Log an arbitrary python object"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def download_artifact(
+        self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None, to: Path = "./"
+    ) -> None:
+        """Retrieve file (from current collection) to specific location. Retrieve latest version unless specified."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> None:
+        """Retrieve file (from current collection) to specific location. Retrieve latest version of all artifacts."""
         raise NotImplementedError
