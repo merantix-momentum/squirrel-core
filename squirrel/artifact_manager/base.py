@@ -52,7 +52,9 @@ class ArtifactManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_artifact_source(self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None) -> Source:
+    def get_artifact_source(
+        self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None
+    ) -> Source:
         """Catalog entry for a specific artifact"""
         raise NotImplementedError
 

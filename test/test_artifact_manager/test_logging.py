@@ -1,12 +1,10 @@
 import tempfile
 
-from squirrel.artifact_manager.fs.fs_artifact_manager import FileSystemArtifactManager
+from squirrel.artifact_manager.fs.fs import FileSystemArtifactManager
 
 
 def test_log_object() -> None:
-    """
-    Log an object to the default collection and check details of the catalog entry.
-    """
+    """Log an object to the default collection and check details of the catalog entry."""
     obj = {"name": "John", "age": 30}
     artifact_name = "john"
     collection = "my_collection"
@@ -56,4 +54,3 @@ def test_get_artifact() -> None:
     assert manager.get_artifact(artifact_name, collection) == obj2
     assert manager.get_artifact(artifact_name, collection, 2) == obj1
     assert manager.get_artifact(artifact_name, collection, 1) == obj
-
