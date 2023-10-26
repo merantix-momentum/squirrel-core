@@ -2,20 +2,17 @@ from abc import abstractmethod, ABC
 from pathlib import Path
 from typing import Optional, List, Union, Any, Iterable
 
-from squirrel.catalog import Catalog
-from squirrel.catalog.catalog import CatalogSource
-from squirrel.store import AbstractStore
+from squirrel.catalog import Catalog, Source
 
 
 class ArtifactManager(ABC):
-    def __init__(self, backend_store: AbstractStore):
+    def __init__(self):
         """
         Artifact manager interface for various backends
 
         Maintains a mapping of artifact names to backend objects to facilitate logging and retrieval of arbitrary
         artifacts.
         """
-        self.backend: AbstractStore = backend_store
         self._collection = "default"
 
     @property
@@ -50,7 +47,12 @@ class ArtifactManager(ABC):
         """Catalog of all artifacts within a specific collection."""
 
     @abstractmethod
-    def get_artifact(self, artifact: str, collection: Optional[str] = None) -> CatalogSource:
+    def get_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None) -> Any:
+        """Retrieve specific artifact value."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_artifact_source(self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None) -> Source:
         """Catalog entry for a specific artifact"""
         raise NotImplementedError
 
@@ -62,7 +64,7 @@ class ArtifactManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> CatalogSource:
+    def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
         """Upload file into (current) collection, increment version automatically"""
 
     @abstractmethod
@@ -71,18 +73,18 @@ class ArtifactManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def log_object(self, obj: Any, name: str, collection: Optional[str] = None) -> CatalogSource:
+    def log_object(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
         """Log an arbitrary python object"""
         raise NotImplementedError
 
     @abstractmethod
     def download_artifact(
         self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None, to: Path = "./"
-    ) -> None:
+    ) -> Source:
         """Retrieve file (from current collection) to specific location. Retrieve latest version unless specified."""
         raise NotImplementedError
 
     @abstractmethod
-    def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> None:
+    def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
         """Retrieve file (from current collection) to specific location. Retrieve latest version of all artifacts."""
         raise NotImplementedError
