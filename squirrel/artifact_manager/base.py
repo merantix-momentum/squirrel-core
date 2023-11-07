@@ -1,7 +1,7 @@
 import re
 from abc import abstractmethod, ABC
 from pathlib import Path
-from typing import Optional, List, Union, Any, Iterable
+from typing import Optional, List, Any, Iterable
 
 from squirrel.catalog import Catalog, Source
 
@@ -30,9 +30,10 @@ class ArtifactManager(ABC):
     @collection.setter
     def collection(self, value: str) -> None:
         """Do not allow access to anything beyond the root location of the artifact store"""
-        assert re.match(r'^[a-zA-Z0-9\-_:]+$', value), \
-            ("Invalid collection name - must not be empty and can only contain alphanumerics, dashes, underscores and "
-             "colons.")
+        assert re.match(r"^[a-zA-Z0-9\-_:]+$", value), (
+            "Invalid collection name - must not be empty and can only contain alphanumerics, dashes, underscores and "
+            "colons."
+        )
         self._active_collection = value
 
     @abstractmethod
@@ -73,8 +74,12 @@ class ArtifactManager(ABC):
         """Upload file into (current) collection, increment version automatically"""
 
     @abstractmethod
-    def log_collection(self, files: Union[Path, List[Path]], collection: Optional[str] = None) -> Catalog:
-        """Upload folder or collection of files"""
+    def log_files(self, local_paths: List[Path], collection: Optional[str] = None) -> Catalog:
+        """Upload a collection of file into a (current) collection"""
+
+    @abstractmethod
+    def log_folder(self, files: Path, collection: Optional[str] = None) -> Catalog:
+        """Upload folder as collection of artifacts into store"""
         raise NotImplementedError
 
     @abstractmethod
@@ -91,5 +96,5 @@ class ArtifactManager(ABC):
 
     @abstractmethod
     def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
-        """Retrieve file (from current collection) to specific location. Retrieve latest version of all artifacts."""
+        """Retrieve files (from current collection) to specific location. Retrieve latest version of all artifacts."""
         raise NotImplementedError

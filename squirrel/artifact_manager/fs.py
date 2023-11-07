@@ -1,6 +1,6 @@
 import typing as t
 from pathlib import Path
-from typing import Optional, Any, Union, List, Iterable
+from typing import Optional, Any, List, Iterable
 
 from squirrel.artifact_manager.base import ArtifactManager
 from squirrel.catalog import Catalog, Source
@@ -20,10 +20,7 @@ class ArtifactFileStore(FilesystemStore):
         full_path = Path(self.url, partial_key)
         if not self.fs.exists(full_path, **open_kwargs):
             return []
-        return [
-            str(Path(path).relative_to(full_path))
-            for path in self.fs.ls(full_path, detail=False, **open_kwargs)
-        ]
+        return [str(Path(path).relative_to(full_path)) for path in self.fs.ls(full_path, detail=False, **open_kwargs)]
 
     def key_exists(self, key: Path, **open_kwargs) -> bool:
         """Checks if a key exists."""
@@ -128,9 +125,7 @@ class FileSystemArtifactManager(ArtifactManager):
         catalog = Catalog()
         for artifact in self.backend.complete_key(Path(collection)):
             for version in self.backend.complete_key(Path(collection, artifact)):
-                catalog[str(Path(collection, artifact))] = self.get_artifact_source(
-                    artifact, collection, int(version)
-                )
+                catalog[str(Path(collection, artifact))] = self.get_artifact_source(artifact, collection, int(version))
         return catalog
 
     def store_to_catalog(self) -> Catalog:
@@ -154,21 +149,23 @@ class FileSystemArtifactManager(ArtifactManager):
         self.backend.set(local_path, Path(collection, name, str(version)))
         return self.get_artifact_source(name, collection)
 
-    def log_collection(self, files: Union[Path, List[Path]], collection: Optional[str] = None) -> Catalog:
-        """Log folder or set of local paths as collection of artifacts into store"""
-        if isinstance(files, Path) and files.is_dir():
-            if collection is None:
-                collection = files.name
-            files = list(files.iterdir())
-        elif isinstance(files, Path):
-            raise ValueError(f"Path {files} is not a directory!")
-        else:
-            if collection is None:
-                raise ValueError("Collection name must be specified if files is not a directory!")
-        for file in files:
-            if file.is_file():
-                self.log_file(file, file.name, collection)
+    def log_files(self, local_paths: List[Path], collection: Optional[str] = None) -> Catalog:
+        """Upload a collection of file into a (current) collection"""
+        if collection is None:
+            collection = self.collection
+        for local_path in local_paths:
+            self.log_file(local_path, local_path.name, collection)
         return self.collection_to_catalog(collection)
+
+    def log_folder(self, file: Path, collection: Optional[str] = None) -> Catalog:
+        """Log folder as collection of artifacts into store"""
+        if not file.is_dir():
+            raise ValueError(f"Path {file} is not a directory!")
+
+        if collection is None:
+            collection = file.name
+
+        return self.log_files([f for f in file.iterdir() if f.is_file()], collection)
 
     def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
         """Log an arbitrary python object using store serialisation."""

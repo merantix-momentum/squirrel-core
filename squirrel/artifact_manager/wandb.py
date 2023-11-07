@@ -10,6 +10,7 @@ class WandbArtifactManager(ArtifactManager):
 
     TODO: Implement this based on the wandb Artifact API
     """
+
     def list_collection_names(self) -> Iterable:
         pass
 
@@ -22,12 +23,14 @@ class WandbArtifactManager(ArtifactManager):
     def get_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None) -> Any:
         pass
 
-    def get_artifact_source(self, artifact: str, collection: Optional[str] = None,
-                            version: Optional[int] = None) -> Source:
+    def get_artifact_source(
+        self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None
+    ) -> Source:
         pass
 
-    def get_artifact_location(self, artifact_name: str, collection: Optional[str] = None,
-                              version: Optional[int] = None) -> str:
+    def get_artifact_location(
+        self, artifact_name: str, collection: Optional[str] = None, version: Optional[int] = None
+    ) -> str:
         pass
 
     def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
@@ -39,8 +42,9 @@ class WandbArtifactManager(ArtifactManager):
     def log_object(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
         pass
 
-    def download_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None,
-                          to: Path = "./") -> Source:
+    def download_artifact(
+        self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None, to: Path = "./"
+    ) -> Source:
         pass
 
     def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
