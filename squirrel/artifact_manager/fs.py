@@ -1,5 +1,4 @@
 import typing as t
-import os
 from pathlib import Path
 from typing import Optional, Any, Union, List, Iterable
 
@@ -16,41 +15,52 @@ Serializers = {
 
 
 class ArtifactFileStore(FilesystemStore):
-    def complete_key(self, key: str, **open_kwargs) -> List[str]:
+    def complete_key(self, partial_key: Path, **open_kwargs) -> List[str]:
         """Returns a list of possible key continuations given a partial key."""
-        if not self.fs.exists(f"{self.url}/{key}", **open_kwargs):
+        full_path = Path(self.url, partial_key)
+        if not self.fs.exists(full_path, **open_kwargs):
             return []
         return [
-            os.path.relpath(path, f"{self.url}/{key}")
-            for path in self.fs.ls(f"{self.url}/{key}", detail=False, **open_kwargs)
+            str(Path(path).relative_to(full_path))
+            for path in self.fs.ls(full_path, detail=False, **open_kwargs)
         ]
 
-    def key_exists(self, key: str, **open_kwargs) -> bool:
+    def key_exists(self, key: Path, **open_kwargs) -> bool:
         """Checks if a key exists."""
-        return self.fs.exists(f"{self.url}/{key}", **open_kwargs)
+        return self.fs.exists(Path(self.url) / key, **open_kwargs)
 
-    def get(self, key: str, mode: str = "rb", **open_kwargs) -> t.Any:
+    def get(self, key: Path, mode: str = "rb", **open_kwargs) -> t.Any:
         """Retrieves an item with the given key."""
-        if self.fs.exists(f"{self.url}/{key}/{Serializers[self.serializer.__class__]}", **open_kwargs):
-            return super().get(f"{key}/{Serializers[self.serializer.__class__]}", mode, **open_kwargs)
-        elif self.fs.exists(f"{self.url}/{key}/file", **open_kwargs):
-            return self.fs.cat(f"{self.url}/{key}/file", **open_kwargs)
+        if self.fs.exists(Path(self.url, key, Serializers[self.serializer.__class__]), **open_kwargs):
+            return super().get(str(Path(key, Serializers[self.serializer.__class__])), mode, **open_kwargs)
+        elif self.fs.exists(Path(self.url, key, "file"), **open_kwargs):
+            return self.fs.cat(Path(self.url, key, "file"), **open_kwargs)
         else:
             raise ValueError(f"Key {key} does not exist!")
 
-    def set(self, value: t.Any, key: t.Optional[str] = None, mode: str = "wb", **open_kwargs) -> None:
+    def set(self, value: t.Any, key: t.Optional[Path] = None, mode: str = "wb", **open_kwargs) -> None:
         """Persists an item with the given key."""
         if key is None:
             key = get_random_key()
         if isinstance(value, Path):
-            self.fs.cp(value, f"{self.url}/{key}/file", **open_kwargs)
+            self.fs.cp(value, Path(self.url, key, "file"), **open_kwargs)
         else:
-            super().set(value, f"{key}/{Serializers[self.serializer.__class__]}", mode, **open_kwargs)
+            super().set(value, str(Path(key, Serializers[self.serializer.__class__])), mode, **open_kwargs)
 
 
 class FileSystemArtifactManager(ArtifactManager):
     def __init__(self, url: str, serializer: Optional[SquirrelSerializer] = None, **fs_kwargs):
-        """Artifactmanager backed by fsspec filesystems."""
+        """
+        Artifactmanager backed by fsspec filesystems.
+
+        The manager logs artifacts according to the following file structure:
+        url/collection/artifact/version/serializer
+            url: root directory of the artifact store
+            collection: the name of the collection defaults to 'default'
+            artifact: (human-readable) name of the artifact
+            version: version number starting at 1 which is automatically incremented
+            serializer: the name of the serializer used to store the artifact (e.g. file, messagepack)
+        """
         super().__init__()
         if serializer is None:
             serializer = MessagepackSerializer()
@@ -65,10 +75,10 @@ class FileSystemArtifactManager(ArtifactManager):
         if collection is None:
             collection = self.collection
         if version is None:
-            version = len(self.backend.complete_key(os.path.join(collection, artifact)))
-        if not self.backend.key_exists(os.path.join(collection, artifact, str(version))):
+            version = len(self.backend.complete_key(Path(collection) / Path(artifact)))
+        if not self.backend.key_exists(Path(collection, artifact, str(version))):
             raise ValueError(f"Artifact {artifact} does not exist in collection {collection} with version {version}!")
-        path = os.path.join(collection, artifact, str(version))
+        path = Path(collection, artifact, str(version))
         return self.backend.get(path)
 
     def get_artifact_source(
@@ -78,32 +88,32 @@ class FileSystemArtifactManager(ArtifactManager):
         if collection is None:
             collection = self.collection
         if version is None:
-            version = len(self.backend.complete_key(os.path.join(collection, artifact)))
-        if not self.backend.key_exists(os.path.join(collection, artifact, str(version))):
+            version = len(self.backend.complete_key(Path(collection, artifact)))
+        if not self.backend.key_exists(Path(collection, artifact, str(version))):
             raise ValueError(f"Artifact {artifact} does not exist in collection {collection} with version {version}!")
 
         if Serializers[self.backend.serializer.__class__] in self.backend.complete_key(
-            os.path.join(collection, artifact, str(version))
+            Path(collection, artifact, str(version))
         ):
             return Source(
                 driver_name=Serializers[self.backend.serializer.__class__],
                 driver_kwargs={
-                    "url": os.path.join(
+                    "url": Path(
                         self.backend.url,
                         collection,
                         artifact,
                         str(version),
                         Serializers[self.backend.serializer.__class__],
-                    ),
+                    ).as_uri(),
                     "storage_options": self.backend.storage_options,
                 },
                 metadata={"collection": collection, "artifact": artifact, "version": version},
             )
-        elif self.backend.fs.exists(os.path.join(collection, artifact, str(version), "file")):
+        elif self.backend.fs.exists(Path(collection, artifact, str(version), "file")):
             return Source(
                 driver_name="file",
                 driver_kwargs={
-                    "url": os.path.join(self.backend.url, collection, artifact, str(version), "file"),
+                    "url": Path(self.backend.url, collection, artifact, str(version), "file").as_uri(),
                     "storage_options": self.backend.storage_options,
                 },
                 metadata={"collection": collection, "artifact": artifact, "version": version},
@@ -116,9 +126,9 @@ class FileSystemArtifactManager(ArtifactManager):
         if collection is None:
             collection = self.collection
         catalog = Catalog()
-        for artifact in self.backend.complete_key(collection):
-            for version in self.backend.complete_key(os.path.join(collection, artifact)):
-                catalog[os.path.join(collection, artifact)] = self.get_artifact_source(
+        for artifact in self.backend.complete_key(Path(collection)):
+            for version in self.backend.complete_key(Path(collection, artifact)):
+                catalog[str(Path(collection, artifact))] = self.get_artifact_source(
                     artifact, collection, int(version)
                 )
         return catalog
@@ -140,35 +150,35 @@ class FileSystemArtifactManager(ArtifactManager):
         """Upload local file to artifact store without serialisation"""
         if collection is None:
             collection = self.collection
-        version = len(self.backend.complete_key(os.path.join(collection, name))) + 1
-        self.backend.set(local_path, os.path.join(collection, name, str(version)))
+        version = len(self.backend.complete_key(Path(collection, name))) + 1
+        self.backend.set(local_path, Path(collection, name, str(version)))
         return self.get_artifact_source(name, collection)
 
-    def log_collection(self, files: Union[Path, List[Path]], collection_name: Optional[str] = None) -> Catalog:
+    def log_collection(self, files: Union[Path, List[Path]], collection: Optional[str] = None) -> Catalog:
         """Log folder or set of local paths as collection of artifacts into store"""
         if isinstance(files, Path) and files.is_dir():
-            if collection_name is None:
-                collection_name = files
+            if collection is None:
+                collection = files.name
             files = list(files.iterdir())
         elif isinstance(files, Path):
             raise ValueError(f"Path {files} is not a directory!")
         else:
-            if collection_name is None:
+            if collection is None:
                 raise ValueError("Collection name must be specified if files is not a directory!")
         for file in files:
             if file.is_file():
-                self.log_file(file, file.name, collection_name)
-        return self.collection_to_catalog(collection_name)
+                self.log_file(file, file.name, collection)
+        return self.collection_to_catalog(collection)
 
-    def log_object(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
+    def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
         """Log an arbitrary python object using store serialisation."""
         if collection is None:
             collection = self.collection
-        if self.backend.key_exists(os.path.join(collection, name)):
-            version = len(self.backend.complete_key(os.path.join(collection, name))) + 1
+        if self.backend.key_exists(Path(collection, name)):
+            version = len(self.backend.complete_key(Path(collection, name))) + 1
         else:
             version = 1
-        self.backend.set(obj, os.path.join(collection, name, str(version)))
+        self.backend.set(obj, Path(collection, name, str(version)))
         return self.get_artifact_source(name, collection)
 
     def download_artifact(

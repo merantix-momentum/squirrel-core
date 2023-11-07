@@ -6,6 +6,10 @@ from squirrel.catalog import Catalog, Source
 
 
 class WandbArtifactManager(ArtifactManager):
+    """Dummy placeholder for now
+
+    TODO: Implement this based on the wandb Artifact API
+    """
     def list_collection_names(self) -> Iterable:
         pass
 

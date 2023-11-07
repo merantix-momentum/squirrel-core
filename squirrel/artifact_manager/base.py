@@ -1,3 +1,4 @@
+import re
 from abc import abstractmethod, ABC
 from pathlib import Path
 from typing import Optional, List, Union, Any, Iterable
@@ -13,7 +14,7 @@ class ArtifactManager(ABC):
         Maintains a mapping of artifact names to backend objects to facilitate logging and retrieval of arbitrary
         artifacts.
         """
-        self._collection = "default"
+        self._active_collection = "default"
 
     @property
     def collection(self) -> str:
@@ -24,13 +25,15 @@ class ArtifactManager(ABC):
         To avoid incompatibility between different backends, collections cannot be nested (e.g. as subfolders on a
         filesystem).
         """
-        return self._collection
+        return self._active_collection
 
     @collection.setter
     def collection(self, value: str) -> None:
         """Do not allow access to anything beyond the root location of the artifact store"""
-        assert len(value) > 0 and "\\" not in value, "Invalid collection name - must not be empty and cannot be nested."
-        self._collection = value
+        assert re.match(r'^[a-zA-Z0-9\-_:]+$', value), \
+            ("Invalid collection name - must not be empty and can only contain alphanumerics, dashes, underscores and "
+             "colons.")
+        self._active_collection = value
 
     @abstractmethod
     def list_collection_names(self) -> Iterable:
@@ -70,12 +73,12 @@ class ArtifactManager(ABC):
         """Upload file into (current) collection, increment version automatically"""
 
     @abstractmethod
-    def log_collection(self, files: Union[Path, List[Path]], collection_name: Optional[str] = None) -> Catalog:
+    def log_collection(self, files: Union[Path, List[Path]], collection: Optional[str] = None) -> Catalog:
         """Upload folder or collection of files"""
         raise NotImplementedError
 
     @abstractmethod
-    def log_object(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
+    def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
         """Log an arbitrary python object"""
         raise NotImplementedError
 
