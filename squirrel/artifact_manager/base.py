@@ -17,7 +17,7 @@ class ArtifactManager(ABC):
         self._active_collection = "default"
 
     @property
-    def collection(self) -> str:
+    def active_collection(self) -> str:
         """
         Collections act as folders of artifacts.
 
@@ -27,8 +27,8 @@ class ArtifactManager(ABC):
         """
         return self._active_collection
 
-    @collection.setter
-    def collection(self, value: str) -> None:
+    @active_collection.setter
+    def active_collection(self, value: str) -> None:
         """Do not allow access to anything beyond the root location of the artifact store"""
         assert re.match(r"^[a-zA-Z0-9\-_:]+$", value), (
             "Invalid collection name - must not be empty and can only contain alphanumerics, dashes, underscores and "

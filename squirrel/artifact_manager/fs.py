@@ -70,7 +70,7 @@ class FileSystemArtifactManager(ArtifactManager):
     def get_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None) -> Any:
         """Retrieve specific artifact value."""
         if collection is None:
-            collection = self.collection
+            collection = self.active_collection
         if version is None:
             version = len(self.backend.complete_key(Path(collection) / Path(artifact)))
         if not self.backend.key_exists(Path(collection, artifact, str(version))):
@@ -83,7 +83,7 @@ class FileSystemArtifactManager(ArtifactManager):
     ) -> Source:
         """Catalog entry for a specific artifact"""
         if collection is None:
-            collection = self.collection
+            collection = self.active_collection
         if version is None:
             version = len(self.backend.complete_key(Path(collection, artifact)))
         if not self.backend.key_exists(Path(collection, artifact, str(version))):
@@ -121,7 +121,7 @@ class FileSystemArtifactManager(ArtifactManager):
     def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
         """Provide catalog of all artifacts and their versions contained within specific collection"""
         if collection is None:
-            collection = self.collection
+            collection = self.active_collection
         catalog = Catalog()
         for artifact in self.backend.complete_key(Path(collection)):
             for version in self.backend.complete_key(Path(collection, artifact)):
@@ -144,7 +144,7 @@ class FileSystemArtifactManager(ArtifactManager):
     def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
         """Upload local file to artifact store without serialisation"""
         if collection is None:
-            collection = self.collection
+            collection = self.active_collection
         version = len(self.backend.complete_key(Path(collection, name))) + 1
         self.backend.set(local_path, Path(collection, name, str(version)))
         return self.get_artifact_source(name, collection)
@@ -152,7 +152,7 @@ class FileSystemArtifactManager(ArtifactManager):
     def log_files(self, local_paths: List[Path], collection: Optional[str] = None) -> Catalog:
         """Upload a collection of file into a (current) collection"""
         if collection is None:
-            collection = self.collection
+            collection = self.active_collection
         for local_path in local_paths:
             self.log_file(local_path, local_path.name, collection)
         return self.collection_to_catalog(collection)
@@ -170,7 +170,7 @@ class FileSystemArtifactManager(ArtifactManager):
     def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
         """Log an arbitrary python object using store serialisation."""
         if collection is None:
-            collection = self.collection
+            collection = self.active_collection
         if self.backend.key_exists(Path(collection, name)):
             version = len(self.backend.complete_key(Path(collection, name))) + 1
         else:
