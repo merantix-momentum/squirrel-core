@@ -216,7 +216,7 @@ class Composable:
             fill_nan_on_partial=fill_nan_on_partial,
         )
 
-    def shuffle(self, size: int, **kw) -> Composable:
+    def shuffle(self, size: t.Optional[int] = 1000, **kw) -> Composable:
         """Shuffles items in the buffer, defined by `size`, to simulate IID sample retrieval.
 
         Args:
@@ -233,6 +233,10 @@ class Composable:
         - seed (Union[int, float, str, bytes, bytearray, None]): A data input that can be used for `random.seed()`.
 
         """
+
+        if size is None:
+            size = 1000
+
         if size < 2:
             return self
         return self.to(shuffle_, size, **kw)

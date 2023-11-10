@@ -556,6 +556,14 @@ def test_zip_index() -> None:
     assert res3[0] == "00" and res3[-2] == "99" and res3[-1] == "100"
 
 
+@pytest.mark.parametrize("size", [None, 1, 200])
+def test_shuffle_size_parameter(size: t.Optional[int]) -> None:
+    """Test size paramter for shuffle"""
+    source = IterableSource(list(range(100)))
+    iter = source.shuffle(size=size).collect()
+    assert sorted(iter) == list(range(100))
+
+
 @pytest.fixture
 def samples() -> t.List[SampleType]:
     """A fixture to get a list of samples"""
