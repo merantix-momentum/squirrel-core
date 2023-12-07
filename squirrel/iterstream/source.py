@@ -121,24 +121,27 @@ class IterableSamplerSource(Composable):
         """
         super().__init__(source=())
         self.rng = get_random_range(rng, seed)
-        self.iterators = [iter(it) for it in iterables]
+        self.iterables = iterables
         if probs is not None:
-            assert len(probs) == len(self.iterators), "number of iterables and probs must be equal"
+            assert len(probs) == len(self.iterables), "number of iterables and probs must be equal"
             assert sum(probs) == 1, "sum of probs must add up to 1"
             assert all(p > 0 for p in probs), "probability for each iterable must be positive"
         self.probs = probs
 
     def __iter__(self) -> t.Iterator:
         """Samples items from the iterables, returns all samples until all iterables are exhausted."""
+
+        
+        iterators = [iter(it) for it in self.iterables]
         while True:
-            idx = self.rng.choices(range(len(self.iterators)), weights=self.probs)[0]
+            idx = self.rng.choices(range(len(iterators)), weights=self.probs)[0]
             try:
-                yield next(self.iterators[idx])
+                yield next(iterators[idx])
             except StopIteration:
-                self.iterators = self.iterators[:idx] + self.iterators[idx + 1 :]
+                iterators = iterators[:idx] + iterators[idx + 1 :]
                 if self.probs is not None:
                     probs = self.probs[:idx] + self.probs[idx + 1 :]
                     s = sum(probs)
                     self.probs = [p / s for p in probs]
-            if len(self.iterators) == 0:
+            if len(iterators) == 0:
                 break

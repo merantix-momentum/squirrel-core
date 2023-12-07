@@ -527,6 +527,20 @@ def test_iterablesamplersource_all_sampled(probs: t.Optional[t.List[float]]) -> 
     assert set(res) == set(range(7))
 
 
+@pytest.mark.parametrize("probs", [[0.4, 0.6], None])
+def test_iterablesamplersource_is_picklable(probs: t.Optional[t.List[float]]) -> None:
+    """Smoke test IterableSamplerSource"""
+    res_1 = IterableSource([0, 1, 2, 3])
+    res_2 = IterableSource([4, 5, 6])
+    src = IterableSamplerSource([res_1, res_2], probs=probs)
+    import pickle
+
+    pkl = pickle.dumps(src)
+    src_2 = pickle.loads(pkl)
+
+    assert src.collect() == src_2.collect()
+
+
 def test_filepathgenerator_nested() -> None:
     """Test FilePathGenerator with on without nested argument"""
     with tempfile.TemporaryDirectory() as tmp_dir:
