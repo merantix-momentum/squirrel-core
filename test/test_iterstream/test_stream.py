@@ -529,7 +529,7 @@ def test_iterablesamplersource_all_sampled(probs: t.Optional[t.List[float]]) -> 
 
 @pytest.mark.parametrize("probs", [[0.4, 0.6], None])
 def test_iterablesamplersource_is_picklable(probs: t.Optional[t.List[float]]) -> None:
-    """Smoke test IterableSamplerSource"""
+    """Test IterableSamplerSource is picklable."""
     res_1 = IterableSource([0, 1, 2, 3])
     res_2 = IterableSource([4, 5, 6])
     src = IterableSamplerSource([res_1, res_2], probs=probs)

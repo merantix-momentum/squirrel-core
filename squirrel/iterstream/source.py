@@ -130,8 +130,6 @@ class IterableSamplerSource(Composable):
 
     def __iter__(self) -> t.Iterator:
         """Samples items from the iterables, returns all samples until all iterables are exhausted."""
-
-        
         iterators = [iter(it) for it in self.iterables]
         while True:
             idx = self.rng.choices(range(len(iterators)), weights=self.probs)[0]
