@@ -59,6 +59,8 @@ pre-commit = "^2.16.0"
 pip-tools = "^6.6.2"
 black = "22.8.0"
 autopep8 = "1.7.0"
+hypothesis = "^6.91.1"
+faker = "^20.1.0"
 
 [tool.poetry.group.doc.dependencies]
 sphinx = "<4.0.0"
