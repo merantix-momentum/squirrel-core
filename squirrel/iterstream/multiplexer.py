@@ -99,12 +99,12 @@ class Multiplexer(Composable):
         Note that the algorithm stops whenever max_reinits are hit or all composables
         have been reinitialized at least once.
         """
-        super().__init__()
+        super().__init__(source=composables)
         self.mux_strategy = mux_strategy
         if mux_strategy == MultiplexingStrategy.SAMPLING:
             assert sampling_probas is not None
             assert len(sampling_probas) == len(
-                composables
+                self.source
             ), "Need sampling probas and composables to have same number of entries"
 
         self.composables, self.sampling_probas = self._init_composables_and_probas(
