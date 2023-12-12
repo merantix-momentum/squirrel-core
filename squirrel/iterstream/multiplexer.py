@@ -75,6 +75,18 @@ class Multiplexer(Composable):
 
         Args:
             composables: List of composables corresponding to different data sources.
+                Note: Ensure that the composable are properly split according to
+                multiprocessing worker and / or GPU ranks. There are several ways to
+                do this, and we encourage reading the documentation for the corresponding
+                driver or the composable you are using. As an example you can load a
+                message pack drive using:
+                ```python
+
+                c0 = MessagepackDriver(url=local_msgpack_url).get_iter(key_hooks=[SplitByWorker])
+                c1 = MessagepackDriver(url=local_msgpack_url).get_iter(key_hooks=[SplitByWorker])
+
+                mux = Multiplexer([c0, c1]).to_torch_iterable()
+                ```
             mux_strategy: Multiplexing strategy.
             sampling_probas: (optional) list of floats that determine the sampling
                 ratios for each dataset, i.e. w_{i, eff} from the docstrings.
