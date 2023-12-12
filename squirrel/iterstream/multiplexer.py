@@ -100,6 +100,7 @@ class Multiplexer(Composable):
         )
         self.rng = np.random.RandomState(np.random.MT19937(seed=seed))
         self._reinit_counts_ = []
+        self._num_samples_ = len(self.composables) * [0]
         self.max_reinits = sys.maxsize
         if max_reinits is not None:
             self.max_reinits = max_reinits
@@ -162,6 +163,11 @@ class Multiplexer(Composable):
         """Return number of reinits for non-zero probability composables."""
         return self._reinit_counts_
 
+    @property
+    def num_samples(self) -> t.List[int]:
+        """Return number of samples seen from each composable."""
+        return self._num_samples_
+
     def _compute_reinit_counts(self, _iterators: t.List[MuxIterator]) -> t.List[int]:
         """Compute the reinit counts over a list of MuxIterators.
 
@@ -202,6 +208,7 @@ class Multiplexer(Composable):
             mux_it: MuxIterator = _iterators[_ix]
             try:
                 value = next(mux_it.it)
+                self._num_samples_[mux_it.index] += 1
                 yield value
             except StopIteration:
                 logger.info(

@@ -132,9 +132,12 @@ def test_oversampling_limit(dummy_data_catalog: Catalog) -> None:
     cntr = dict(sorted(cntr.items(), key=lambda x: x[0]))
 
     assert mux.reinit_counts == [1, 4, 0]
+    assert mux.num_samples == [268, 460, 40]
 
     assert any(np.asarray([268, 460, 40]) == np.asarray(list(cntr.values())))
     np.testing.assert_allclose(np.asarray(list(cntr.values())) / len(result), p, atol=2.5e-1)
+
+    np.testing.assert_allclose(np.asarray(mux.num_samples) / np.asarray(mux.num_samples).sum(), p, atol=2.5e-1)
 
 
 def test_muxer_is_picklable(dummy_data_catalog: Catalog) -> None:
