@@ -99,7 +99,6 @@ class Multiplexer(Composable):
             sampling_probas, composables, proba_threshold
         )
         self.rng = np.random.RandomState(np.random.MT19937(seed=seed))
-        self.buffer: t.List[t.Dict[str, t.Any]] = []
         self._reinit_counts_ = []
         self.max_reinits = sys.maxsize
         if max_reinits is not None:
