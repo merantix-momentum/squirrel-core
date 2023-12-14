@@ -21,19 +21,29 @@ class ArtifactManager(ABC):
         """
         Collections act as folders of artifacts.
 
-        The manager maintains an 'active' collections which it logs to by default.
+        It is ultimately up to the user how to structure their artifact store and the collections therein. All
+        operations accessing artifacts allow explicit specification of the collection to use.
+        Therefore, users could use collections to separate different artifact types or different experiments / runs.
+        To facilitate the latter use case in particular, the manager maintains an 'active' collection which it logs to
+        by default. This can be set once at the run start when the manager is initialized and then left unchanged.
+
         To avoid incompatibility between different backends, collections cannot be nested (e.g. as subfolders on a
-        filesystem).
+        filesystem) as in particular the WandB backend has no real notion of nested folder structures.
         """
         return self._active_collection
 
     @active_collection.setter
     def active_collection(self, value: str) -> None:
-        """Do not allow access to anything beyond the root location of the artifact store"""
-        assert re.match(r"^[a-zA-Z0-9\-_:]+$", value), (
-            "Invalid collection name - must not be empty and can only contain alphanumerics, dashes, underscores and "
-            "colons."
-        )
+        """
+        Sets the active collections that is being logged to by default.
+
+        The provided values is verified to ensure that no nested collections are used.
+        """
+        if not re.match(r"^[a-zA-Z0-9\-_:]+$", value):
+            raise ValueError(
+                "Invalid collection name - must not be empty and can only contain alphanumerics, dashes, underscores "
+                "and colons."
+            )
         self._active_collection = value
 
     @abstractmethod
@@ -56,26 +66,14 @@ class ArtifactManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_artifact_source(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None
-    ) -> Source:
-        """Catalog entry for a specific artifact"""
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_artifact_location(
-        self, artifact_name: str, collection: Optional[str] = None, version: Optional[int] = None
-    ) -> str:
-        """Get full qualified path or wandb directory of artifact"""
-        raise NotImplementedError
-
-    @abstractmethod
     def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
         """Upload file into (current) collection, increment version automatically"""
+        raise NotImplementedError
 
     @abstractmethod
     def log_files(self, local_paths: List[Path], collection: Optional[str] = None) -> Catalog:
-        """Upload a collection of file into a (current) collection"""
+        """Upload a collection of files into a (current) collection"""
+        raise NotImplementedError
 
     @abstractmethod
     def log_folder(self, files: Path, collection: Optional[str] = None) -> Catalog:
@@ -84,7 +82,12 @@ class ArtifactManager(ABC):
 
     @abstractmethod
     def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
-        """Log an arbitrary python object"""
+        """
+        Log an arbitrary python object
+
+        The serialisation method used is backend dependent. When using a simple FileStore backend any SquirrelSerializer
+        can be chosen. For WandB objects serialisation is handled by WandB itself.
+        """
         raise NotImplementedError
 
     @abstractmethod

@@ -15,6 +15,14 @@ Serializers = {
 
 
 class ArtifactFileStore(FilesystemStore):
+    """
+    A FilesystemStore serving as the backend for the FileSystemArtifactManager.
+
+    The get and set methods are altered to allow for storing serialized data as well as raw files.
+        If the final path component is a serializer name, the data is stored as a serialized file.
+        If the final path component is "file", the data is stored as a raw file.
+    """
+
     def complete_key(self, partial_key: Path, **open_kwargs) -> List[str]:
         """Returns a list of possible key continuations given a partial key."""
         full_path = Path(self.url, partial_key)
@@ -40,7 +48,7 @@ class ArtifactFileStore(FilesystemStore):
         if key is None:
             key = get_random_key()
         if isinstance(value, Path):
-            self.fs.cp(value, Path(self.url, key, "file"), **open_kwargs)
+            self.fs.cp_file(value, Path(self.url, key, "file"), **open_kwargs)
         else:
             super().set(value, str(Path(key, Serializers[self.serializer.__class__])), mode, **open_kwargs)
 
@@ -72,7 +80,7 @@ class FileSystemArtifactManager(ArtifactManager):
         if collection is None:
             collection = self.active_collection
         if version is None:
-            version = len(self.backend.complete_key(Path(collection) / Path(artifact)))
+            version = max(int(vs) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))
         if not self.backend.key_exists(Path(collection, artifact, str(version))):
             raise ValueError(f"Artifact {artifact} does not exist in collection {collection} with version {version}!")
         path = Path(collection, artifact, str(version))
@@ -85,7 +93,7 @@ class FileSystemArtifactManager(ArtifactManager):
         if collection is None:
             collection = self.active_collection
         if version is None:
-            version = len(self.backend.complete_key(Path(collection, artifact)))
+            version = max(int(vs) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))
         if not self.backend.key_exists(Path(collection, artifact, str(version))):
             raise ValueError(f"Artifact {artifact} does not exist in collection {collection} with version {version}!")
 
@@ -104,16 +112,32 @@ class FileSystemArtifactManager(ArtifactManager):
                     ).as_uri(),
                     "storage_options": self.backend.storage_options,
                 },
-                metadata={"collection": collection, "artifact": artifact, "version": version},
+                metadata={
+                    "collection": collection,
+                    "artifact": artifact,
+                    "version": version,
+                    "location": Path(
+                        self.backend.url,
+                        collection,
+                        artifact,
+                        str(version),
+                        Serializers[self.backend.serializer.__class__],
+                    ).as_uri(),
+                },
             )
-        elif self.backend.fs.exists(Path(collection, artifact, str(version), "file")):
+        elif self.backend.key_exists(Path(collection, artifact, str(version), "file")):
             return Source(
                 driver_name="file",
                 driver_kwargs={
                     "url": Path(self.backend.url, collection, artifact, str(version), "file").as_uri(),
                     "storage_options": self.backend.storage_options,
                 },
-                metadata={"collection": collection, "artifact": artifact, "version": version},
+                metadata={
+                    "collection": collection,
+                    "artifact": artifact,
+                    "version": version,
+                    "location": Path(self.backend.url, collection, artifact, str(version), "file").as_uri(),
+                },
             )
         else:
             raise ValueError(f"Could not read artifact {artifact} in collection {collection} with version {version}!")
@@ -135,14 +159,11 @@ class FileSystemArtifactManager(ArtifactManager):
             catalog.update(self.collection_to_catalog(collection))
         return catalog
 
-    def get_artifact_location(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None
-    ) -> str:
-        """Get full qualified path or wandb directory of artifact"""
-        return self.get_artifact_source(artifact, collection, version).driver_kwargs["url"]
-
     def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
         """Upload local file to artifact store without serialisation"""
+        if isinstance(local_path, str):
+            local_path = Path(local_path)
+        assert isinstance(local_path, Path), "Path to file must be passed as a pathlib.Path object!"
         if collection is None:
             collection = self.active_collection
         version = len(self.backend.complete_key(Path(collection, name))) + 1
@@ -182,13 +203,13 @@ class FileSystemArtifactManager(ArtifactManager):
         self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None, to: Path = "./"
     ) -> Source:
         """Download artifact to local path."""
-        location = self.get_artifact_location(artifact, collection, version)
+        location = self.get_artifact_source(artifact, collection, version).metadata["location"]
         if self.backend.fs.exists(location):
-            self.backend.fs.cp(location, to)
+            self.backend.fs.cp_file(location, to)
             return Source(
                 driver_name="file",
                 driver_kwargs={"url": str(to), "storage_options": self.backend.storage_options},
-                metadata={"collection": collection, "artifact": artifact, "version": version},
+                metadata={"collection": collection, "artifact": artifact, "version": version, "location": str(to)},
             )
 
     def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
