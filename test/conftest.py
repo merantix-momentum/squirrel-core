@@ -8,18 +8,25 @@ Not importing from conftest is a best practice described in the note here:
 https://pytest.org/en/6.2.x/writing_plugins.html#conftest-py-local-per-directory-plugins
 """
 
+import json
 import logging
 import os
+import pathlib
 import subprocess
+import random
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, List, Tuple
+from uuid import uuid4
 
+from faker import Faker
+import fsspec
 import numpy as np
 import pytest
-from pytest import FixtureRequest
+from pytest import FixtureRequest, TempPathFactory
 from zarr.hierarchy import Group
 
+from squirrel.catalog import Catalog, Source
 from squirrel.constants import URL
 from squirrel.driver import JsonlDriver, MessagepackDriver
 from squirrel.integration_test.helpers import SHAPE, get_sample
@@ -164,3 +171,82 @@ def local_msgpack_url(num_samples: int) -> str:
             store.set
         ).join()
         yield tmp_dir
+
+
+def _write_dummy_data(path: str, num_samples: int, compression: str = "gzip") -> None:
+    fkr = Faker(["en_US", "de_DE", "fr_FR"])
+    data_set = path.split("/")[-3]
+    lines = [
+        {
+            "text": fkr.text(),
+            "meta": {"src": path, "sha": uuid4().hex, "id": idx, "dataset": data_set},
+        }
+        for idx in range(num_samples)
+    ]
+    with fsspec.open(path, mode="wb", compression=compression) as fh:
+        for line in lines:
+            fh.write((json.dumps(line) + "\n").encode("utf-8"))
+
+
+@pytest.fixture(scope="session")
+def dummy_data_catalog(tmp_path_factory: TempPathFactory) -> Catalog:
+    """Create a dummy catalog with test data and more."""
+    td_0: pathlib.Path = tmp_path_factory.mktemp("data_")
+    td_1: pathlib.Path = tmp_path_factory.mktemp("data_")
+    td_2: pathlib.Path = tmp_path_factory.mktemp("data_")
+
+    f_names_0 = [f"{td_0.resolve()}/train/{idx:05d}.jsonl.gz" for idx in range(5)]
+    f_names_1 = [f"{td_1.resolve()}/train/{idx:05d}.jsonl.gz" for idx in range(3)]
+    f_names_2 = [f"{td_2.resolve()}/train/{idx:05d}.jsonl.gz" for idx in range(10)]
+
+    rng = random.Random(42)
+    d0_counts = 0
+    for path in f_names_0:
+        f_cnt = rng.randint(32, 64)
+        d0_counts += f_cnt
+        _write_dummy_data(path, f_cnt, compression="gzip")
+
+    d1_counts = 0
+    for path in f_names_1:
+        f_cnt = rng.randint(32, 64)
+        d1_counts += f_cnt
+        _write_dummy_data(path, f_cnt, compression="gzip")
+
+    d2_counts = 0
+    for path in f_names_2:
+        f_cnt = rng.randint(32, 64)
+        d2_counts += f_cnt
+        _write_dummy_data(path, f_cnt, compression="gzip")
+
+    cat = Catalog()
+
+    cat["data_0"] = Source(
+        "jsonl",
+        driver_kwargs={
+            "url": f"file://{td_0.resolve()}/train",
+            "deser_hook": None,
+            "storage_options": {},
+        },
+        metadata={"num_samples": d0_counts, "num_shards": len(f_names_0)},
+    )
+    cat["data_1"] = Source(
+        "jsonl",
+        driver_kwargs={
+            "url": f"file://{td_1.resolve()}/train",
+            "deser_hook": None,
+            "storage_options": {},
+        },
+        metadata={"num_samples": d1_counts, "num_shards": len(f_names_1)},
+    )
+
+    cat["data_2"] = Source(
+        "jsonl",
+        driver_kwargs={
+            "url": f"file://{td_2.resolve()}/train",
+            "deser_hook": None,
+            "storage_options": {},
+        },
+        metadata={"num_samples": d2_counts, "num_shards": len(f_names_2)},
+    )
+
+    return cat

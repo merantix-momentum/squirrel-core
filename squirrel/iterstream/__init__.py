@@ -6,5 +6,13 @@ All chaining methods aredefined within this class, and can be applied at its hig
 
 from squirrel.iterstream.base import Composable
 from squirrel.iterstream.source import FilePathGenerator, IterableSamplerSource, IterableSource
+from squirrel.iterstream.multiplexer import MultiplexingStrategy, Multiplexer
 
-__all__ = ["Composable", "IterableSource", "FilePathGenerator", "IterableSamplerSource"]
+__all__ = [
+    "Composable",
+    "IterableSource",
+    "FilePathGenerator",
+    "IterableSamplerSource",
+    "Multiplexer",
+    "MultiplexingStrategy",
+]
