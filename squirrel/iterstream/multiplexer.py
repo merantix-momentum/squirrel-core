@@ -85,7 +85,7 @@ class Multiplexer(Composable):
                 c0 = MessagepackDriver(url=local_msgpack_url).get_iter(key_hooks=[SplitByWorker])
                 c1 = MessagepackDriver(url=local_msgpack_url).get_iter(key_hooks=[SplitByWorker])
 
-                mux = Multiplexer([c0, c1]).to_torch_iterable()
+                mux = Multiplexer([c0, c1]).to_torch_iterable(False, False)
                 ```
             mux_strategy: Multiplexing strategy.
             sampling_probas: (optional) list of floats that determine the sampling
