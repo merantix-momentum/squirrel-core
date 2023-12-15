@@ -21,12 +21,13 @@ def test_serializer(serializer: SquirrelSerializer, name: str, target: str) -> N
     artifact_name = "john"
 
     tmpdir = tempfile.TemporaryDirectory()
+
     # message pack serialization
     manager = FileSystemArtifactManager(url=tmpdir.name, serializer=serializer, auto_mkdir=True)
     source = manager.log_artifact(obj, artifact_name)
 
-    assert source.metadata["location"] == f"file://{tmpdir.name}/default/{artifact_name}/1/{name}"
-    with open(f"{tmpdir.name}/default/{artifact_name}/1/{name}", "rb") as f:
+    assert source.metadata["location"] == f"file://{tmpdir.name}/default/{artifact_name}/v0/{name}"
+    with open(f"{tmpdir.name}/default/{artifact_name}/v0/{name}", "rb") as f:
         assert f.read() == target
 
     tmpdir.cleanup()
@@ -47,24 +48,24 @@ def test_multi_serializer() -> None:
     assert msgpack_source == Source(
         driver_name="messagepack",
         driver_kwargs={
-            "url": f"file://{tmpdir.name}/default/john/1/messagepack",
+            "url": f"file://{tmpdir.name}/default/john/v0/messagepack",
             "storage_options": {"auto_mkdir": True},
         },
         metadata={
             "collection": "default",
             "artifact": "john",
-            "version": 1,
-            "location": f"file://{tmpdir.name}/default/john/1/messagepack",
+            "version": "v0",
+            "location": f"file://{tmpdir.name}/default/john/v0/messagepack",
         },
     )
     assert jsonl_source == Source(
         driver_name="jsonl",
-        driver_kwargs={"url": f"file://{tmpdir.name}/default/john/2/jsonl", "storage_options": {"auto_mkdir": True}},
+        driver_kwargs={"url": f"file://{tmpdir.name}/default/john/v1/jsonl", "storage_options": {"auto_mkdir": True}},
         metadata={
             "collection": "default",
             "artifact": "john",
-            "version": 2,
-            "location": f"file://{tmpdir.name}/default/john/2/jsonl",
+            "version": "v1",
+            "location": f"file://{tmpdir.name}/default/john/v1/jsonl",
         },
     )
     tmpdir.cleanup()
@@ -81,25 +82,25 @@ def test_log_object() -> None:
     source = manager.log_artifact(obj, artifact_name)
 
     assert source.driver_name == "messagepack"
-    assert source.driver_kwargs["url"] == f"file://{tmpdir.name}/default/{artifact_name}/1/messagepack"
+    assert source.driver_kwargs["url"] == f"file://{tmpdir.name}/default/{artifact_name}/v0/messagepack"
     assert source.metadata["collection"] == "default"
     assert source.metadata["artifact"] == artifact_name
-    assert source.metadata["version"] == 1
+    assert source.metadata["version"] == "v0"
 
     obj2 = {"name": "John", "age": 15}
     artifact_name = "young_john"
 
     source2 = manager.log_artifact(obj2, artifact_name, collection)
-    assert source2.driver_kwargs["url"] == f"file://{tmpdir.name}/{collection}/{artifact_name}/1/messagepack"
+    assert source2.driver_kwargs["url"] == f"file://{tmpdir.name}/{collection}/{artifact_name}/v0/messagepack"
     assert source2.metadata["collection"] == collection
     assert source2.metadata["artifact"] == artifact_name
-    assert source2.metadata["version"] == 1
+    assert source2.metadata["version"] == "v0"
 
     source2 = manager.log_artifact(obj2, artifact_name, collection)
-    assert source2.driver_kwargs["url"] == f"file://{tmpdir.name}/{collection}/{artifact_name}/2/messagepack"
+    assert source2.driver_kwargs["url"] == f"file://{tmpdir.name}/{collection}/{artifact_name}/v1/messagepack"
     assert source2.metadata["collection"] == collection
     assert source2.metadata["artifact"] == artifact_name
-    assert source2.metadata["version"] == 2
+    assert source2.metadata["version"] == "v1"
     tmpdir.cleanup()
 
 
@@ -119,8 +120,8 @@ def test_get_artifact() -> None:
     assert manager.get_artifact("john", collection) == obj1
     manager.log_artifact(obj2, artifact_name, collection)
     assert manager.get_artifact(artifact_name, collection) == obj2
-    assert manager.get_artifact(artifact_name, collection, 2) == obj1
-    assert manager.get_artifact(artifact_name, collection, 1) == obj
+    assert manager.get_artifact(artifact_name, collection, "v1") == obj1
+    assert manager.get_artifact(artifact_name, collection, "v0") == obj
 
 
 def test_log_file() -> None:
@@ -132,9 +133,9 @@ def test_log_file() -> None:
     manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
 
     for (filename, artifact_name, version, content) in [
-        ("foo.txt", "foo_file", 1, "Test: Foo"),
-        ("bar.txt", "bar_file", 1, "Test: Bar"),
-        ("baz.txt", "bar_file", 2, "Test: Baz"),
+        ("foo.txt", "foo_file", "v0", "Test: Foo"),
+        ("bar.txt", "bar_file", "v0", "Test: Bar"),
+        ("baz.txt", "bar_file", "v1", "Test: Baz"),
     ]:
         with open(f"{src_dir.name}/{filename}", "w") as f:
             f.write(content)
@@ -161,8 +162,8 @@ def test_get_file() -> None:
     manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
 
     file_descriptions = [
-        ("bar.txt", "bar_file", 1, "Test: Bar"),
-        ("baz.txt", "bar_file", 2, "Test: Baz"),
+        ("bar.txt", "bar_file", "v0", "Test: Bar"),
+        ("baz.txt", "bar_file", "v1", "Test: Baz"),
     ]
 
     for (filename, artifact_name, _, content) in file_descriptions:

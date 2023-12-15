@@ -52,32 +52,17 @@ class ArtifactManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def store_to_catalog(self) -> Catalog:
-        """Provide a catalog of all stored artifacts."""
-        raise NotImplementedError
-
-    @abstractmethod
     def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
         """Catalog of all artifacts within a specific collection."""
 
     @abstractmethod
-    def get_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None) -> Any:
+    def get_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None) -> Any:
         """Retrieve specific artifact value."""
         raise NotImplementedError
 
     @abstractmethod
     def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
         """Upload file into (current) collection, increment version automatically"""
-        raise NotImplementedError
-
-    @abstractmethod
-    def log_files(self, local_paths: List[Path], collection: Optional[str] = None) -> Catalog:
-        """Upload a collection of files into a (current) collection"""
-        raise NotImplementedError
-
-    @abstractmethod
-    def log_folder(self, files: Path, collection: Optional[str] = None) -> Catalog:
-        """Upload folder as collection of artifacts into store"""
         raise NotImplementedError
 
     @abstractmethod
@@ -92,12 +77,40 @@ class ArtifactManager(ABC):
 
     @abstractmethod
     def download_artifact(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None, to: Path = "./"
+        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = "./"
     ) -> Source:
         """Retrieve file (from current collection) to specific location. Retrieve latest version unless specified."""
         raise NotImplementedError
 
-    @abstractmethod
+    def store_to_catalog(self) -> Catalog:
+        """Provide Catalog of all artifacts stored in backend."""
+        catalog = Catalog()
+        for collection in self.list_collection_names():
+            catalog.update(self.collection_to_catalog(collection))
+        return catalog
+
+    def log_files(self, local_paths: List[Path], collection: Optional[str] = None) -> Catalog:
+        """Upload a collection of file into a (current) collection"""
+        if collection is None:
+            collection = self.active_collection
+        for local_path in local_paths:
+            self.log_file(local_path, local_path.name, collection)
+        return self.collection_to_catalog(collection)
+
+    def log_folder(self, folder: Path, collection: Optional[str] = None) -> Catalog:
+        """Log folder as collection of artifacts into store"""
+        if not folder.is_dir():
+            raise ValueError(f"Path {folder} is not a directory!")
+
+        if collection is None:
+            collection = folder.name
+
+        return self.log_files([f for f in folder.iterdir() if f.is_file()], collection)
+
     def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
-        """Retrieve files (from current collection) to specific location. Retrieve latest version of all artifacts."""
-        raise NotImplementedError
+        """Download all artifacts in collection to local directory."""
+        catalog = self.collection_to_catalog(collection)
+        for artifact in catalog.values():
+            artifact_name = artifact.metadata["artifact"]
+            self.download_artifact(artifact_name, to=to / artifact_name)
+        return catalog

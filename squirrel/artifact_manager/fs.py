@@ -75,30 +75,30 @@ class FileSystemArtifactManager(ArtifactManager):
         """List all collections managed by this ArtifactManager."""
         return self.backend.keys(nested=False)
 
-    def get_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None) -> Any:
+    def get_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None) -> Any:
         """Retrieve specific artifact value."""
         if collection is None:
             collection = self.active_collection
-        if version is None:
-            version = max(int(vs) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))
-        if not self.backend.key_exists(Path(collection, artifact, str(version))):
+        if version is None or version == "latest":
+            version = f"v{max(int(vs[1:]) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))}"
+        if not self.backend.key_exists(Path(collection, artifact, version)):
             raise ValueError(f"Artifact {artifact} does not exist in collection {collection} with version {version}!")
-        path = Path(collection, artifact, str(version))
+        path = Path(collection, artifact, version)
         return self.backend.get(path)
 
     def get_artifact_source(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None
+        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None
     ) -> Source:
         """Catalog entry for a specific artifact"""
         if collection is None:
             collection = self.active_collection
-        if version is None:
-            version = max(int(vs) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))
-        if not self.backend.key_exists(Path(collection, artifact, str(version))):
+        if version is None or version == "latest":
+            version = f"v{max(int(vs[1:]) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))}"
+        if not self.backend.key_exists(Path(collection, artifact, version)):
             raise ValueError(f"Artifact {artifact} does not exist in collection {collection} with version {version}!")
 
         if Serializers[self.backend.serializer.__class__] in self.backend.complete_key(
-            Path(collection, artifact, str(version))
+            Path(collection, artifact, version)
         ):
             return Source(
                 driver_name=Serializers[self.backend.serializer.__class__],
@@ -107,7 +107,7 @@ class FileSystemArtifactManager(ArtifactManager):
                         self.backend.url,
                         collection,
                         artifact,
-                        str(version),
+                        version,
                         Serializers[self.backend.serializer.__class__],
                     ).as_uri(),
                     "storage_options": self.backend.storage_options,
@@ -120,23 +120,23 @@ class FileSystemArtifactManager(ArtifactManager):
                         self.backend.url,
                         collection,
                         artifact,
-                        str(version),
+                        version,
                         Serializers[self.backend.serializer.__class__],
                     ).as_uri(),
                 },
             )
-        elif self.backend.key_exists(Path(collection, artifact, str(version), "file")):
+        elif self.backend.key_exists(Path(collection, artifact, version, "file")):
             return Source(
                 driver_name="file",
                 driver_kwargs={
-                    "url": Path(self.backend.url, collection, artifact, str(version), "file").as_uri(),
+                    "url": Path(self.backend.url, collection, artifact, version, "file").as_uri(),
                     "storage_options": self.backend.storage_options,
                 },
                 metadata={
                     "collection": collection,
                     "artifact": artifact,
                     "version": version,
-                    "location": Path(self.backend.url, collection, artifact, str(version), "file").as_uri(),
+                    "location": Path(self.backend.url, collection, artifact, version, "file").as_uri(),
                 },
             )
         else:
@@ -149,14 +149,7 @@ class FileSystemArtifactManager(ArtifactManager):
         catalog = Catalog()
         for artifact in self.backend.complete_key(Path(collection)):
             for version in self.backend.complete_key(Path(collection, artifact)):
-                catalog[str(Path(collection, artifact))] = self.get_artifact_source(artifact, collection, int(version))
-        return catalog
-
-    def store_to_catalog(self) -> Catalog:
-        """Provide Catalog of all artifacts stored in backend"""
-        catalog = Catalog()
-        for collection in self.list_collection_names():
-            catalog.update(self.collection_to_catalog(collection))
+                catalog[str(Path(collection, artifact))] = self.get_artifact_source(artifact, collection, version)
         return catalog
 
     def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
@@ -166,41 +159,23 @@ class FileSystemArtifactManager(ArtifactManager):
         assert isinstance(local_path, Path), "Path to file must be passed as a pathlib.Path object!"
         if collection is None:
             collection = self.active_collection
-        version = len(self.backend.complete_key(Path(collection, name))) + 1
-        self.backend.set(local_path, Path(collection, name, str(version)))
+        version = f"v{len(self.backend.complete_key(Path(collection, name)))}"
+        self.backend.set(local_path, Path(collection, name, version))
         return self.get_artifact_source(name, collection)
-
-    def log_files(self, local_paths: List[Path], collection: Optional[str] = None) -> Catalog:
-        """Upload a collection of file into a (current) collection"""
-        if collection is None:
-            collection = self.active_collection
-        for local_path in local_paths:
-            self.log_file(local_path, local_path.name, collection)
-        return self.collection_to_catalog(collection)
-
-    def log_folder(self, file: Path, collection: Optional[str] = None) -> Catalog:
-        """Log folder as collection of artifacts into store"""
-        if not file.is_dir():
-            raise ValueError(f"Path {file} is not a directory!")
-
-        if collection is None:
-            collection = file.name
-
-        return self.log_files([f for f in file.iterdir() if f.is_file()], collection)
 
     def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
         """Log an arbitrary python object using store serialisation."""
         if collection is None:
             collection = self.active_collection
         if self.backend.key_exists(Path(collection, name)):
-            version = len(self.backend.complete_key(Path(collection, name))) + 1
+            version = f"v{len(self.backend.complete_key(Path(collection, name)))}"
         else:
-            version = 1
-        self.backend.set(obj, Path(collection, name, str(version)))
+            version = "v0"
+        self.backend.set(obj, Path(collection, name, version))
         return self.get_artifact_source(name, collection)
 
     def download_artifact(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[int] = None, to: Path = "./"
+        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = "./"
     ) -> Source:
         """Download artifact to local path."""
         location = self.get_artifact_source(artifact, collection, version).metadata["location"]
@@ -211,11 +186,3 @@ class FileSystemArtifactManager(ArtifactManager):
                 driver_kwargs={"url": str(to), "storage_options": self.backend.storage_options},
                 metadata={"collection": collection, "artifact": artifact, "version": version, "location": str(to)},
             )
-
-    def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
-        """Download all artifacts in collection to local directory."""
-        catalog = self.collection_to_catalog(collection)
-        for artifact in catalog.values():
-            artifact_name = artifact.metadata["artifact"]
-            self.download_artifact(artifact_name, to=to / artifact_name)
-        return catalog
