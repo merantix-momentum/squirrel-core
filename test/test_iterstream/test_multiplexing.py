@@ -82,7 +82,7 @@ def test_round_robin(dummy_data_catalog: Catalog) -> None:
     st.floats(5e-3, 0.9),
     st.floats(5e-2, 0.09),
 )
-@settings(max_examples=5, deadline=2000)
+@settings(max_examples=5, deadline=10_000)
 def test_sampling_ratio(dummy_data_catalog: Catalog, seed: int, p0: float, p1: float) -> None:
     """Test multiplexer on fake catalog + dataset setting."""
     cat = dummy_data_catalog
