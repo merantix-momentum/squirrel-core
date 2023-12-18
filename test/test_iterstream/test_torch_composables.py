@@ -2,7 +2,7 @@ import tempfile
 from functools import partial
 from typing import List, Any
 from unittest import mock
-from collections import namedtuple
+from collections import namedtuple, Counter
 
 import pytest
 import torch
@@ -12,7 +12,7 @@ from squirrel.catalog import Catalog
 from squirrel.driver import MessagepackDriver, IterDriver
 from squirrel.iterstream.iterators import map_
 from squirrel.iterstream.multiplexer import Multiplexer, MultiplexingStrategy
-from squirrel.iterstream.source import IterableSource
+from squirrel.iterstream.source import IterableSource, IterableSamplerSource
 from squirrel.iterstream.torch_composables import SplitByRank, SplitByWorker, TorchIterable, skip_k
 from squirrel.framework.exceptions import PyTorchSplittingException
 
@@ -188,6 +188,26 @@ def test_multi_worker_torch_iterable_async_map(samples: List[int]) -> None:
     out = torch.Tensor(list(dl))
     assert sorted(out.cpu().flatten().numpy().tolist()) == [2 * s for s in samples]
     assert out.size() == (20, 5)
+
+
+@pytest.mark.parametrize("num_workers", [0, 1, 2, 4])
+def test_split_by_worker_in_iterable_sampler_source_is_captured(num_workers: int, samples: List[int]) -> None:
+    """Test that split_by_worker can be captured in an iterable sampler source."""
+    batch_size = 5
+    src_0 = IterableSource(samples).split_by_worker_pytorch()
+    src_1 = IterableSource(samples).split_by_worker_pytorch()
+
+    samp_src = IterableSamplerSource([src_0, src_1])
+
+    dl = tud.DataLoader(
+        samp_src.batched(batch_size, drop_last_if_not_full=False).to_torch_iterable(), num_workers=num_workers
+    )
+
+    out = torch.Tensor(list(dl))
+    cntr = Counter(out.cpu().flatten().long().numpy().tolist())
+    assert sorted(list(cntr.keys())) == samples
+    assert list(cntr.values()) == len(samples) * [2]
+    assert out.size() == (40, 5)
 
 
 @mock.patch("torch.distributed.is_available", mock.MagicMock(return_value=True))
