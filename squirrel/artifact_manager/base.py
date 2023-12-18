@@ -1,9 +1,64 @@
-import re
 from abc import abstractmethod, ABC
+import logging
 from pathlib import Path
-from typing import Optional, List, Any, Iterable
+import re
+import tempfile
+from types import TracebackType
+from typing import Optional, List, Any, Iterable, Type
 
 from squirrel.catalog import Catalog, Source
+
+
+logger = logging.getLogger(__name__)
+
+
+class DirectoryLogger:
+    """
+    Class to be used as a context for logging a directory as an artifact.
+    When entering the scope it creates a local dir with a valid afid and returns the filepath to it.
+    You can then write files to that dir and after exiting the scope the dir gets logged through the artifactmanager.
+    """
+
+    def __init__(self, artifact_manager: "ArtifactManager", artifact: str, collection: Optional[str]) -> None:
+        """
+        Initializes the DirectoryLogger.
+
+        Args:
+            artifact_manager: An artifact manager instance to use for logging the final artifact.
+            artifact: The name of the artifact to log.
+            collection: The name of the collection to log to, if None the active collection of the artifact manager is used.
+        """
+        self.artifact_manager = artifact_manager
+        self.artifact = artifact
+        self.collection = collection
+        self.tempdir = None
+
+    def __enter__(self) -> str:
+        """
+        Called when we enter the context. Creates folder under /tmp with the artifacts id if it doesn't exist yet.
+
+        Returns: Absolute path to artifact folder as str
+        """
+        self.tempdir = tempfile.TemporaryDirectory()
+        return str(Path(self.tempdir.name) / Path(self.artifact))
+
+    def __exit__(
+        self,
+        exctype: Optional[Type[BaseException]] = None,
+        excinst: Optional[BaseException] = None,
+        exctb: Optional[TracebackType] = None,
+    ) -> None:
+        """Called when we exit the context. Logs the artifact folder with mlflow if its not empty."""
+
+        path = Path(self.tempdir.name) / Path(self.artifact)
+        files = [p for p in path.glob("*")]
+        if len(files) > 0:
+            self.artifact_manager.log_files(path, self.artifact, self.collection)
+        else:
+            logger.info(f"Did not log artifact folder at {path} as it seems to be empty")
+
+        if self.tempdir is not None:
+            self.tempdir.cleanup()
 
 
 class ArtifactManager(ABC):
@@ -52,6 +107,11 @@ class ArtifactManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def exists_in_collection(self, artifact: str, collection: Optional[str] = None) -> bool:
+        """Check if artifact exists in specified collection."""
+        raise NotImplementedError
+
+    @abstractmethod
     def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
         """Catalog of all artifacts within a specific collection."""
 
@@ -61,7 +121,7 @@ class ArtifactManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def log_file(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
+    def log_files(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
         """Upload file into (current) collection, increment version automatically"""
         raise NotImplementedError
 
@@ -82,6 +142,10 @@ class ArtifactManager(ABC):
         """Retrieve file (from current collection) to specific location. Retrieve latest version unless specified."""
         raise NotImplementedError
 
+    def exists(self, artifact: str) -> bool:
+        """Check if artifact exists in specified collection."""
+        return any([self.exists_in_collection(artifact, collection) for collection in self.list_collection_names()])
+
     def store_to_catalog(self) -> Catalog:
         """Provide Catalog of all artifacts stored in backend."""
         catalog = Catalog()
@@ -89,23 +153,14 @@ class ArtifactManager(ABC):
             catalog.update(self.collection_to_catalog(collection))
         return catalog
 
-    def log_files(self, local_paths: List[Path], collection: Optional[str] = None) -> Catalog:
-        """Upload a collection of file into a (current) collection"""
-        if collection is None:
-            collection = self.active_collection
-        for local_path in local_paths:
-            self.log_file(local_path, local_path.name, collection)
-        return self.collection_to_catalog(collection)
+    def log_folder(self, artifact: str, collection: Optional[str] = None) -> DirectoryLogger:
+        """
+        Context manager for logging a directory as an artifact.
 
-    def log_folder(self, folder: Path, collection: Optional[str] = None) -> Catalog:
-        """Log folder as collection of artifacts into store"""
-        if not folder.is_dir():
-            raise ValueError(f"Path {folder} is not a directory!")
-
-        if collection is None:
-            collection = folder.name
-
-        return self.log_files([f for f in folder.iterdir() if f.is_file()], collection)
+        When entering the scope it creates a local dir with a valid afid and returns the filepath to it.
+        You can then write files to that dir and after exiting the scope the dir gets logged through the artifactmanager.
+        """
+        return DirectoryLogger(self, artifact, collection)
 
     def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
         """Download all artifacts in collection to local directory."""
