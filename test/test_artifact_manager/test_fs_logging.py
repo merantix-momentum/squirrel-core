@@ -206,3 +206,47 @@ def test_get_file() -> None:
 
     src_dir.cleanup()
     store_dir.cleanup()
+
+
+def test_log_folder() -> None:
+    store_dir = tempfile.TemporaryDirectory()
+    manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
+    collection = "my_collection"
+    test_files = [
+            ("foo.txt", "Test: Foo"),
+            ("bar.txt", "Test: Bar"),
+            ("baz.txt", "Test: Baz"),
+        ]
+    with manager.log_folder("folder", collection) as folder:
+        for (filename, content) in test_files:
+            with open(f"{folder}/{filename}", "w") as file:
+                file.write(content)
+
+    assert manager.exists_in_collection("folder", collection)
+    source = manager.collection_to_catalog(collection)['my_collection/folder']
+    assert source.driver_name == "file"
+    assert source.metadata["collection"] == collection
+    assert source.metadata["artifact"] == "folder"
+    assert source.metadata["version"] == "v0"
+    assert source.metadata["location"] == f"file://{store_dir.name}/{collection}/folder/v0"
+    assert len(list(Path(f"{store_dir.name}/{collection}/folder/v0/files").iterdir())) == 3
+
+    local_dir = tempfile.TemporaryDirectory()
+    manager.download_artifact("folder", collection, "v0", Path(f"{local_dir.name}/downloaded"))
+    for (filename, content) in test_files:
+        with open(f"{local_dir.name}/downloaded/{filename}") as f:
+            assert f.read() == content
+
+    local_dir.cleanup()
+    store_dir.cleanup()
+
+
+def test_exists() -> None:
+    pass
+
+def test_store_to_catalog() -> None:
+    pass
+
+def test_download_collection() -> None:
+    pass
+

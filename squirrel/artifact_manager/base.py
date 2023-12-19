@@ -31,7 +31,7 @@ class DirectoryLogger:
         self.artifact_manager = artifact_manager
         self.artifact = artifact
         self.collection = collection
-        self.tempdir = None
+        self.tempdir = tempfile.TemporaryDirectory()
 
     def __enter__(self) -> str:
         """
@@ -39,8 +39,8 @@ class DirectoryLogger:
 
         Returns: Absolute path to artifact folder as str
         """
-        self.tempdir = tempfile.TemporaryDirectory()
-        return str(Path(self.tempdir.name) / Path(self.artifact))
+        Path(self.tempdir.name, self.artifact).mkdir(exist_ok=False)
+        return str(Path(self.tempdir.name, self.artifact))
 
     def __exit__(
         self,
@@ -53,7 +53,7 @@ class DirectoryLogger:
         path = Path(self.tempdir.name) / Path(self.artifact)
         files = [p for p in path.glob("*")]
         if len(files) > 0:
-            self.artifact_manager.log_files(path, self.artifact, self.collection)
+            self.artifact_manager.log_files(self.artifact, path, self.collection)
         else:
             logger.info(f"Did not log artifact folder at {path} as it seems to be empty")
 
@@ -121,8 +121,22 @@ class ArtifactManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def log_files(self, local_path: Path, name: str, collection: Optional[str] = None) -> Source:
-        """Upload file into (current) collection, increment version automatically"""
+    def log_files(
+            self,
+            artifact_name: str,
+            local_path: Path,
+            collection: Optional[str] = None,
+            artifact_path: Optional[Path] = None
+    ) -> Source:
+        """
+        Upload file into (current) collection, increment version automatically
+
+        Args:
+            artifact_name: Name of artifact to log
+            local_path: Local path to the file or folder to log
+            collection: Name of collection to log to, defaults to the active collection
+            artifact_path: path under which to log the files within the artifact, defaults to "./"
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -164,8 +178,10 @@ class ArtifactManager(ABC):
 
     def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
         """Download all artifacts in collection to local directory."""
+        if collection is None:
+            collection = self.active_collection
         catalog = self.collection_to_catalog(collection)
         for artifact in catalog.values():
             artifact_name = artifact.metadata["artifact"]
-            self.download_artifact(artifact_name, to=to / artifact_name)
+            self.download_artifact(artifact_name, collection, to=to / artifact_name)
         return catalog

@@ -61,7 +61,7 @@ class ArtifactFileStore(FilesystemStore):
         if isinstance(value, Path):
             target = Path(self.url, key, "files", open_kwargs.pop("suffix", ""))
         else:
-            target = Path(self.url, key, Serializers[self.serializer.__class__], open_kwargs.pop("suffix"))
+            target = Path(self.url, key, Serializers[self.serializer.__class__], open_kwargs.pop("suffix", ""))
 
         if self.fs.exists(target, **open_kwargs):
             raise ValueError(f"Key {key} already exists!")
