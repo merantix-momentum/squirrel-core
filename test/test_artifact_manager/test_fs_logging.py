@@ -190,7 +190,7 @@ def test_get_file() -> None:
 
         manager.log_files(artifact_name, Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
 
-    source = manager.log_files("folder", Path(src_dir.name), collection)
+    manager.log_files("folder", Path(src_dir.name), collection)
 
     # Test retrieval of specific files
     for (filename, artifact_name, version, content) in file_descriptions:

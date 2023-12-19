@@ -40,12 +40,11 @@ class ArtifactFileStore(FilesystemStore):
             return super().get(str(Path(key, Serializers[self.serializer.__class__])), mode, **open_kwargs)
         elif self.fs.exists(Path(self.url, key, "files"), **open_kwargs):
             if "target" in open_kwargs:
-                if not open_kwargs["target"].exists():
-                    open_kwargs["target"].mkdir(parents=True)
                 self.fs.cp(
                     str(Path(self.url, key, "files/*")),
                     str(open_kwargs.pop("target")),
                     recursive=True,
+                    mkdirs=True,
                     **open_kwargs
                 )
             # retrieve raw file
@@ -187,6 +186,6 @@ class FileSystemArtifactManager(ArtifactManager):
         self.backend.get(Path(location), target=to)
         return Source(
             driver_name="file",
-            driver_kwargs={"url": str(to), "storage_options": self.backend.storage_options},
+            driver_kwargs={"url": str(to)},
             metadata={"collection": collection, "artifact": artifact, "version": version, "location": str(to)},
         )

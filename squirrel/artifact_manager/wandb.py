@@ -71,7 +71,8 @@ class WandbArtifactManager(ArtifactManager):
         if collection is None:
             collection = self.active_collection
         if version is None:
-            version = "latest"
+            versions = [instance.version for instance in wandb.Api().artifact_versions(type_name=collection, name=f"{self.project}/{artifact}")]
+            version = f"v{max([int(v[1:]) for v in versions])}"
 
         return Source(
             driver_name="wandb",

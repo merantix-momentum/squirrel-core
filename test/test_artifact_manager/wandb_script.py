@@ -1,51 +1,53 @@
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
 import tempfile
 import wandb
 from squirrel.artifact_manager.wandb import WandbArtifactManager
 
-
-tbl_data = pd.DataFrame({"users": ["geoff", "juergen", "ada"], "feature_01": [1, 117, 42]})
-tbl = wandb.Table(data=tbl_data)
-
-pixels = np.random.randint(low=0, high=256, size=(100, 100, 3))
-image = wandb.Image(pixels, caption=f"random field")
-
-localdir = tempfile.TemporaryDirectory()
-tbl_data.to_csv(f"{localdir.name}/tbl")
-pixels.dump(f"{localdir.name}/image")
+src_dir = tempfile.TemporaryDirectory()
 
 test_run = wandb.init(project="sebastian-sandbox")
-
 artifact_manager = WandbArtifactManager(project="sebastian-sandbox")
-# src1 = artifact_manager.log_artifact(tbl, "tbl", collection="test_objects")
-# assert src1.metadata["collection"] == "test_objects"
-# assert src1.metadata["artifact"] == "tbl"
-# assert src1.metadata["version"] == "v0", f"First version should be v1, but is {src1.metadata['version']}"
-# assert src1.metadata["location"] == Path("https://merantix-momentum.wandb.io/mxm/sebastian-sandbox/test_objects/tbl/v0"), \
-#     f"Location is {src1.metadata['location']}"
-#
-# src2 = artifact_manager.log_artifact(image, "random_field", collection="test_data")
-# assert src2.metadata["collection"] == "test_data"
-# assert src2.metadata["artifact"] == "random_field", f"Name should be random_field, but is {src2.metadata['artifact']}"
-# assert src2.metadata["version"] == "v0", f"First version should be v0, but is {src2.metadata['version']}"
-# assert src2.metadata["location"] == Path("https://merantix-momentum.wandb.io/mxm/sebastian-sandbox/test_data/random_field/v0")
-#
-# catalog = artifact_manager.log_folder(Path(localdir.name), "test_objects")
-# assert len(catalog) == 2, f"Catalog is {catalog}"
-# assert "test_objects/tbl" in catalog and "test_objects/image" in catalog, f"Catalog is {catalog}"
-# assert catalog["test_objects/tbl"].metadata["version"] == "v1", f"Catalog entry is {catalog['test_objects/tbl']}"
-# assert catalog["test_objects/image"].metadata["version"] == "v0", f"Catalog entry is {catalog['test_objects/image']}"
+collection = "test_objects"
 
-assert artifact_manager.get_artifact("tbl", collection="test_objects", version="v0") == tbl, artifact_manager.get_artifact("tbl", collection="test_objects")
-assert (
-        np.array(artifact_manager.get_artifact("random_field", collection="test_data").image.getdata())
-        .reshape((100,100,3)) == pixels),\
-    artifact_manager.get_artifact("random_field", collection="test_data")
+file_descriptions = [
+    ("foo.txt", "foo_file", "v0", "Test: Foo"),
+    ("bar.txt", "bar_file", "v0", "Test: Bar"),
+    ("baz.txt", "bar_file", "v1", "Test: Baz"),
+]
 
-artifact_manager.download_collection(collection="test_objects", to=Path(localdir.name, "recovered"))
+for (filename, artifact_name, version, content) in file_descriptions:
+    with open(f"{src_dir.name}/{filename}", "w") as f:
+        f.write(content)
+
+    source = artifact_manager.log_files(artifact_name, Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
+
+    assert source.driver_name == "wandb"
+    assert source.metadata["collection"] == collection, f"Value {source.metadata['collection']} should be {collection}"
+    assert source.metadata["artifact"] == artifact_name, f"Value {source.metadata['artifact']} should be {artifact_name}"
+    assert source.metadata["version"] == version, f"Value {source.metadata['version']} should be {version}"
+
+# test logging of folder
+source = artifact_manager.log_files("folder", Path(src_dir.name), collection)
+
+assert source.driver_name == "wandb"
+assert source.metadata["collection"] == collection, f"Value {source.metadata['collection']} should be {collection}"
+assert source.metadata["artifact"] == "folder", f"Value {source.metadata['artifact']} should be {artifact_name}"
+assert source.metadata["version"] == "v0", f"Value {source.metadata['version']} should be {version}"
+
+
+# Test retrieval of specific files
+for (filename, artifact_name, version, content) in file_descriptions:
+    artifact_manager.download_artifact(artifact_name, collection, version, Path(f"{src_dir.name}/downloaded"))
+    with open(f"{src_dir.name}/downloaded/{filename}") as f:
+        assert f.read() == content
+
+# Test retrieval of entire folder
+artifact_manager.download_artifact("folder", collection, "v0", Path(f"{src_dir.name}/downloaded2"))
+for (filename, artifact_name, version, content) in file_descriptions:
+    with open(f"{src_dir.name}/downloaded2/{filename}") as f:
+        assert f.read() == content
+
 
 wandb.finish()
-localdir.cleanup()
+src_dir.cleanup()
