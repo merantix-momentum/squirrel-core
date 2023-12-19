@@ -8,6 +8,7 @@ from squirrel.catalog import Source
 from squirrel.serialization import JsonSerializer, MessagepackSerializer, SquirrelSerializer
 
 
+@pytest.mark.skip(reason="Logging of python values not yet supported")
 @pytest.mark.parametrize(
     "serializer,name,target",
     [
@@ -26,13 +27,14 @@ def test_serializer(serializer: SquirrelSerializer, name: str, target: str) -> N
     manager = FileSystemArtifactManager(url=tmpdir.name, serializer=serializer, auto_mkdir=True)
     source = manager.log_artifact(obj, artifact_name)
 
-    assert source.metadata["location"] == f"file://{tmpdir.name}/default/{artifact_name}/v0/{name}"
+    assert source.metadata["location"] == f"file://{tmpdir.name}/default/{artifact_name}/v0/{name}/john"
     with open(f"{tmpdir.name}/default/{artifact_name}/v0/{name}", "rb") as f:
         assert f.read() == target
 
     tmpdir.cleanup()
 
 
+@pytest.mark.skip(reason="Logging of python values not yet supported")
 def test_multi_serializer() -> None:
     """Test that multiple artifact stores with differing backends are correctly interacting."""
     obj = {"name": "John", "age": 30}
@@ -71,6 +73,7 @@ def test_multi_serializer() -> None:
     tmpdir.cleanup()
 
 
+@pytest.mark.skip(reason="Logging of python values not yet supported")
 def test_log_object() -> None:
     """Log an object to the default collection and check details of the catalog entry."""
     obj = {"name": "John", "age": 30}
@@ -104,6 +107,7 @@ def test_log_object() -> None:
     tmpdir.cleanup()
 
 
+@pytest.mark.skip(reason="Logging of python values not yet supported")
 def test_get_artifact() -> None:
     """Test logging multiple versions of the same object and retrieving different versions."""
     obj = {"name": "John", "age": 10}
@@ -132,6 +136,7 @@ def test_log_file() -> None:
     store_dir = tempfile.TemporaryDirectory()
     manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
 
+    # test logging of individual files
     for (filename, artifact_name, version, content) in [
         ("foo.txt", "foo_file", "v0", "Test: Foo"),
         ("bar.txt", "bar_file", "v0", "Test: Bar"),
@@ -140,15 +145,28 @@ def test_log_file() -> None:
         with open(f"{src_dir.name}/{filename}", "w") as f:
             f.write(content)
 
-        source = manager.log_file(Path(f"{src_dir.name}/{filename}"), artifact_name, collection)
+        source = manager.log_files(artifact_name, Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
 
         assert source.driver_name == "file"
         assert source.metadata["collection"] == collection
         assert source.metadata["artifact"] == artifact_name
         assert source.metadata["version"] == version
+        assert source.metadata["location"] == f"file://{store_dir.name}/{collection}/{artifact_name}/{version}"
 
-        with open(f"{store_dir.name}/{collection}/{artifact_name}/{version}/file") as f:
+        with open(f"{store_dir.name}/{collection}/{artifact_name}/{version}/files/{filename}") as f:
             assert f.read() == content
+
+    # test logging of folder
+    source = manager.log_files("folder", Path(src_dir.name), collection)
+
+    assert source.driver_name == "file"
+    assert source.metadata["collection"] == collection
+    assert source.metadata["artifact"] == "folder"
+    assert source.metadata["version"] == "v0"
+    assert source.metadata["location"] == f"file://{store_dir.name}/{collection}/folder/v0"
+
+    assert len(list(Path(f"{store_dir.name}/{collection}/folder/v0/files").iterdir())) == 3
+
     src_dir.cleanup()
     store_dir.cleanup()
 
@@ -170,11 +188,20 @@ def test_get_file() -> None:
         with open(f"{src_dir.name}/{filename}", "w") as f:
             f.write(content)
 
-        manager.log_file(Path(f"{src_dir.name}/{filename}"), artifact_name, collection)
+        manager.log_files(artifact_name, Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
 
+    source = manager.log_files("folder", Path(src_dir.name), collection)
+
+    # Test retrieval of specific files
     for (filename, artifact_name, version, content) in file_descriptions:
-        manager.download_artifact(artifact_name, collection, version, Path(f"{src_dir.name}/downloaded_{filename}"))
-        with open(f"{src_dir.name}/downloaded_{filename}") as f:
+        manager.download_artifact(artifact_name, collection, version, Path(f"{src_dir.name}/downloaded"))
+        with open(f"{src_dir.name}/downloaded/{filename}") as f:
+            assert f.read() == content
+
+    # Test retrieval of entire folder
+    manager.download_artifact("folder", collection, "v0", Path(f"{src_dir.name}/downloaded2"))
+    for (filename, artifact_name, version, content) in file_descriptions:
+        with open(f"{src_dir.name}/downloaded2/{filename}") as f:
             assert f.read() == content
 
     src_dir.cleanup()

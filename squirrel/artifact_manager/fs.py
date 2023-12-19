@@ -36,9 +36,21 @@ class ArtifactFileStore(FilesystemStore):
     def get(self, key: Path, mode: str = "rb", **open_kwargs) -> Any:
         """Retrieves an item with the given key."""
         if self.fs.exists(Path(self.url, key, Serializers[self.serializer.__class__]), **open_kwargs):
+            # retrieve and deserialize data
             return super().get(str(Path(key, Serializers[self.serializer.__class__])), mode, **open_kwargs)
         elif self.fs.exists(Path(self.url, key, "files"), **open_kwargs):
-            return self.fs.cat(Path(self.url, key, "files"), **open_kwargs)
+            if "target" in open_kwargs:
+                if not open_kwargs["target"].exists():
+                    open_kwargs["target"].mkdir(parents=True)
+                self.fs.cp(
+                    str(Path(self.url, key, "files/*")),
+                    str(open_kwargs.pop("target")),
+                    recursive=True,
+                    **open_kwargs
+                )
+            # retrieve raw file
+            else:
+                return self.fs.cat(Path(self.url, key, "files"), **open_kwargs)
         else:
             raise ValueError(f"Key {key} does not exist!")
 
@@ -47,16 +59,19 @@ class ArtifactFileStore(FilesystemStore):
         if key is None:
             key = get_random_key()
         # construct path under which to store the data
-        target = Path(self.url, key, Serializers.get(self.serializer.__class__, "files"), open_kwargs.pop("suffix"))
+        if isinstance(value, Path):
+            target = Path(self.url, key, "files", open_kwargs.pop("suffix", ""))
+        else:
+            target = Path(self.url, key, Serializers[self.serializer.__class__], open_kwargs.pop("suffix"))
 
         if self.fs.exists(target, **open_kwargs):
             raise ValueError(f"Key {key} already exists!")
 
         if isinstance(value, Path):
             if value.is_dir():
-                self.fs.cp_dir(value, target, **open_kwargs)
+                self.fs.cp(str(value), str(target), recursive=True, **open_kwargs)
             else:
-                self.fs.cp_file(value, target, mode, **open_kwargs)
+                self.fs.cp_file(value, target, **open_kwargs)
         else:
             super().set(value, str(target), mode, **open_kwargs)
 
@@ -157,10 +172,10 @@ class FileSystemArtifactManager(ArtifactManager):
 
         version = f"v{len(self.backend.complete_key(Path(collection, artifact_name)))}"
 
-        if artifact_path is None:
-            artifact_path = Path(local_path)
-
-        self.backend.set(local_path, Path(collection, artifact_name, version), suffix=artifact_path)
+        open_kwargs = {"auto_mkdir": True}
+        if artifact_path is not None:
+            open_kwargs["suffix"] = artifact_path
+        self.backend.set(local_path, Path(collection, artifact_name, version), **open_kwargs)
 
         return self.get_artifact_source(artifact_name, collection)
 
@@ -168,11 +183,10 @@ class FileSystemArtifactManager(ArtifactManager):
         self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = "./"
     ) -> Source:
         """Download artifact to local path."""
-        location = self.get_artifact_source(artifact, collection, version).metadata["location"]
-        if self.backend.fs.exists(location):
-            self.backend.fs.cp(Path(location, "files"), to)
-            return Source(
-                driver_name="file",
-                driver_kwargs={"url": str(to), "storage_options": self.backend.storage_options},
-                metadata={"collection": collection, "artifact": artifact, "version": version, "location": str(to)},
-            )
+        location = Path(collection, artifact, version)
+        self.backend.get(Path(location), target=to)
+        return Source(
+            driver_name="file",
+            driver_kwargs={"url": str(to), "storage_options": self.backend.storage_options},
+            metadata={"collection": collection, "artifact": artifact, "version": version, "location": str(to)},
+        )
