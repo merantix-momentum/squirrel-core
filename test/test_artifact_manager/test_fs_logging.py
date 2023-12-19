@@ -171,6 +171,39 @@ def test_log_file() -> None:
     store_dir.cleanup()
 
 
+def test_exists() -> None:
+    test_files = {
+        "my_collection": ["foo.txt", "bar.txt"],
+        "default": ["baz.txt"],
+    }
+
+    src_dir = tempfile.TemporaryDirectory()
+    store_dir = tempfile.TemporaryDirectory()
+    manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
+
+    for collection in test_files:
+        for filename in test_files[collection]:
+            with open(f"{src_dir.name}/{filename}", "w") as f:
+                f.write("Test")
+
+            manager.log_files(filename[:3], Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
+
+    assert manager.exists("foo")
+    assert manager.exists("bar")
+    assert manager.exists("baz")
+
+    assert manager.exists_in_collection("foo", "my_collection")
+    assert manager.exists_in_collection("bar", "my_collection")
+    assert not manager.exists_in_collection("baz", "my_collection")
+
+    assert not manager.exists_in_collection("foo", "default")
+    assert not manager.exists_in_collection("bar", "default")
+    assert manager.exists_in_collection("baz", "default")
+
+    src_dir.cleanup()
+    store_dir.cleanup()
+
+
 def test_get_file() -> None:
     """Test retrieval of logged files from the artifact store."""
     src_dir = tempfile.TemporaryDirectory()
@@ -241,12 +274,66 @@ def test_log_folder() -> None:
     store_dir.cleanup()
 
 
-def test_exists() -> None:
-    pass
-
 def test_store_to_catalog() -> None:
-    pass
+    test_files = {
+        "my_collection": ["foo.txt", "bar.txt"],
+        "default": ["baz.txt"],
+    }
+
+    src_dir = tempfile.TemporaryDirectory()
+    store_dir = tempfile.TemporaryDirectory()
+    manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
+
+    for collection in test_files:
+        for filename in test_files[collection]:
+            with open(f"{src_dir.name}/{filename}", "w") as f:
+                f.write("Test")
+
+            manager.log_files(filename[:3], Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
+
+    collection_catalog = manager.collection_to_catalog("my_collection")
+    assert len(collection_catalog) == 2
+    assert "my_collection/foo" in collection_catalog
+    assert "my_collection/bar" in collection_catalog
+
+    default_catalog = manager.collection_to_catalog()
+    assert len(default_catalog) == 1
+    assert "default/baz" in default_catalog
+
+    catalog = manager.store_to_catalog()
+    assert len(catalog) == 3
+    assert "my_collection/foo" in catalog
+    assert "my_collection/bar" in catalog
+    assert "default/baz" in catalog
+
+    src_dir.cleanup()
+    store_dir.cleanup()
+
 
 def test_download_collection() -> None:
-    pass
+    test_files = {
+        "my_collection": ["foo.txt", "bar.txt"],
+        "default": ["baz.txt"],
+    }
+
+    src_dir = tempfile.TemporaryDirectory()
+    store_dir = tempfile.TemporaryDirectory()
+    manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
+
+    for collection in test_files:
+        for filename in test_files[collection]:
+            with open(f"{src_dir.name}/{filename}", "w") as f:
+                f.write("Test")
+
+            manager.log_files(filename[:3], Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
+
+    manager.download_collection("my_collection", Path(src_dir.name, "downloaded/my_collection"))
+    manager.download_collection("default", Path(src_dir.name, "downloaded/default"))
+    for collection in test_files:
+        for filename in test_files[collection]:
+            with open(f"{src_dir.name}/downloaded/{collection}/{filename[:3]}/{filename}") as f:
+                assert f.read() == "Test"
+
+    src_dir.cleanup()
+    store_dir.cleanup()
 

@@ -179,13 +179,17 @@ class FileSystemArtifactManager(ArtifactManager):
         return self.get_artifact_source(artifact_name, collection)
 
     def download_artifact(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = "./"
+        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = Path("./")
     ) -> Source:
         """Download artifact to local path."""
+        if collection is None:
+            collection = self.active_collection
+        if version is None or version == "latest":
+            version = f"v{max(int(vs[1:]) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))}"
         location = Path(collection, artifact, version)
         self.backend.get(Path(location), target=to)
         return Source(
             driver_name="file",
-            driver_kwargs={"url": str(to)},
-            metadata={"collection": collection, "artifact": artifact, "version": version, "location": str(to)},
+            driver_kwargs={"url": str(Path(to, artifact))},
+            metadata={"collection": collection, "artifact": artifact, "version": version, "location": str(Path(to, artifact))},
         )

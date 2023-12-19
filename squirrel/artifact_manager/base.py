@@ -7,7 +7,7 @@ from types import TracebackType
 from typing import Optional, List, Any, Iterable, Type
 
 from squirrel.catalog import Catalog, Source
-
+from squirrel.catalog.catalog import CatalogSource
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +164,7 @@ class ArtifactManager(ABC):
         """Provide Catalog of all artifacts stored in backend."""
         catalog = Catalog()
         for collection in self.list_collection_names():
-            catalog.update(self.collection_to_catalog(collection))
+            catalog = catalog.union(self.collection_to_catalog(collection))
         return catalog
 
     def log_folder(self, artifact: str, collection: Optional[str] = None) -> DirectoryLogger:
@@ -181,7 +181,7 @@ class ArtifactManager(ABC):
         if collection is None:
             collection = self.active_collection
         catalog = self.collection_to_catalog(collection)
-        for artifact in catalog.values():
+        for _, artifact in catalog:
             artifact_name = artifact.metadata["artifact"]
             self.download_artifact(artifact_name, collection, to=to / artifact_name)
         return catalog
