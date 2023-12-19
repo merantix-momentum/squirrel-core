@@ -47,12 +47,9 @@ class WandbArtifactManager(ArtifactManager):
 
         Collections correspond to Wandb artifact types.
         """
-        return itertools.chain(
-            *[
-                [artifact.name for artifact in collection.collections()]
-                for collection in wandb.Api().artifact_types(project=self.project)
-            ]
-        )
+        return [
+                collection.name for collection in wandb.Api().artifact_types(project=self.project)
+        ]
 
     def exists_in_collection(self, artifact: str, collection: Optional[str] = None) -> bool:
         """
@@ -62,7 +59,9 @@ class WandbArtifactManager(ArtifactManager):
         """
         if collection is None:
             collection = self.active_collection
-        return artifact in [artifact.name for artifact in wandb.Api().artifact_type(type_name=collection).collections()]
+        if collection not in self.list_collection_names():
+            return False
+        return artifact in [artifact.name for artifact in wandb.Api().artifact_type(type_name=collection, project=self.project).collections()]
 
     def get_artifact_source(
         self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None
@@ -93,9 +92,9 @@ class WandbArtifactManager(ArtifactManager):
                 "collection": collection,
                 "artifact": artifact,
                 "version": version,
-                "location": Path(
+                "location": str(Path(
                     wandb.Api().settings["base_url"], self.entity, self.project, collection, artifact, version
-                ),
+                )),
             },
         )
 
@@ -103,6 +102,8 @@ class WandbArtifactManager(ArtifactManager):
         """Construct a catalog listing artifacts within a specific collection."""
         if collection is None:
             collection = self._active_collection
+        if collection not in self.list_collection_names():
+            raise ValueError(f"Collection {collection} does not exist.")
         artifact_names = [
             artifact.name
             for artifact in wandb.Api().artifact_type(type_name=collection, project=self.project).collections()
