@@ -1,3 +1,7 @@
+"""
+Test script for the wandb artifact manager implementation. This is merely a substitute for a proper test suite until we
+can figure out how to best mock the wandb API.
+"""
 from pathlib import Path
 
 import tempfile
