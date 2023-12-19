@@ -45,7 +45,7 @@ class ArtifactFileStore(FilesystemStore):
                     str(open_kwargs.pop("target")),
                     recursive=True,
                     mkdirs=True,
-                    **open_kwargs
+                    **open_kwargs,
                 )
             # retrieve raw file
             else:
@@ -76,7 +76,6 @@ class ArtifactFileStore(FilesystemStore):
 
 
 class FileSystemArtifactManager(ArtifactManager):
-
     def __init__(self, url: str, serializer: Optional[SquirrelSerializer] = None, **fs_kwargs):
         """
         Artifactmanager backed by fsspec filesystems.
@@ -142,22 +141,26 @@ class FileSystemArtifactManager(ArtifactManager):
 
     def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
         """Log an arbitrary python object using store serialisation."""
-        raise NotImplementedError("Logging and retrieving python objects is not yet supported. Please serialize your"
-                                  "objects and log resulting files with 'log_file' or 'log_folder'.")
+        raise NotImplementedError(
+            "Logging and retrieving python objects is not yet supported. Please serialize your"
+            "objects and log resulting files with 'log_file' or 'log_folder'."
+        )
         # Implementation for logging python objects can make use of
         # self.backend.set(obj, Path(collection, name, version))
 
     def get_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None) -> Any:
         """Retrieve specific artifact value."""
-        raise NotImplementedError("Logging and retrieving python objects is not yet supported. Please serialize your"
-                                  "objects and retrieve the logged files with 'download_artifact' instead.")
+        raise NotImplementedError(
+            "Logging and retrieving python objects is not yet supported. Please serialize your"
+            "objects and retrieve the logged files with 'download_artifact' instead."
+        )
 
     def log_files(
-            self,
-            artifact_name: str,
-            local_path: Path,
-            collection: Optional[str] = None,
-            artifact_path: Optional[Path] = None
+        self,
+        artifact_name: str,
+        local_path: Path,
+        collection: Optional[str] = None,
+        artifact_path: Optional[Path] = None,
     ) -> Source:
         """Upload local file or folder to artifact store without serialisation"""
         if not isinstance(local_path, (str, Path)):
@@ -179,17 +182,24 @@ class FileSystemArtifactManager(ArtifactManager):
         return self.get_artifact_source(artifact_name, collection)
 
     def download_artifact(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = Path("./")
+        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = "./"
     ) -> Source:
         """Download artifact to local path."""
         if collection is None:
             collection = self.active_collection
         if version is None or version == "latest":
             version = f"v{max(int(vs[1:]) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))}"
+        if isinstance(to, str):
+            to = Path(to)
         location = Path(collection, artifact, version)
         self.backend.get(Path(location), target=to)
         return Source(
             driver_name="file",
             driver_kwargs={"url": str(Path(to, artifact))},
-            metadata={"collection": collection, "artifact": artifact, "version": version, "location": str(Path(to, artifact))},
+            metadata={
+                "collection": collection,
+                "artifact": artifact,
+                "version": version,
+                "location": str(Path(to, artifact)),
+            },
         )

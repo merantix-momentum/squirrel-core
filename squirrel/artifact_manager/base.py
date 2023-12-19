@@ -4,10 +4,9 @@ from pathlib import Path
 import re
 import tempfile
 from types import TracebackType
-from typing import Optional, List, Any, Iterable, Type
+from typing import Optional, Any, Iterable, Type
 
 from squirrel.catalog import Catalog, Source
-from squirrel.catalog.catalog import CatalogSource
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ class DirectoryLogger:
     """
     Class to be used as a context for logging a directory as an artifact.
     When entering the scope it creates a local dir with a valid afid and returns the filepath to it.
-    You can then write files to that dir and after exiting the scope the dir gets logged through the artifactmanager.
+    You can then write files to that dir and after exiting the scope the dir gets logged through the artifact manager.
     """
 
     def __init__(self, artifact_manager: "ArtifactManager", artifact: str, collection: Optional[str]) -> None:
@@ -26,7 +25,7 @@ class DirectoryLogger:
         Args:
             artifact_manager: An artifact manager instance to use for logging the final artifact.
             artifact: The name of the artifact to log.
-            collection: The name of the collection to log to, if None the active collection of the artifact manager is used.
+            collection: The name of the collection to log to, defaults to the active collection of the artifact manager.
         """
         self.artifact_manager = artifact_manager
         self.artifact = artifact
@@ -35,7 +34,7 @@ class DirectoryLogger:
 
     def __enter__(self) -> str:
         """
-        Called when we enter the context. Creates folder under /tmp with the artifacts id if it doesn't exist yet.
+        Called when entering the context. Creates folder under /tmp with the artifacts id if it doesn't exist yet.
 
         Returns: Absolute path to artifact folder as str
         """
@@ -48,14 +47,14 @@ class DirectoryLogger:
         excinst: Optional[BaseException] = None,
         exctb: Optional[TracebackType] = None,
     ) -> None:
-        """Called when we exit the context. Logs the artifact folder with mlflow if its not empty."""
+        """Called when exiting the context. Logs the artifact folder if it's not empty."""
 
         path = Path(self.tempdir.name) / Path(self.artifact)
         files = [p for p in path.glob("*")]
         if len(files) > 0:
             self.artifact_manager.log_files(self.artifact, path, self.collection)
         else:
-            logger.info(f"Did not log artifact folder at {path} as it seems to be empty")
+            logger.info(f"Did not log artifact folder at {path} as it seems to be empty.")
 
         if self.tempdir is not None:
             self.tempdir.cleanup()
@@ -63,12 +62,7 @@ class DirectoryLogger:
 
 class ArtifactManager(ABC):
     def __init__(self):
-        """
-        Artifact manager interface for various backends
-
-        Maintains a mapping of artifact names to backend objects to facilitate logging and retrieval of arbitrary
-        artifacts.
-        """
+        """Artifact manager interface for various backends."""
         self._active_collection = "default"
 
     @property
@@ -79,8 +73,8 @@ class ArtifactManager(ABC):
         It is ultimately up to the user how to structure their artifact store and the collections therein. All
         operations accessing artifacts allow explicit specification of the collection to use.
         Therefore, users could use collections to separate different artifact types or different experiments / runs.
-        To facilitate the latter use case in particular, the manager maintains an 'active' collection which it logs to
-        by default. This can be set once at the run start when the manager is initialized and then left unchanged.
+        The manager maintains an 'active' collection which it logs to by default. This can be set at the run start
+        when the manager is initialized and then remain unchanged for the duration of the run.
 
         To avoid incompatibility between different backends, collections cannot be nested (e.g. as subfolders on a
         filesystem) as in particular the WandB backend has no real notion of nested folder structures.
@@ -92,7 +86,7 @@ class ArtifactManager(ABC):
         """
         Sets the active collections that is being logged to by default.
 
-        The provided values is verified to ensure that no nested collections are used.
+        The provided value is verified to ensure that no nested collections are used.
         """
         if not re.match(r"^[a-zA-Z0-9\-_:]+$", value):
             raise ValueError(
@@ -122,14 +116,14 @@ class ArtifactManager(ABC):
 
     @abstractmethod
     def log_files(
-            self,
-            artifact_name: str,
-            local_path: Path,
-            collection: Optional[str] = None,
-            artifact_path: Optional[Path] = None
+        self,
+        artifact_name: str,
+        local_path: Path,
+        collection: Optional[str] = None,
+        artifact_path: Optional[Path] = None,
     ) -> Source:
         """
-        Upload file into (current) collection, increment version automatically
+        Upload a file or folder into (current) collection, increment version automatically
 
         Args:
             artifact_name: Name of artifact to log
@@ -168,12 +162,7 @@ class ArtifactManager(ABC):
         return catalog
 
     def log_folder(self, artifact: str, collection: Optional[str] = None) -> DirectoryLogger:
-        """
-        Context manager for logging a directory as an artifact.
-
-        When entering the scope it creates a local dir with a valid afid and returns the filepath to it.
-        You can then write files to that dir and after exiting the scope the dir gets logged through the artifactmanager.
-        """
+        """Create a context manager for logging a directory of files as a single artifact."""
         return DirectoryLogger(self, artifact, collection)
 
     def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:

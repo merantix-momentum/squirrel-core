@@ -24,7 +24,9 @@ for (filename, artifact_name, version, content) in file_descriptions:
 
     assert source.driver_name == "wandb"
     assert source.metadata["collection"] == collection, f"Value {source.metadata['collection']} should be {collection}"
-    assert source.metadata["artifact"] == artifact_name, f"Value {source.metadata['artifact']} should be {artifact_name}"
+    assert (
+        source.metadata["artifact"] == artifact_name
+    ), f"Value {source.metadata['artifact']} should be {artifact_name}"
     assert source.metadata["version"] == version, f"Value {source.metadata['version']} should be {version}"
 
 # test logging of folder
@@ -44,7 +46,7 @@ for (filename, artifact_name, version, content) in file_descriptions:
 
 # Test retrieval of entire folder
 artifact_manager.download_artifact("folder", collection, "v0", Path(f"{src_dir.name}/downloaded2"))
-for (filename, artifact_name, version, content) in file_descriptions:
+for (filename, _, _, content) in file_descriptions:
     with open(f"{src_dir.name}/downloaded2/{filename}") as f:
         assert f.read() == content
 
@@ -72,7 +74,7 @@ with artifact_manager.log_folder("test_folder", collection) as folder:
             file.write(content)
 
 assert artifact_manager.exists_in_collection("test_folder", collection)
-source = artifact_manager.collection_to_catalog(collection)[f'{collection}/test_folder']
+source = artifact_manager.collection_to_catalog(collection)[f"{collection}/test_folder"]
 assert source.driver_name == "wandb"
 assert source.metadata["collection"] == collection
 assert source.metadata["artifact"] == "test_folder"
@@ -86,7 +88,7 @@ for (filename, _, _, content) in file_descriptions:
 
 # test download collection
 artifact_manager.download_collection(collection, Path(src_dir.name, "my_collection"))
-for (filename, artifact_name, _, content) in file_descriptions:
+for (filename, _, _, content) in file_descriptions:
     with open(f"{src_dir.name}/my_collection/test_folder/{filename}") as f:
         assert f.read() == content
 with open(f"{src_dir.name}/my_collection/foo/foo.txt") as f:

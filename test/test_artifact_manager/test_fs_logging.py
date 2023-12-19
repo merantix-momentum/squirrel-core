@@ -172,6 +172,7 @@ def test_log_file() -> None:
 
 
 def test_exists() -> None:
+    """Test existence checks for artifacts in the artifact store."""
     test_files = {
         "my_collection": ["foo.txt", "bar.txt"],
         "default": ["baz.txt"],
@@ -233,7 +234,7 @@ def test_get_file() -> None:
 
     # Test retrieval of entire folder
     manager.download_artifact("folder", collection, "v0", Path(f"{src_dir.name}/downloaded2"))
-    for (filename, artifact_name, version, content) in file_descriptions:
+    for (filename, _, _, content) in file_descriptions:
         with open(f"{src_dir.name}/downloaded2/{filename}") as f:
             assert f.read() == content
 
@@ -242,21 +243,22 @@ def test_get_file() -> None:
 
 
 def test_log_folder() -> None:
+    """Test logging of folders using the context manager provided by the artifact store."""
     store_dir = tempfile.TemporaryDirectory()
     manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
     collection = "my_collection"
     test_files = [
-            ("foo.txt", "Test: Foo"),
-            ("bar.txt", "Test: Bar"),
-            ("baz.txt", "Test: Baz"),
-        ]
+        ("foo.txt", "Test: Foo"),
+        ("bar.txt", "Test: Bar"),
+        ("baz.txt", "Test: Baz"),
+    ]
     with manager.log_folder("folder", collection) as folder:
         for (filename, content) in test_files:
             with open(f"{folder}/{filename}", "w") as file:
                 file.write(content)
 
     assert manager.exists_in_collection("folder", collection)
-    source = manager.collection_to_catalog(collection)['my_collection/folder']
+    source = manager.collection_to_catalog(collection)["my_collection/folder"]
     assert source.driver_name == "file"
     assert source.metadata["collection"] == collection
     assert source.metadata["artifact"] == "folder"
@@ -275,6 +277,7 @@ def test_log_folder() -> None:
 
 
 def test_store_to_catalog() -> None:
+    """Test retrieval of catalog description of artifacts stored in the artifact store."""
     test_files = {
         "my_collection": ["foo.txt", "bar.txt"],
         "default": ["baz.txt"],
@@ -311,6 +314,7 @@ def test_store_to_catalog() -> None:
 
 
 def test_download_collection() -> None:
+    """Test retrieval of an entire collection from the artifact store."""
     test_files = {
         "my_collection": ["foo.txt", "bar.txt"],
         "default": ["baz.txt"],
@@ -336,4 +340,3 @@ def test_download_collection() -> None:
 
     src_dir.cleanup()
     store_dir.cleanup()
-

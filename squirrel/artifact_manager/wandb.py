@@ -1,4 +1,3 @@
-import itertools
 from pathlib import Path
 from typing import Optional, Any, Iterable
 
@@ -47,9 +46,7 @@ class WandbArtifactManager(ArtifactManager):
 
         Collections correspond to Wandb artifact types.
         """
-        return [
-                collection.name for collection in wandb.Api().artifact_types(project=self.project)
-        ]
+        return [collection.name for collection in wandb.Api().artifact_types(project=self.project)]
 
     def exists_in_collection(self, artifact: str, collection: Optional[str] = None) -> bool:
         """
@@ -61,7 +58,10 @@ class WandbArtifactManager(ArtifactManager):
             collection = self.active_collection
         if collection not in self.list_collection_names():
             return False
-        return artifact in [artifact.name for artifact in wandb.Api().artifact_type(type_name=collection, project=self.project).collections()]
+        return artifact in [
+            artifact.name
+            for artifact in wandb.Api().artifact_type(type_name=collection, project=self.project).collections()
+        ]
 
     def get_artifact_source(
         self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None
@@ -70,7 +70,10 @@ class WandbArtifactManager(ArtifactManager):
         if collection is None:
             collection = self.active_collection
         if version is None:
-            versions = [instance.version for instance in wandb.Api().artifact_versions(type_name=collection, name=f"{self.project}/{artifact}")]
+            versions = [
+                instance.version
+                for instance in wandb.Api().artifact_versions(type_name=collection, name=f"{self.project}/{artifact}")
+            ]
             version = f"v{max([int(v[1:]) for v in versions])}"
 
         return Source(
@@ -92,9 +95,9 @@ class WandbArtifactManager(ArtifactManager):
                 "collection": collection,
                 "artifact": artifact,
                 "version": version,
-                "location": str(Path(
-                    wandb.Api().settings["base_url"], self.entity, self.project, collection, artifact, version
-                )),
+                "location": str(
+                    Path(wandb.Api().settings["base_url"], self.entity, self.project, collection, artifact, version)
+                ),
             },
         )
 
@@ -118,8 +121,10 @@ class WandbArtifactManager(ArtifactManager):
 
     def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
         """Log serialisable object to artifact store."""
-        raise NotImplementedError("Logging and retrieving python objects is not yet supported. Please serialize your"
-                                  "objects and log resulting files with 'log_files' or log_folder.")
+        raise NotImplementedError(
+            "Logging and retrieving python objects is not yet supported. Please serialize your"
+            "objects and log resulting files with 'log_files' or log_folder."
+        )
         # Implementation for logging python objects can make use of
         # if not isinstance(obj, wandb.data_types.WBValue):
         #     raise ValueError(
@@ -136,15 +141,17 @@ class WandbArtifactManager(ArtifactManager):
         This assumes that the artifact was logged as a wandb serialised object. If the artifact was a file upload,
         the file contents should be retrieved using download instead.
         """
-        raise NotImplementedError("Logging and retrieving python objects is not yet supported. Please serialize your"
-                                  "objects and retrieve the logged files with 'download_artifact' instead.")
+        raise NotImplementedError(
+            "Logging and retrieving python objects is not yet supported. Please serialize your"
+            "objects and retrieve the logged files with 'download_artifact' instead."
+        )
 
     def log_files(
-            self,
-            artifact_name: str,
-            local_path: Path,
-            collection: Optional[str] = None,
-            artifact_path: Optional[Path] = None
+        self,
+        artifact_name: str,
+        local_path: Path,
+        collection: Optional[str] = None,
+        artifact_path: Optional[Path] = None,
     ) -> Source:
         """Upload a single file to artifact store without serialisation."""
         if collection is None:
