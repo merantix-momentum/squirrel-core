@@ -20,7 +20,7 @@ classifiers = [
 "gs" = "squirrel.fsspec.custom_gcsfs.CustomGCSFileSystem"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 fsspec = ">=2023.12.2"
 msgpack = ">=1.0.7"
 msgpack-numpy = ">=0.4.8"
@@ -66,15 +66,14 @@ wheel = "^0.38.4"
 #mlflow = ">=2.1.1"
 
 [tool.poetry.group.doc.dependencies]
-sphinx = "3.5.4"    # pin for faster resolution
-jinja2 = "3.0.3"     # pin for faster resolution; dependabot: GHSA-fqh9-2qgg-h84h
-click = "8.0.4"    # pin for faster resolution any between 8.0.0 and 8.1.0 should work
-sphinx-autoapi = "1.9.0"    # pin for faster resolution any smaller should also work, larger requires sphinx >=5.2.0
+sphinx = "6.2.1"    # pin for faster resolution
+click = "<8.1.0"    # pin for faster resolution any between 8.0.0 and 8.1.0 should work
+sphinx-autoapi = "3.0.0"    # pin for faster resolution any smaller should also work, larger requires sphinx >=5.2.0
 sphinxcontrib-jquery = "2.0.0"  # pin for faster resolution
 sphinxcontrib-mermaid = "0.8.1"  # pin for faster resolution any smaller should also work
 sphinx-rtd-theme = "1.2.0"  # pin for faster resolution any smaller should also work
 sphinx-versions = "1.1.3"   # pin for faster resolution - package does no longer seem to be maintained
-myst-nb = "0.15.0"  # pin for faster resolution any <1.0.0 should work
+myst-nb = "1.0.0"  # pin for faster resolution any <1.0.0 should work
 
 [tool.poetry.extras]
 azure = ["adlfs"]
