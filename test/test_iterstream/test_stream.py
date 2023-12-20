@@ -7,7 +7,6 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
 import dask.distributed
-import mlflow
 import numpy as np
 import pytest
 import wandb
@@ -495,7 +494,7 @@ def test_metrics_tracking_with_wandb(
                 .collect()
             )
 
-
+@pytest.mark.skip("MLFlow dependency is being removed.")
 @pytest.mark.parametrize("metrics_conf_iops", [True, False])
 @pytest.mark.parametrize("metrics_conf_throughput", [True, False])
 @pytest.mark.parametrize("multi_points", [1, 2])
@@ -503,6 +502,7 @@ def test_metrics_tracking_with_mlflow(
     metrics_conf_iops: bool, metrics_conf_throughput: bool, create_all_iterable_source: Composable, multi_points: int
 ) -> None:
     """Smoke test for tracked iterable source, when callback set to be mlflow.log_metrics."""
+    import mlflow
     conf = MetricsConf(iops=metrics_conf_iops, throughput=metrics_conf_throughput)
     it = create_all_iterable_source
     if multi_points == 1:
