@@ -166,7 +166,7 @@ class FileSystemArtifactManager(ArtifactManager):
         if not isinstance(local_path, (str, Path)):
             raise ValueError("Path to file should be passed as a pathlib.Path object!")
 
-        if artifact_path is not None and not isinstance(artifact_name, (str, Path)):
+        if artifact_path is not None and not isinstance(artifact_path, (str, Path)):
             raise ValueError("Artifact path should be passed as a pathlib.Path object!")
 
         if collection is None:
