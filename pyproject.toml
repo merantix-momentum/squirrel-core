@@ -34,6 +34,8 @@ mako = ">=1.2.4"    # dependabot: GHSA-v973-fxgf-6xhp
 oauthlib = ">=3.2.2"   # dependabot: GHSA-3pgj-pg6c-r5p7
 aiohttp = ">=3.8.4"    # dependabot: GHSA-q3qx-c6g2-7pw2
 pandas = "<=1.5.3"    # pin for dask compatibility (afterwards core.strings.Stringmethods is not available anymore)
+# workaround for: https://github.com/python-poetry/poetry-plugin-export/issues/183
+urllib3 = ">=1.25.4,<1.27"
 numba = {version = ">=0.56.4", optional = true}
 adlfs = {version = "<2021.10", optional = true}
 dask = {version = ">=2021.10.0", optional = true, extras = ["dataframe", "distributed"]}  # dependabot: GHSA-hwqr-f3v9-hwxr
