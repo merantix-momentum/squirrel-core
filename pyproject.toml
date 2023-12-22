@@ -21,33 +21,34 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
+aiohttp = ">=3.8.4"    # dependabot: GHSA-q3qx-c6g2-7pw2
 fsspec = ">=2021.7.0"
+mako = ">=1.2.4"    # dependabot: GHSA-v973-fxgf-6xhp
 msgpack = ">=1.0.4"
 msgpack-numpy = ">=0.4.8"
 more-itertools = ">=9.0.0"
+numpy = ">=1.23.5"
+oauthlib = ">=3.2.2"   # dependabot: GHSA-3pgj-pg6c-r5p7
+pandas = "<=1.5.3"    # pin for dask compatibility (afterwards core.strings.Stringmethods is not available anymore)
 pluggy = ">=1.0.0"
+pyjwt = ">=2.6.0"   # dependabot: GHSA-ffqj-6fqr-9h24
 ruamel-yaml = ">=0.17.21"
 tqdm = ">=4.64.1"   # dependabot: GHSA-r7q7-xcjw-qx8q
-numpy = ">=1.23.5"
-pyjwt = ">=2.6.0"   # dependabot: GHSA-ffqj-6fqr-9h24
-mako = ">=1.2.4"    # dependabot: GHSA-v973-fxgf-6xhp
-oauthlib = ">=3.2.2"   # dependabot: GHSA-3pgj-pg6c-r5p7
-aiohttp = ">=3.8.4"    # dependabot: GHSA-q3qx-c6g2-7pw2
-pandas = "<=1.5.3"    # pin for dask compatibility (afterwards core.strings.Stringmethods is not available anymore)
-# workaround for: https://github.com/python-poetry/poetry-plugin-export/issues/183
-urllib3 = ">=1.25.4,<1.27"
-numba = {version = ">=0.56.4", optional = true}
+urllib3 = ">=1.25.4,<1.27" # workaround for: https://github.com/python-poetry/poetry-plugin-export/issues/183
+
 adlfs = {version = "<2021.10", optional = true}
 dask = {version = ">=2021.10.0", optional = true, extras = ["dataframe", "distributed"]}  # dependabot: GHSA-hwqr-f3v9-hwxr
+gcsfs = {version = ">=2021.7.0", optional = true}
+numba = {version = ">=0.56.4", optional = true}
 odfpy = {version = ">=1.4.1", optional = true}
 openpyxl = {version = ">=3.1.1", optional = true}   # dependabot: GHSA-chqf-hx79-gxc6
+pyarrow = {version = ">=14.0.1", optional = true}  # dependabot: GHSA-5wvp-7f3h-6wmm
 pyxlsb = {version = ">=1.0.10", optional = true}
-xlrd = {version = ">=2.0.1", optional = true}
-gcsfs = {version = ">=2021.7.0", optional = true}
 s3fs = {version = ">=2021.7.0", optional = true}
 torch = {version = ">=1.13.1", optional = true}     # dependabot: GHSA-47fc-vmwq-366v
+wandb = {version = "*", optional = true}
+xlrd = {version = ">=2.0.1", optional = true}
 zarr = {version = ">=2.10.3", optional = true}
-pyarrow = {version = ">=14.0.1", optional = true}  # dependabot: GHSA-5wvp-7f3h-6wmm
 
 [tool.poetry.group.dev.dependencies]
 # dev dependencies pinned for faster resolution
@@ -64,12 +65,10 @@ pytest-xdist = "3.5.0"
 scipy = "*"
 setuptools = "69.0.2"
 twine = "4.0.2"
-wandb = "0.16.1"
 wheel = "0.42.0"
 mlflow = "2.9.2"
 
 [tool.poetry.group.doc.dependencies]
-
 # doc dependencies are pinned for faster resolution
 sphinx = "3.5.4"
 astroid = "2.14.2"  # newer versions seem to break sphinx-autoapi
