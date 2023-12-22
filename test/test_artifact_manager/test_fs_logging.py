@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from squirrel.artifact_manager.fs import FileSystemArtifactManager
+from squirrel.artifact_manager.filesystem import FileSystemArtifactManager
 from squirrel.catalog import Source
 from squirrel.serialization import JsonSerializer, MessagepackSerializer, SquirrelSerializer
 
@@ -138,35 +138,34 @@ def test_log_file() -> None:
 
     # test logging of individual files
     for (filename, artifact_name, version, content) in [
-        ("foo.txt", "foo_file", "v0", "Test: Foo"),
-        ("bar.txt", "bar_file", "v0", "Test: Bar"),
-        ("baz.txt", "bar_file", "v1", "Test: Baz"),
+        ("foo.txt", "foo_file", 0, "Test: Foo"),
+        ("bar.txt", "bar_file", 0, "Test: Bar"),
+        ("baz.txt", "bar_file", 1, "Test: Baz"),
     ]:
         with open(f"{src_dir.name}/{filename}", "w") as f:
             f.write(content)
 
         source = manager.log_files(artifact_name, Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
 
-        assert source.driver_name == "file"
+        assert source.driver_name == "directory"
         assert source.metadata["collection"] == collection
         assert source.metadata["artifact"] == artifact_name
-        assert source.metadata["version"] == version
-        assert source.metadata["location"] == f"file://{store_dir.name}/{collection}/{artifact_name}/{version}"
+        assert source.metadata["version"] == f"v{version}"
+        assert source.version == version + 1
 
-        with open(f"{store_dir.name}/{collection}/{artifact_name}/{version}/files/{filename}") as f:
+        with open(f"{store_dir.name}/{collection}/{artifact_name}/v{version}/files/{filename}") as f:
             assert f.read() == content
 
     # test logging of folder
     source = manager.log_files("folder", Path(src_dir.name), collection)
 
-    assert source.driver_name == "file"
+    assert source.driver_name == "directory"
     assert source.metadata["collection"] == collection
     assert source.metadata["artifact"] == "folder"
-    assert source.metadata["version"] == "v0"
-    assert source.metadata["location"] == f"file://{store_dir.name}/{collection}/folder/v0"
+    assert source.version == 1
 
     assert len(list(Path(f"{store_dir.name}/{collection}/folder/v0/files").iterdir())) == 3
-
+    assert len([x for x in source.get_driver().keys()]) == 3
     src_dir.cleanup()
     store_dir.cleanup()
 
@@ -229,13 +228,13 @@ def test_get_file() -> None:
     # Test retrieval of specific files
     for (filename, artifact_name, version, content) in file_descriptions:
         manager.download_artifact(artifact_name, collection, version, Path(f"{src_dir.name}/downloaded"))
-        with open(f"{src_dir.name}/downloaded/{filename}") as f:
+        with open(f"{src_dir.name}/downloaded/{artifact_name}/{filename}") as f:
             assert f.read() == content
 
     # Test retrieval of entire folder
     manager.download_artifact("folder", collection, "v0", Path(f"{src_dir.name}/downloaded2"))
     for (filename, _, _, content) in file_descriptions:
-        with open(f"{src_dir.name}/downloaded2/{filename}") as f:
+        with open(f"{src_dir.name}/downloaded2/folder/{filename}") as f:
             assert f.read() == content
 
     src_dir.cleanup()
@@ -259,17 +258,17 @@ def test_log_folder() -> None:
 
     assert manager.exists_in_collection("folder", collection)
     source = manager.collection_to_catalog(collection)["my_collection/folder"]
-    assert source.driver_name == "file"
+    assert source.driver_name == "directory"
     assert source.metadata["collection"] == collection
     assert source.metadata["artifact"] == "folder"
     assert source.metadata["version"] == "v0"
-    assert source.metadata["location"] == f"file://{store_dir.name}/{collection}/folder/v0"
+    assert source.version == 1
     assert len(list(Path(f"{store_dir.name}/{collection}/folder/v0/files").iterdir())) == 3
 
     local_dir = tempfile.TemporaryDirectory()
     manager.download_artifact("folder", collection, "v0", Path(f"{local_dir.name}/downloaded"))
     for (filename, content) in test_files:
-        with open(f"{local_dir.name}/downloaded/{filename}") as f:
+        with open(f"{local_dir.name}/downloaded/folder/{filename}") as f:
             assert f.read() == content
 
     local_dir.cleanup()
@@ -306,8 +305,17 @@ def test_store_to_catalog() -> None:
     catalog = manager.store_to_catalog()
     assert len(catalog) == 3
     assert "my_collection/foo" in catalog
+    assert catalog["my_collection/foo"].metadata["collection"] == "my_collection"
+    assert catalog["my_collection/foo"].metadata["artifact"] == "foo"
+    assert catalog["my_collection/foo"].version == 1
     assert "my_collection/bar" in catalog
+    assert catalog["my_collection/bar"].metadata["collection"] == "my_collection"
+    assert catalog["my_collection/bar"].metadata["artifact"] == "bar"
+    assert catalog["my_collection/bar"].version == 1
     assert "default/baz" in catalog
+    assert catalog["default/baz"].metadata["collection"] == "default"
+    assert catalog["default/baz"].metadata["artifact"] == "baz"
+    assert catalog["default/baz"].version == 1
 
     src_dir.cleanup()
     store_dir.cleanup()
@@ -331,8 +339,10 @@ def test_download_collection() -> None:
 
             manager.log_files(filename[:3], Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
 
-    manager.download_collection("my_collection", Path(src_dir.name, "downloaded/my_collection"))
-    manager.download_collection("default", Path(src_dir.name, "downloaded/default"))
+    cat1 = manager.download_collection("my_collection", Path(src_dir.name, "downloaded/my_collection"))
+    assert len(cat1) == 2
+    cat2 = manager.download_collection("default", Path(src_dir.name, "downloaded/default"))
+    assert len(cat2) == 1
     for collection in test_files:
         for filename in test_files[collection]:
             with open(f"{src_dir.name}/downloaded/{collection}/{filename[:3]}/{filename}") as f:
@@ -340,3 +350,23 @@ def test_download_collection() -> None:
 
     src_dir.cleanup()
     store_dir.cleanup()
+
+
+def test_download_tmp():
+    store_dir = tempfile.TemporaryDirectory()
+    manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
+    collection = "my_collection"
+    test_files = {
+        "foo.txt": "Test: Foo",
+        "bar.txt": "Test: Bar",
+        "baz.txt": "Test: Baz",
+    }
+    with manager.log_folder("folder", collection) as folder:
+        for (filename, content) in test_files.items():
+            with open(f"{folder}/{filename}", "w") as file:
+                file.write(content)
+
+    with manager.download_artifact("folder", collection, "v0") as (src, path):
+        for file in src.get_driver().keys():
+            with open(f"{path}/{file}") as f:
+                assert f.read() == test_files[file]

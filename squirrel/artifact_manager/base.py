@@ -6,9 +6,48 @@ import tempfile
 from types import TracebackType
 from typing import Optional, Any, Iterable, Type
 
-from squirrel.catalog import Catalog, Source
+from squirrel.catalog import Catalog
+from squirrel.catalog.catalog import CatalogSource
 
 logger = logging.getLogger(__name__)
+
+
+class TmpArtifact:
+    """
+    Class to be used as a context for temporarily downloading an artifact, interacting with it and the deleting it.
+    When entering the scope it downloads the artifact to a local dir with a valid afid and returns the filepath to it.
+    """
+    def __init__(self, artifact_manager: "ArtifactManager", collection: str, artifact: str, version: str ) -> None:
+        """
+        Initializes the TmpArtifact.
+
+        Args:
+            artifact_manager: An artifact manager instance to use for downloading the artifact.
+        """
+        self.artifact_manager = artifact_manager
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.collection = collection
+        self.artifact = artifact
+        self.version = version
+
+    def __enter__(self) -> tuple[CatalogSource, Path]:
+        """
+        Called when entering the context. Downloads the artifact to a local dir with a valid afid and returns the filepath to it.
+
+        Returns: Absolute path to artifact folder as str
+        """
+        source, _ = self.artifact_manager.download_artifact(self.artifact, self.collection, self.version, Path(self.tempdir.name))
+        return source, Path(self.tempdir.name, self.artifact)
+
+    def __exit__(
+        self,
+        exctype: Optional[Type[BaseException]] = None,
+        excinst: Optional[BaseException] = None,
+        exctb: Optional[TracebackType] = None,
+    ) -> None:
+        """Called when exiting the context. Deletes the artifact folder."""
+        if self.tempdir is not None:
+            self.tempdir.cleanup()
 
 
 class DirectoryLogger:
@@ -61,9 +100,9 @@ class DirectoryLogger:
 
 
 class ArtifactManager(ABC):
-    def __init__(self):
+    def __init__(self, active_collection: str = "default"):
         """Artifact manager interface for various backends."""
-        self._active_collection = "default"
+        self._active_collection = active_collection
 
     @property
     def active_collection(self) -> str:
@@ -121,7 +160,7 @@ class ArtifactManager(ABC):
         local_path: Path,
         collection: Optional[str] = None,
         artifact_path: Optional[Path] = None,
-    ) -> Source:
+    ) -> CatalogSource:
         """
         Upload a file or folder into (current) collection, increment version automatically
 
@@ -134,7 +173,7 @@ class ArtifactManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
+    def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> CatalogSource:
         """
         Log an arbitrary python object
 
@@ -145,9 +184,13 @@ class ArtifactManager(ABC):
 
     @abstractmethod
     def download_artifact(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = "./"
-    ) -> Source:
-        """Retrieve file (from current collection) to specific location. Retrieve latest version unless specified."""
+        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Optional[Path] = None
+    ) -> tuple[CatalogSource, Path]:
+        """
+        Download artifact contents (from current collection) to specific location and return a source listing them.
+
+        If no target location is specified, a temporary directory is created and the path to it is returned.
+        Retrieve latest version unless specified."""
         raise NotImplementedError
 
     def exists(self, artifact: str) -> bool:
@@ -172,5 +215,5 @@ class ArtifactManager(ABC):
         catalog = self.collection_to_catalog(collection)
         for _, artifact in catalog:
             artifact_name = artifact.metadata["artifact"]
-            self.download_artifact(artifact_name, collection, to=to / artifact_name)
+            self.download_artifact(artifact_name, collection, to=to)
         return catalog

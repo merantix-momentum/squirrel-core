@@ -1,8 +1,9 @@
 from pathlib import Path
-from typing import Optional, Any, List, Iterable
+from typing import Optional, Any, List, Iterable, Union
 
-from squirrel.artifact_manager.base import ArtifactManager
-from squirrel.catalog import Catalog, Source
+from squirrel.artifact_manager.base import ArtifactManager, TmpArtifact
+from squirrel.catalog import Catalog
+from squirrel.catalog.catalog import CatalogSource, Source
 from squirrel.serialization import MessagepackSerializer, JsonSerializer, SquirrelSerializer
 from squirrel.store import FilesystemStore
 from squirrel.store.filesystem import get_random_key
@@ -19,7 +20,7 @@ class ArtifactFileStore(FilesystemStore):
 
     The get and set methods are altered to allow for storing serialized data as well as raw files.
         If the final path component is a serializer name, the data is stored as a serialized file.
-        If the final path component is "file", the data is stored as a raw file.
+        If the final path component is "files", the data is stored as a raw file.
     """
 
     def complete_key(self, partial_key: Path, **open_kwargs) -> List[str]:
@@ -90,7 +91,7 @@ class FileSystemArtifactManager(ArtifactManager):
         """
         super().__init__()
         if serializer is None:
-            serializer = MessagepackSerializer()
+            serializer = JsonSerializer()
         self.backend = ArtifactFileStore(url=url, serializer=serializer, **fs_kwargs)
 
     def list_collection_names(self) -> Iterable:
@@ -104,9 +105,11 @@ class FileSystemArtifactManager(ArtifactManager):
         return self.backend.key_exists(Path(collection, artifact))
 
     def get_artifact_source(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None
-    ) -> Source:
+        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, catalog: Optional[Catalog] = None
+    ) -> CatalogSource:
         """Catalog entry for a specific artifact"""
+        if catalog is None:
+            catalog = Catalog()
         if collection is None:
             collection = self.active_collection
         if version is None or version == "latest":
@@ -115,18 +118,23 @@ class FileSystemArtifactManager(ArtifactManager):
             raise ValueError(f"Artifact {artifact} does not exist in collection {collection} with version {version}!")
 
         # TODO: Vary source (driver) description when support for serialised python values is added
-        return Source(
-            driver_name="file",
-            driver_kwargs={
-                "url": Path(self.backend.url, collection, artifact, version, "file").as_uri(),
-                "storage_options": self.backend.storage_options,
-            },
-            metadata={
-                "collection": collection,
-                "artifact": artifact,
-                "version": version,
-                "location": Path(self.backend.url, collection, artifact, version).as_uri(),
-            },
+        return CatalogSource(
+            Source(
+                driver_name="directory",
+                driver_kwargs={
+                    "url": Path(self.backend.url, collection, artifact, version, "files").as_uri(),
+                    "storage_options": self.backend.storage_options,
+
+                },
+                metadata={
+                    "collection": collection,
+                    "artifact": artifact,
+                    "version": version,
+                    },
+            ),
+            identifier=str(Path(collection, artifact)),
+            catalog=catalog,
+            version=int(version[1:]) + 1,       # Squirrel Catalog version is 1-based
         )
 
     def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
@@ -136,7 +144,8 @@ class FileSystemArtifactManager(ArtifactManager):
         catalog = Catalog()
         for artifact in self.backend.complete_key(Path(collection)):
             for version in self.backend.complete_key(Path(collection, artifact)):
-                catalog[str(Path(collection, artifact))] = self.get_artifact_source(artifact, collection, version)
+                src = self.get_artifact_source(artifact, collection, version, catalog=catalog)
+                catalog[str(Path(collection, artifact)), src.version] = src
         return catalog
 
     def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
@@ -161,7 +170,7 @@ class FileSystemArtifactManager(ArtifactManager):
         local_path: Path,
         collection: Optional[str] = None,
         artifact_path: Optional[Path] = None,
-    ) -> Source:
+    ) -> CatalogSource:
         """Upload local file or folder to artifact store without serialisation"""
         if not isinstance(local_path, (str, Path)):
             raise ValueError("Path to file should be passed as a pathlib.Path object!")
@@ -182,24 +191,35 @@ class FileSystemArtifactManager(ArtifactManager):
         return self.get_artifact_source(artifact_name, collection)
 
     def download_artifact(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = "./"
-    ) -> Source:
+        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Optional[Path] = None
+    ) -> Union[tuple[Source, Path], TmpArtifact]:
         """Download artifact to local path."""
         if collection is None:
             collection = self.active_collection
         if version is None or version == "latest":
             version = f"v{max(int(vs[1:]) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))}"
-        if isinstance(to, str):
-            to = Path(to)
-        location = Path(collection, artifact, version)
-        self.backend.get(Path(location), target=to)
-        return Source(
-            driver_name="file",
-            driver_kwargs={"url": str(Path(to, artifact))},
-            metadata={
-                "collection": collection,
-                "artifact": artifact,
-                "version": version,
-                "location": str(Path(to, artifact)),
-            },
-        )
+
+        if to is not None:
+            if isinstance(to, str):
+                to = Path(to)
+            location = Path(collection, artifact, version)
+            self.backend.get(Path(location), target=to / artifact)
+            src = CatalogSource(
+                Source(
+                    driver_name="directory",
+                    driver_kwargs={
+                        "url": (to / artifact).as_uri(),
+                    },
+                    metadata={
+                        "collection": collection,
+                        "artifact": artifact,
+                        "version": version,
+                        },
+                ),
+                identifier=str(Path(collection, artifact)),
+                catalog=Catalog(),
+                version=int(version[1:]) + 1,       # Squirrel Catalog version is 1-based
+            )
+            return src, to
+        else:
+            return TmpArtifact(self, collection, artifact, version)

@@ -27,18 +27,23 @@ class WandbArtifactManager(ArtifactManager):
             self.project = project
         elif wandb.run is not None:
             self.project = wandb.run.project
+            logger.info(f"Using project {self.project} from active wandb run.")
         elif wandb.Api().settings["project"] is not None:
             self.project = wandb.Api().settings["project"]
+            logger.info(f"Using project {self.project} from wandb settings.")
         else:
             raise ValueError("No project name was provided and no active project could be identified.")
         if entity is not None:
             self.entity = entity
-        elif wandb.run is not None:
+        elif wandb.run is not None and wandb.run.entity is not None:
             self.entity = wandb.run.entity
+            logger.info(f"Using entity {self.entity} from active wandb run.")
         elif wandb.Api().settings["entity"] is not None:
             self.entity = wandb.Api().settings["entity"]
+            logger.info(f"Using entity {self.entity} from wandb settings.")
         else:
             self.entity = wandb.Api().project(self.project).entity
+            logger.info(f"Using entity {self.entity} from wandb project.")
 
     def list_collection_names(self) -> Iterable:
         """
@@ -72,7 +77,7 @@ class WandbArtifactManager(ArtifactManager):
         if version is None:
             versions = [
                 instance.version
-                for instance in wandb.Api().artifact_versions(type_name=collection, name=f"{self.project}/{artifact}")
+                for instance in wandb.Api().artifact_versions(type_name=collection, name=f"{self.entity}/{self.project}/{artifact}")
             ]
             version = f"v{max([int(v[1:]) for v in versions])}"
 
@@ -113,7 +118,7 @@ class WandbArtifactManager(ArtifactManager):
         ]
         catalog = Catalog()
         for artifact in artifact_names:
-            for instance in wandb.Api().artifact_versions(type_name=collection, name=f"{self.project}/{artifact}"):
+            for instance in wandb.Api().artifact_versions(type_name=collection, name=f"{self.entity}/{self.project}/{artifact}"):
                 catalog[str(Path(collection, artifact))] = self.get_artifact_source(
                     artifact, collection, instance.version
                 )
@@ -168,8 +173,8 @@ class WandbArtifactManager(ArtifactManager):
         return self.get_artifact_source(artifact_name, collection)
 
     def download_artifact(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Path = "./"
-    ) -> Source:
+        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Optional[Path] = None
+    ) -> tuple[Source, Path]:
         """
         Download a specific artifact to a local path.
 
