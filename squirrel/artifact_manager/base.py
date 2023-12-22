@@ -24,6 +24,9 @@ class TmpArtifact:
 
         Args:
             artifact_manager: An artifact manager instance to use for downloading the artifact.
+            collection: The name of the collection to download from.
+            artifact: The name of the artifact to download.
+            version: The version of the artifact to download.
         """
         self.artifact_manager = artifact_manager
         self.tempdir = tempfile.TemporaryDirectory()
@@ -33,13 +36,11 @@ class TmpArtifact:
 
     def __enter__(self) -> Path:
         """
-        Called when entering the context. Downloads the artifact to a local dir with a valid afid and returns the filepath to it.
+        Called when entering the context. Downloads the artifact to a temporary dir and returns the filepath to it.
 
         Returns: Absolute path to artifact folder as str
         """
-        self.artifact_manager.download_artifact(
-            self.artifact, self.collection, self.version, Path(self.tempdir.name)
-        )
+        self.artifact_manager.download_artifact(self.artifact, self.collection, self.version, Path(self.tempdir.name))
         return Path(self.tempdir.name, self.artifact)
 
     def __exit__(
@@ -193,7 +194,8 @@ class ArtifactManager(ABC):
         Download artifact contents (from current collection) to specific location and return a source listing them.
 
         If no target location is specified, a temporary directory is created and the path to it is returned.
-        Retrieve latest version unless specified."""
+        Retrieve latest version unless specified.
+        """
         raise NotImplementedError
 
     def exists(self, artifact: str) -> bool:

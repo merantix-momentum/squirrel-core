@@ -13,6 +13,7 @@ class DirectoryDriver(StoreDriver):
 
         Args:
             url (str): the url of the store
+            storage_options (dict[str, Any], optional): Keyword arguments passed to filesystem handler.
             **kwargs: Keyword arguments to pass to the super class initializer.
         """
         if "store" in kwargs:

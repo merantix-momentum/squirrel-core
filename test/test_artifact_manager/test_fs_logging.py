@@ -353,7 +353,8 @@ def test_download_collection() -> None:
     store_dir.cleanup()
 
 
-def test_download_tmp():
+def test_download_tmp() -> None:
+    """Test temporary retrieval of artifacts."""
     store_dir = tempfile.TemporaryDirectory()
     manager = FileSystemArtifactManager(url=store_dir.name, auto_mkdir=True)
     collection = "my_collection"

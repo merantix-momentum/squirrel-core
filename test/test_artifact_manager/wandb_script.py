@@ -84,11 +84,18 @@ assert source.metadata["collection"] == collection
 assert source.metadata["artifact"] == "test_folder"
 assert source.metadata["version"] == "v0"
 
+# test download folder
 local_dir = tempfile.TemporaryDirectory()
 artifact_manager.download_artifact("test_folder", collection, "v0", Path(f"{local_dir.name}/downloaded3"))
 for (filename, _, _, content) in file_descriptions:
-    with open(f"{local_dir.name}/downloaded3/{filename}") as f:
+    with open(f"{local_dir.name}/downloaded3/test_folder/{filename}") as f:
         assert f.read() == content
+
+# test temporary download
+with artifact_manager.download_artifact("test_folder", collection, "v0") as path:
+    for (filename, _, _, content) in file_descriptions:
+        with open(f"{path}/{filename}") as f:
+            assert f.read() == content
 
 # test download collection
 artifact_manager.download_collection(collection, Path(src_dir.name, "my_collection"))
