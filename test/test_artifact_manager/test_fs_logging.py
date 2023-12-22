@@ -1,3 +1,4 @@
+import os
 import tempfile
 from pathlib import Path
 
@@ -366,7 +367,7 @@ def test_download_tmp():
             with open(f"{folder}/{filename}", "w") as file:
                 file.write(content)
 
-    with manager.download_artifact("folder", collection, "v0") as (src, path):
-        for file in src.get_driver().keys():
+    with manager.download_artifact("folder", collection, "v0") as path:
+        for file in os.listdir(path):
             with open(f"{path}/{file}") as f:
                 assert f.read() == test_files[file]

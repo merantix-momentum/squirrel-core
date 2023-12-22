@@ -105,7 +105,11 @@ class FileSystemArtifactManager(ArtifactManager):
         return self.backend.key_exists(Path(collection, artifact))
 
     def get_artifact_source(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, catalog: Optional[Catalog] = None
+        self,
+        artifact: str,
+        collection: Optional[str] = None,
+        version: Optional[str] = None,
+        catalog: Optional[Catalog] = None,
     ) -> CatalogSource:
         """Catalog entry for a specific artifact"""
         if catalog is None:
@@ -124,17 +128,16 @@ class FileSystemArtifactManager(ArtifactManager):
                 driver_kwargs={
                     "url": Path(self.backend.url, collection, artifact, version, "files").as_uri(),
                     "storage_options": self.backend.storage_options,
-
                 },
                 metadata={
                     "collection": collection,
                     "artifact": artifact,
                     "version": version,
-                    },
+                },
             ),
             identifier=str(Path(collection, artifact)),
             catalog=catalog,
-            version=int(version[1:]) + 1,       # Squirrel Catalog version is 1-based
+            version=int(version[1:]) + 1,  # Squirrel Catalog version is 1-based
         )
 
     def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
@@ -192,7 +195,7 @@ class FileSystemArtifactManager(ArtifactManager):
 
     def download_artifact(
         self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Optional[Path] = None
-    ) -> Union[tuple[Source, Path], TmpArtifact]:
+    ) -> Union[Path, TmpArtifact]:
         """Download artifact to local path."""
         if collection is None:
             collection = self.active_collection
@@ -204,22 +207,6 @@ class FileSystemArtifactManager(ArtifactManager):
                 to = Path(to)
             location = Path(collection, artifact, version)
             self.backend.get(Path(location), target=to / artifact)
-            src = CatalogSource(
-                Source(
-                    driver_name="directory",
-                    driver_kwargs={
-                        "url": (to / artifact).as_uri(),
-                    },
-                    metadata={
-                        "collection": collection,
-                        "artifact": artifact,
-                        "version": version,
-                        },
-                ),
-                identifier=str(Path(collection, artifact)),
-                catalog=Catalog(),
-                version=int(version[1:]) + 1,       # Squirrel Catalog version is 1-based
-            )
-            return src, to
+            return to / artifact
         else:
             return TmpArtifact(self, collection, artifact, version)

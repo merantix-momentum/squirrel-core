@@ -1,11 +1,12 @@
 from pathlib import Path
-from typing import Optional, Any, Iterable
+from typing import Optional, Any, Iterable, Union
 
 import logging
 import wandb
 
-from squirrel.artifact_manager.base import ArtifactManager
-from squirrel.catalog import Catalog, Source
+from squirrel.artifact_manager.base import ArtifactManager, TmpArtifact
+from squirrel.catalog import Catalog
+from squirrel.catalog.catalog import CatalogSource, Source
 
 logger = logging.getLogger(__name__)
 
@@ -69,41 +70,51 @@ class WandbArtifactManager(ArtifactManager):
         ]
 
     def get_artifact_source(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None
-    ) -> Source:
+        self,
+        artifact: str,
+        collection: Optional[str] = None,
+        version: Optional[str] = None,
+        catalog: Optional[Catalog] = None,
+    ) -> CatalogSource:
         """Catalog entry for a specific artifact"""
+        if catalog is None:
+            catalog = Catalog()
         if collection is None:
             collection = self.active_collection
         if version is None:
             versions = [
                 instance.version
-                for instance in wandb.Api().artifact_versions(type_name=collection, name=f"{self.entity}/{self.project}/{artifact}")
+                for instance in wandb.Api().artifact_versions(
+                    type_name=collection, name=f"{self.entity}/{self.project}/{artifact}"
+                )
             ]
             version = f"v{max([int(v[1:]) for v in versions])}"
 
-        return Source(
-            driver_name="wandb",
-            driver_kwargs={
-                "url": str(
-                    Path(
-                        wandb.Api().settings["base_url"],
-                        self.entity,
-                        self.project,
-                        collection,
-                        artifact,
-                        version,
-                    )
-                ),
-            },
-            metadata={
-                "project": self.project,
-                "collection": collection,
-                "artifact": artifact,
-                "version": version,
-                "location": str(
-                    Path(wandb.Api().settings["base_url"], self.entity, self.project, collection, artifact, version)
-                ),
-            },
+        return CatalogSource(
+            Source(
+                driver_name="wandb",
+                driver_kwargs={
+                    "url": str(
+                        Path(
+                            wandb.Api().settings["base_url"],
+                            self.entity,
+                            self.project,
+                            collection,
+                            artifact,
+                            version,
+                        )
+                    ),
+                },
+                metadata={
+                    "project": self.project,
+                    "collection": collection,
+                    "artifact": artifact,
+                    "version": version,
+                },
+            ),
+            identifier=str(Path(collection, artifact)),
+            catalog=catalog,
+            version=int(version[1:]) + 1,  # Squirrel Catalog version is 1-based
         )
 
     def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
@@ -118,10 +129,11 @@ class WandbArtifactManager(ArtifactManager):
         ]
         catalog = Catalog()
         for artifact in artifact_names:
-            for instance in wandb.Api().artifact_versions(type_name=collection, name=f"{self.entity}/{self.project}/{artifact}"):
-                catalog[str(Path(collection, artifact))] = self.get_artifact_source(
-                    artifact, collection, instance.version
-                )
+            for instance in wandb.Api().artifact_versions(
+                type_name=collection, name=f"{self.entity}/{self.project}/{artifact}"
+            ):
+                src = self.get_artifact_source(artifact, collection, instance.version, catalog=catalog)
+                catalog[str(Path(collection, artifact)), src.version] = src
         return catalog
 
     def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
@@ -157,7 +169,7 @@ class WandbArtifactManager(ArtifactManager):
         local_path: Path,
         collection: Optional[str] = None,
         artifact_path: Optional[Path] = None,
-    ) -> Source:
+    ) -> CatalogSource:
         """Upload a single file to artifact store without serialisation."""
         if collection is None:
             collection = self._active_collection
@@ -174,7 +186,7 @@ class WandbArtifactManager(ArtifactManager):
 
     def download_artifact(
         self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Optional[Path] = None
-    ) -> tuple[Source, Path]:
+    ) -> Union[Path, TmpArtifact]:
         """
         Download a specific artifact to a local path.
 
@@ -190,9 +202,8 @@ class WandbArtifactManager(ArtifactManager):
         else:
             art = wandb.run.use_artifact(f"{self.entity}/{self.project}/{artifact}:{version}", type=collection)
 
-        art.download(str(to))
-        return Source(
-            driver_name="file",
-            driver_kwargs={"url": str(to)},
-            metadata={"collection": collection, "artifact": artifact, "version": version, "location": str(to)},
-        )
+        if to is not None:
+            art.download(str(to / artifact))
+            return to / artifact
+        else:
+            return TmpArtifact(self, collection, artifact, version)

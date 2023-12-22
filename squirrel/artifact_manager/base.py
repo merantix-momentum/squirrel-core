@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 import tempfile
 from types import TracebackType
-from typing import Optional, Any, Iterable, Type
+from typing import Optional, Any, Iterable, Type, Union
 
 from squirrel.catalog import Catalog
 from squirrel.catalog.catalog import CatalogSource
@@ -17,7 +17,8 @@ class TmpArtifact:
     Class to be used as a context for temporarily downloading an artifact, interacting with it and the deleting it.
     When entering the scope it downloads the artifact to a local dir with a valid afid and returns the filepath to it.
     """
-    def __init__(self, artifact_manager: "ArtifactManager", collection: str, artifact: str, version: str ) -> None:
+
+    def __init__(self, artifact_manager: "ArtifactManager", collection: str, artifact: str, version: str) -> None:
         """
         Initializes the TmpArtifact.
 
@@ -30,14 +31,16 @@ class TmpArtifact:
         self.artifact = artifact
         self.version = version
 
-    def __enter__(self) -> tuple[CatalogSource, Path]:
+    def __enter__(self) -> Path:
         """
         Called when entering the context. Downloads the artifact to a local dir with a valid afid and returns the filepath to it.
 
         Returns: Absolute path to artifact folder as str
         """
-        source, _ = self.artifact_manager.download_artifact(self.artifact, self.collection, self.version, Path(self.tempdir.name))
-        return source, Path(self.tempdir.name, self.artifact)
+        self.artifact_manager.download_artifact(
+            self.artifact, self.collection, self.version, Path(self.tempdir.name)
+        )
+        return Path(self.tempdir.name, self.artifact)
 
     def __exit__(
         self,
@@ -185,7 +188,7 @@ class ArtifactManager(ABC):
     @abstractmethod
     def download_artifact(
         self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Optional[Path] = None
-    ) -> tuple[CatalogSource, Path]:
+    ) -> Union[Path, TmpArtifact]:
         """
         Download artifact contents (from current collection) to specific location and return a source listing them.
 
