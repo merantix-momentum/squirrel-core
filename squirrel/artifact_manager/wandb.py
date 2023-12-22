@@ -60,8 +60,7 @@ class WandbArtifactManager(ArtifactManager):
 
         Note: This is not supported by the WandB API and therefore requires listing all artifacts in a collection.
         """
-        if collection is None:
-            collection = self.active_collection
+        collection = collection or self.active_collection
         if collection not in self.list_collection_names():
             return False
         return artifact in [
@@ -79,8 +78,7 @@ class WandbArtifactManager(ArtifactManager):
         """Catalog entry for a specific artifact"""
         if catalog is None:
             catalog = Catalog()
-        if collection is None:
-            collection = self.active_collection
+        collection = collection or self.active_collection
         if version is None:
             versions = [
                 instance.version
@@ -119,8 +117,7 @@ class WandbArtifactManager(ArtifactManager):
 
     def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
         """Construct a catalog listing artifacts within a specific collection."""
-        if collection is None:
-            collection = self._active_collection
+        collection = collection or self.active_collection
         if collection not in self.list_collection_names():
             raise ValueError(f"Collection {collection} does not exist.")
         artifact_names = [
@@ -171,8 +168,7 @@ class WandbArtifactManager(ArtifactManager):
         artifact_path: Optional[Path] = None,
     ) -> CatalogSource:
         """Upload a single file to artifact store without serialisation."""
-        if collection is None:
-            collection = self._active_collection
+        collection = collection or self.active_collection
         artifact = wandb.Artifact(artifact_name, type=collection)
         if artifact_path is not None:
             artifact_path = str(artifact_path)
@@ -193,8 +189,7 @@ class WandbArtifactManager(ArtifactManager):
         WandB serialised objects would be downloaded in a nested folder structure and are therefore discouraged right
         now.
         """
-        if collection is None:
-            collection = self._active_collection
+        collection = collection or self.active_collection
         if version is None:
             version = "latest"
         if wandb.run is None:

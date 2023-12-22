@@ -61,7 +61,7 @@ class DirectoryLogger:
     You can then write files to that dir and after exiting the scope the dir gets logged through the artifact manager.
     """
 
-    def __init__(self, artifact_manager: "ArtifactManager", artifact: str, collection: Optional[str]) -> None:
+    def __init__(self, artifact_manager: "ArtifactManager", artifact: str, collection: Optional[str] = None) -> None:
         """
         Initializes the DirectoryLogger.
 
@@ -72,7 +72,7 @@ class DirectoryLogger:
         """
         self.artifact_manager = artifact_manager
         self.artifact = artifact
-        self.collection = collection
+        self.collection = collection or artifact_manager.active_collection
         self.tempdir = tempfile.TemporaryDirectory()
 
     def __enter__(self) -> str:
@@ -215,8 +215,7 @@ class ArtifactManager(ABC):
 
     def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
         """Download all artifacts in collection to local directory."""
-        if collection is None:
-            collection = self.active_collection
+        collection = collection or self.active_collection
         catalog = self.collection_to_catalog(collection)
         for _, artifact in catalog:
             artifact_name = artifact.metadata["artifact"]

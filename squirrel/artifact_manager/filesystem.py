@@ -102,8 +102,7 @@ class FileSystemArtifactManager(ArtifactManager):
 
     def exists_in_collection(self, artifact: str, collection: Optional[str] = None) -> bool:
         """Check if artifact exists in specified collection."""
-        if collection is None:
-            collection = self.active_collection
+        collection = collection or self.active_collection
         return self.backend.key_exists(Path(collection, artifact))
 
     def get_artifact_source(
@@ -116,8 +115,7 @@ class FileSystemArtifactManager(ArtifactManager):
         """Catalog entry for a specific artifact"""
         if catalog is None:
             catalog = Catalog()
-        if collection is None:
-            collection = self.active_collection
+        collection = collection or self.active_collection
         if version is None or version == "latest":
             version = f"v{max(int(vs[1:]) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))}"
         if not self.backend.key_exists(Path(collection, artifact, version)):
@@ -144,8 +142,7 @@ class FileSystemArtifactManager(ArtifactManager):
 
     def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
         """Provide catalog of all artifacts and their versions contained within specific collection"""
-        if collection is None:
-            collection = self.active_collection
+        collection = collection or self.active_collection
         catalog = Catalog()
         for artifact in self.backend.complete_key(Path(collection)):
             for version in self.backend.complete_key(Path(collection, artifact)):
@@ -183,8 +180,7 @@ class FileSystemArtifactManager(ArtifactManager):
         if artifact_path is not None and not isinstance(artifact_path, (str, Path)):
             raise ValueError("Artifact path should be passed as a pathlib.Path object!")
 
-        if collection is None:
-            collection = self.active_collection
+        collection = collection or self.active_collection
 
         version = f"v{len(self.backend.complete_key(Path(collection, artifact_name)))}"
 
@@ -199,8 +195,7 @@ class FileSystemArtifactManager(ArtifactManager):
         self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Optional[Path] = None
     ) -> Union[Path, TmpArtifact]:
         """Download artifact to local path."""
-        if collection is None:
-            collection = self.active_collection
+        collection = collection or self.active_collection
         if version is None or version == "latest":
             version = f"v{max(int(vs[1:]) for vs in self.backend.complete_key(Path(collection) / Path(artifact)))}"
 
