@@ -1,7 +1,7 @@
-from pathlib import Path
-from typing import Optional, Any, Iterable, Union
-
 import logging
+from pathlib import Path
+from typing import Any, Iterable, Optional, Union
+
 import wandb
 
 from squirrel.artifact_manager.base import ArtifactManager, TmpArtifact
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class WandbArtifactManager(ArtifactManager):
-    def __init__(self, entity: Optional[str] = None, project: Optional[str] = None):
+    def __init__(self, entity: Optional[str] = None, project: Optional[str] = None, collection: str = "default"):
         """
         Artifact manager using Weights & Biases as backend.
 
@@ -23,7 +23,7 @@ class WandbArtifactManager(ArtifactManager):
         Note: For storing objects it is assumed that wandb.init() has been called so that artifacts can be associated
         with a run.
         """
-        super().__init__()
+        super().__init__(collection=collection)
         if project is not None:
             self.project = project
         elif wandb.run is not None:

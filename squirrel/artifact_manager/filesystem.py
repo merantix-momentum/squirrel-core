@@ -1,10 +1,10 @@
 from pathlib import Path
-from typing import Optional, Any, List, Iterable, Union
+from typing import Any, Iterable, List, Optional, Union
 
 from squirrel.artifact_manager.base import ArtifactManager, TmpArtifact
 from squirrel.catalog import Catalog
 from squirrel.catalog.catalog import CatalogSource, Source
-from squirrel.serialization import MessagepackSerializer, JsonSerializer, SquirrelSerializer
+from squirrel.serialization import JsonSerializer, MessagepackSerializer, SquirrelSerializer
 from squirrel.store import FilesystemStore
 from squirrel.store.filesystem import get_random_key
 
@@ -77,7 +77,9 @@ class ArtifactFileStore(FilesystemStore):
 
 
 class FileSystemArtifactManager(ArtifactManager):
-    def __init__(self, url: str, serializer: Optional[SquirrelSerializer] = None, **fs_kwargs):
+    def __init__(
+        self, url: str, serializer: Optional[SquirrelSerializer] = None, collection: str = "default", **fs_kwargs
+    ):
         """
         Artifactmanager backed by fsspec filesystems.
 
@@ -89,7 +91,7 @@ class FileSystemArtifactManager(ArtifactManager):
             version: version number starting at 1 which is automatically incremented
             serializer: the name of the serializer used to store the artifact (e.g. file, messagepack)
         """
-        super().__init__()
+        super().__init__(collection=collection)
         if serializer is None:
             serializer = JsonSerializer()
         self.backend = ArtifactFileStore(url=url, serializer=serializer, **fs_kwargs)

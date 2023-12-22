@@ -1,10 +1,10 @@
-from abc import abstractmethod, ABC
 import logging
-from pathlib import Path
 import re
 import tempfile
+from abc import ABC, abstractmethod
+from pathlib import Path
 from types import TracebackType
-from typing import Optional, Any, Iterable, Type, Union
+from typing import Any, Iterable, Optional, Type, Union
 
 from squirrel.catalog import Catalog
 from squirrel.catalog.catalog import CatalogSource
@@ -104,9 +104,9 @@ class DirectoryLogger:
 
 
 class ArtifactManager(ABC):
-    def __init__(self, active_collection: str = "default"):
+    def __init__(self, collection: str = "default"):
         """Artifact manager interface for various backends."""
-        self._active_collection = active_collection
+        self._active_collection = collection
 
     @property
     def active_collection(self) -> str:
