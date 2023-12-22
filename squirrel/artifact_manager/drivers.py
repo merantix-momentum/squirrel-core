@@ -9,10 +9,11 @@ class DirectoryDriver(StoreDriver):
     name = "directory"
 
     def __init__(self, url: str, storage_options: Optional[dict[str, Any]] = None, **kwargs) -> None:
-        """Initializes FileSystemDriver.
+        """
+        Initializes DirectoryDriver iterating over all files in the root directory.
 
         Args:
-            url (str): the url of the store
+            url (str): the root url of the store
             storage_options (dict[str, Any], optional): Keyword arguments passed to filesystem handler.
             **kwargs: Keyword arguments to pass to the super class initializer.
         """

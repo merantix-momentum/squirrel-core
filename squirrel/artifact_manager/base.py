@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 class TmpArtifact:
     """
-    Class to be used as a context for temporarily downloading an artifact, interacting with it and the deleting it.
-    When entering the scope it downloads the artifact to a local dir with a valid afid and returns the filepath to it.
+    Class to be used as a context for temporarily downloading an artifact, interacting with it and then deleting it.
+    When entering the scope it downloads the artifact to a local dir and returns the filepath to it.
     """
 
     def __init__(self, artifact_manager: "ArtifactManager", collection: str, artifact: str, version: str) -> None:
@@ -38,7 +38,7 @@ class TmpArtifact:
         """
         Called when entering the context. Downloads the artifact to a temporary dir and returns the filepath to it.
 
-        Returns: Absolute path to artifact folder as str
+        Returns: Absolute path to artifact folder
         """
         self.artifact_manager.download_artifact(self.artifact, self.collection, self.version, Path(self.tempdir.name))
         return Path(self.tempdir.name, self.artifact)
@@ -56,7 +56,7 @@ class TmpArtifact:
 
 class DirectoryLogger:
     """
-    Class to be used as a context for logging a directory as an artifact.
+    Class to be used as a context for logging an entire directory as an artifact.
     When entering the scope it creates a local dir with a valid afid and returns the filepath to it.
     You can then write files to that dir and after exiting the scope the dir gets logged through the artifact manager.
     """
@@ -75,14 +75,14 @@ class DirectoryLogger:
         self.collection = collection or artifact_manager.active_collection
         self.tempdir = tempfile.TemporaryDirectory()
 
-    def __enter__(self) -> str:
+    def __enter__(self) -> Path:
         """
         Called when entering the context. Creates folder under /tmp with the artifacts id if it doesn't exist yet.
 
         Returns: Absolute path to artifact folder as str
         """
         Path(self.tempdir.name, self.artifact).mkdir(exist_ok=False)
-        return str(Path(self.tempdir.name, self.artifact))
+        return Path(self.tempdir.name, self.artifact)
 
     def __exit__(
         self,
@@ -193,8 +193,8 @@ class ArtifactManager(ABC):
         """
         Download artifact contents (from current collection) to specific location and return a source listing them.
 
-        If no target location is specified, a temporary directory is created and the path to it is returned.
-        Retrieve latest version unless specified.
+        If no target location is specified, a context manager for a temporary directory is created and the path to it
+        is returned. Retrieve latest version unless specified.
         """
         raise NotImplementedError
 
