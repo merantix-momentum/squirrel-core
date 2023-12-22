@@ -495,6 +495,7 @@ def test_metrics_tracking_with_wandb(
                 .collect()
             )
 
+
 @pytest.mark.parametrize("metrics_conf_iops", [True, False])
 @pytest.mark.parametrize("metrics_conf_throughput", [True, False])
 @pytest.mark.parametrize("multi_points", [1, 2])
