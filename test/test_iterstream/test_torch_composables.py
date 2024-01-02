@@ -212,7 +212,7 @@ def test_split_by_worker_in_iterable_sampler_source_is_captured(num_workers: int
 
 @mock.patch("torch.distributed.is_available", mock.MagicMock(return_value=True))
 @mock.patch("torch.distributed.is_initialized", mock.MagicMock(return_value=True))
-@mock.patch("torch.distributed.group.WORLD", mock.MagicMock(return_value="WORLD"))
+# @mock.patch("torch.distributed.group.WORLD", mock.MagicMock(return_value="WORLD"))
 @mock.patch("torch.distributed.get_world_size")
 @mock.patch("torch.distributed.get_rank")
 def test_multi_rank_torch_iterable(mock_get_rank: int, mock_get_world_size: int, samples: List[int]) -> None:
@@ -228,7 +228,7 @@ def test_multi_rank_torch_iterable(mock_get_rank: int, mock_get_world_size: int,
 
 @mock.patch("torch.distributed.is_available", mock.MagicMock(return_value=True))
 @mock.patch("torch.distributed.is_initialized", mock.MagicMock(return_value=True))
-@mock.patch("torch.distributed.group.WORLD", mock.MagicMock(return_value="WORLD"))
+# @mock.patch("torch.distributed.group.WORLD", mock.MagicMock(return_value="WORLD"))
 @mock.patch("torch.distributed.get_world_size")
 @mock.patch("torch.distributed.get_rank")
 def test_multi_rank_multi_worker_torch_iterable(
@@ -300,7 +300,7 @@ def test_multi_rank_multi_worker_torch_iterable(
 
 @mock.patch("torch.distributed.is_available", mock.MagicMock(return_value=True))
 @mock.patch("torch.distributed.is_initialized", mock.MagicMock(return_value=True))
-@mock.patch("torch.distributed.group.WORLD", mock.MagicMock(return_value="WORLD"))
+# @mock.patch("torch.distributed.group.WORLD", mock.MagicMock(return_value="WORLD"))
 @mock.patch("torch.distributed.get_rank", mock.MagicMock(return_value=4))
 @mock.patch("torch.distributed.get_world_size", mock.MagicMock(return_value=4))
 @mock.patch("torch.utils.data.get_worker_info")
