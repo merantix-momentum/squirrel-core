@@ -6,7 +6,7 @@ from typing import Callable, Iterable, Iterator, Optional
 import torch
 from torch.utils.data import IterableDataset
 
-from squirrel.iterstream.base import Composable
+from squirrel.iterstream import Composable, Multiplexer, IterableSamplerSource
 from squirrel.framework.exceptions import PyTorchSplittingException
 
 logger = logging.getLogger(__name__)
@@ -90,7 +90,10 @@ class TorchIterable(Composable, IterableDataset):
         elif not isinstance(source, Composable):
             return False
         else:
-            return self._contains_rank_split(source.source)
+            if isinstance(source, (Multiplexer, IterableSamplerSource)):
+                return all(self._contains_rank_split(src) for src in source.source)
+            else:
+                return self._contains_rank_split(source.source)
 
     def _contains_worker_split(self, source: Composable) -> bool:
         """Check if SplitByWorker was chained to this Composable"""
@@ -99,7 +102,10 @@ class TorchIterable(Composable, IterableDataset):
         elif not isinstance(source, Composable):
             return False
         else:
-            return self._contains_worker_split(source.source)
+            if isinstance(source, (Multiplexer, IterableSamplerSource)):
+                return all(self._contains_worker_split(src) for src in source.source)
+            else:
+                return self._contains_worker_split(source.source)
 
 
 def _skip_k(it: Iterable, start: int, step: int) -> Iterator:
