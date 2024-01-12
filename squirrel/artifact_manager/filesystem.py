@@ -41,13 +41,9 @@ class ArtifactFileStore(FilesystemStore):
             return super().get(str(Path(key, Serializers[self.serializer.__class__])), mode, **open_kwargs)
         elif self.fs.exists(Path(self.url, key, "files"), **open_kwargs):
             if "target" in open_kwargs:
-                self.fs.cp(
-                    str(Path(self.url, key, "files/*")),
-                    str(open_kwargs.pop("target")),
-                    recursive=True,
-                    mkdirs=True,
-                    **open_kwargs,
-                )
+                target_dir = str(open_kwargs.pop("target"))
+                self.fs.makedirs(target_dir, exist_ok=True)
+                self.fs.cp(str(Path(self.url, key, "files/*")), target_dir, recursive=True, **open_kwargs)
             # retrieve raw file
             else:
                 return self.fs.cat(Path(self.url, key, "files"), **open_kwargs)
@@ -175,10 +171,13 @@ class FileSystemArtifactManager(ArtifactManager):
     ) -> CatalogSource:
         """Upload local file or folder to artifact store without serialisation"""
         if not isinstance(local_path, (str, Path)):
-            raise ValueError("Path to file should be passed as a pathlib.Path object!")
+            raise ValueError("Path to file should be passed as a string or a pathlib.Path object!")
+        local_path = Path(local_path)
+        if not local_path.exists():
+            raise ValueError(f"Provided local_path {local_path} does not exist!")
 
         if artifact_path is not None and not isinstance(artifact_path, (str, Path)):
-            raise ValueError("Artifact path should be passed as a pathlib.Path object!")
+            raise ValueError("Artifact path should be passed as a string or a pathlib.Path object!")
 
         collection = collection or self.active_collection
 
