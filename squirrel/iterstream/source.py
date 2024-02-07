@@ -1,4 +1,5 @@
 import random
+import re
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
 
@@ -53,6 +54,7 @@ class FilePathGenerator(Composable):
         max_workers: t.Optional[int] = None,
         max_keys: int = 1_000_000,
         max_dirs: int = 10,
+        regex_filter: str = None,
         **storage_options,
     ):
         """
@@ -65,6 +67,7 @@ class FilePathGenerator(Composable):
                 expansion on the currently discovered directories is done, until enough keys are yielded to make room
                 for the new ones.
             max_dirs (int): maximum number of parallel ls operation.
+            regex_filter (str): filter path by this regex
             **storage_options (dict): kwargs to pass onto the fsspec filesystem initialization.
         """
         super().__init__()
@@ -74,6 +77,7 @@ class FilePathGenerator(Composable):
         self.max_workers = max_workers
         self.max_keys = max_keys
         self.max_dirs = max_dirs
+        self.regex_pattern = re.compile(regex_filter) if regex_filter is not None else None
         self.storage_options = storage_options
 
     def __iter__(self) -> t.Iterator[str]:
@@ -91,13 +95,19 @@ class FilePathGenerator(Composable):
                             future = AsyncContent(url, self.fs.ls, pool)
                             dirs.append(future)
                         else:
-                            yield f"{self.protocol}{url}"
+                            if self.regex_pattern is not None and self.regex_pattern.search(url):
+                                continue
+                            else:
+                                yield f"{self.protocol}{url}"
                     if (len(dirs) >= self.max_dirs and len(urls) < self.max_keys) or len(urls) == 0 and dirs:
                         d = dirs.pop(0).value()
                         urls.extend(d)
         else:
             for url in urls:
-                yield f"{self.protocol}{url}"
+                if self.regex_pattern is not None and self.regex_pattern.search(url):
+                    continue
+                else:
+                    yield f"{self.protocol}{url}"
 
 
 class IterableSamplerSource(Composable):
