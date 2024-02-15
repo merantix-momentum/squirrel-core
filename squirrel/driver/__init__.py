@@ -10,6 +10,8 @@ from squirrel.driver.source_combiner import SourceCombiner
 from squirrel.driver.store import StoreDriver
 from squirrel.driver.excel import ExcelDriver
 from squirrel.driver.zarr import ZarrDriver
+from squirrel.driver.streaming_parquet import StreamingParquetDriver
+from squirrel.driver.directory import DirectoryDriver
 
 __all__ = [
     "CsvDriver",
@@ -26,4 +28,6 @@ __all__ = [
     "StoreDriver",
     "ExcelDriver",
     "ZarrDriver",
+    "StreamingParquetDriver",
+    "DirectoryDriver",
 ]
