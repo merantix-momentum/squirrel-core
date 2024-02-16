@@ -16,7 +16,7 @@ import subprocess
 import random
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, Iterator, List, Tuple
 from uuid import uuid4
 
 from faker import Faker
@@ -46,6 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 NUM_ROWS = 10
+
 
 @pytest.fixture(params=[1, 2, 3])
 def shards(request: FixtureRequest) -> int:
@@ -257,14 +258,22 @@ def dummy_data_catalog(tmp_path_factory: TempPathFactory) -> Catalog:
 
 
 def get_records_with_np(n: int = NUM_ROWS) -> List[Dict]:
-    return [{"id": i, "lable": int(np.random.choice([1, 2, 3, 4], n, replace=True)[0]), "image": np.random.random((3, 3, 3))} for i in range(n)]
+    return [
+        {
+            "id": i,
+            "lable": int(np.random.choice([1, 2, 3, 4], n, replace=True)[0]),
+            "image": np.random.random((3, 3, 3)),
+        }
+        for i in range(n)
+    ]
+
 
 def get_records_without_np(n: int = NUM_ROWS) -> List[Dict]:
     return [{"id": i, "lable": int(np.random.choice([1, 2, 3, 4], n, replace=True)[0]), "image": i} for i in range(n)]
 
 
 @pytest.fixture
-def image_ray():
+def image_ray() -> Iterator:
     """Create a temporary directory, write some dummy data to it and yield it"""
     _data = get_records_with_np()
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -274,7 +283,7 @@ def image_ray():
 
 
 @pytest.fixture
-def np_ray():
+def np_ray() -> Iterator:
     """A Ray dataset from numpy arrays"""
     _data = get_records_with_np()
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -284,7 +293,7 @@ def np_ray():
 
 
 @pytest.fixture
-def image_parquet_ray():
+def image_parquet_ray() -> Iterator:
     """A parquet dataset containing np.array written using Ray"""
     _data = get_records_with_np()
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -294,18 +303,18 @@ def image_parquet_ray():
 
 
 @pytest.fixture
-def no_image_parquet_deltalake_with_ray():
+def no_image_parquet_deltalake_with_ray() -> Iterator:
     """A deltalake dataset written using Ray"""
     _data = get_records_without_np()
     with tempfile.TemporaryDirectory() as tmp_dir:
         ds = ray.data.from_items(_data)
         schema = pa.schema(
-                    [
-                        ("id", pa.int64()),
-                        ("lable", pa.int64()),
-                        ("image", pa.int64()),
-                    ]
-                )
+            [
+                ("id", pa.int64()),
+                ("lable", pa.int64()),
+                ("image", pa.int64()),
+            ]
+        )
         IterableSource(ds.iter_batches(batch_size=10)).map(pa.RecordBatch.from_pydict).map(
             lambda batch: write_deltalake(
                 tmp_dir,
@@ -318,7 +327,7 @@ def no_image_parquet_deltalake_with_ray():
 
 
 @pytest.fixture
-def normal_parquet_ray():
+def normal_parquet_ray() -> Iterator:
     """A parquet dataset without np.array written using Ray"""
     _data = get_records_without_np()
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -328,20 +337,21 @@ def normal_parquet_ray():
 
 
 @pytest.fixture
-def numpy_directory():
+def numpy_directory() -> Iterator:
     """Create a directory of npy files"""
     _data = get_records_with_np()
-    _data = [d['image'] for d in _data]
+    _data = [d["image"] for d in _data]
     with tempfile.TemporaryDirectory() as tmp_dir:
         dstore = DirectoryStore(tmp_dir, serializer=NumpySerializer)
         IterableSource(_data).map(dstore.set).join()
         yield tmp_dir, _data
 
+
 @pytest.fixture
-def png_image_directory():
+def png_image_directory() -> Iterator:
     """Create a directory of PNG files"""
     a = list(np.arange(0, 255))
-    _data = [np.random.choice(a, size=3*3*3).reshape((3, 3, 3)).astype(np.uint8) for _ in range(10)]
+    _data = [np.random.choice(a, size=3 * 3 * 3).reshape((3, 3, 3)).astype(np.uint8) for _ in range(10)]
     with tempfile.TemporaryDirectory() as tmp_dir:
         dstore = DirectoryStore(tmp_dir, serializer=PNGSerializer)
         for a in _data:

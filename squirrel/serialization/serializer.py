@@ -21,3 +21,11 @@ class SquirrelSerializer(abc.ABC):
 
     def deserialize_shard_from_file(self, fp: str, **kwargs) -> t.Iterable[SampleType]:
         """Reads a shard from file and returns an iterable over the values of its samples."""
+
+
+class SquirrelFileSerializer(SquirrelSerializer):
+
+    @property
+    @abc.abstractmethod
+    def file_extension(self) -> str:
+        """File extension"""

@@ -67,7 +67,7 @@ class FilePathGenerator(Composable):
                 expansion on the currently discovered directories is done, until enough keys are yielded to make room
                 for the new ones.
             max_dirs (int): maximum number of parallel ls operation.
-            regex_filter (str): filter path by this regex
+            regex_filter (str): only paths that match this pattern are yielded
             **storage_options (dict): kwargs to pass onto the fsspec filesystem initialization.
         """
         super().__init__()
@@ -95,7 +95,7 @@ class FilePathGenerator(Composable):
                             future = AsyncContent(url, self.fs.ls, pool)
                             dirs.append(future)
                         else:
-                            if self.regex_pattern is not None and self.regex_pattern.search(url):
+                            if self.regex_pattern is not None and not self.regex_pattern.search(url):
                                 continue
                             else:
                                 yield f"{self.protocol}{url}"
@@ -104,7 +104,7 @@ class FilePathGenerator(Composable):
                         urls.extend(d)
         else:
             for url in urls:
-                if self.regex_pattern is not None and self.regex_pattern.search(url):
+                if self.regex_pattern is not None and not self.regex_pattern.search(url):
                     continue
                 else:
                     yield f"{self.protocol}{url}"
