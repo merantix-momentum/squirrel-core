@@ -1,13 +1,20 @@
-import ray
+from typing import Any, Dict, Optional
 
 from squirrel.driver.store import StoreDriver
 from squirrel.store import ParquetStore
 
+__all__ = [
+    "StreamingParquetDriver",
+]
+
 
 class StreamingParquetDriver(StoreDriver):
-    def __init__(self, url: str):
+
+    name = "streaming_parquet"
+
+    def __init__(self, url: str, storage_options: Optional[Dict[str, Any]] = None, **kwargs):
         """Driver to stream data from a parquet dataset."""
-        super().__init__(url=url, serializer=None)
+        super().__init__(url=url, serializer=None, storage_options=storage_options, **kwargs)
 
     @property
     def store(self) -> ParquetStore:
@@ -22,8 +29,11 @@ class StreamingParquetDriver(StoreDriver):
         return ray.data.read_parquet(self.url)
 
     @property
-    def deltatable(self) -> "deltalake.DeltaTable":
-        """If the underlying store is a deltalake table, this property return a deltalake.DeltaTable object. If this in not the case, it will fail"""
+    def deltatable(self) -> "deltalake.DeltaTable":  # noqa F821
+        """
+        If the underlying store is a deltalake table, this property return a deltalake.DeltaTable object.
+        If this in not the case, it will fail
+        """
         from deltalake import DeltaTable
 
         # so = {} if self.storage_options is None else self.storage_options

@@ -16,7 +16,7 @@ import subprocess
 import random
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Dict, Iterator, List, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, Iterator, List, Tuple
 from uuid import uuid4
 
 from faker import Faker
@@ -258,6 +258,7 @@ def dummy_data_catalog(tmp_path_factory: TempPathFactory) -> Catalog:
 
 
 def get_records_with_np(n: int = NUM_ROWS) -> List[Dict]:
+    """Generate n records with random numpy array"""
     return [
         {
             "id": i,
@@ -269,13 +270,53 @@ def get_records_with_np(n: int = NUM_ROWS) -> List[Dict]:
 
 
 def get_records_without_np(n: int = NUM_ROWS) -> List[Dict]:
+    """Generate n records without random numpy array."""
     return [{"id": i, "lable": int(np.random.choice([1, 2, 3, 4], n, replace=True)[0]), "image": i} for i in range(n)]
+
+
+@pytest.fixture
+def parquet_catalog() -> Iterable[Catalog]:
+    """A catalog with a single driver 'parquer' in it."""
+    _data = get_records_without_np(NUM_ROWS)
+    cat = Catalog()
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        ds = ray.data.from_items(_data)
+        ds.write_parquet(tmp_dir)
+
+        cat["parquet"] = Source(
+            "streaming_parquet",
+            driver_kwargs={
+                "url": tmp_dir,
+            },
+            metadata={"num_samples": NUM_ROWS},
+        )
+        yield cat
+
+
+@pytest.fixture
+def directory_np_catalog() -> Iterator[Catalog]:
+    """A catalog with a single driver 'np' in it."""
+    _numpy = get_records_with_np(NUM_ROWS)
+    _numpy = [d["image"] for d in _numpy]
+    cat = Catalog()
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        dstore = DirectoryStore(tmp_dir, serializer=NumpySerializer)
+        IterableSource(_numpy).map(dstore.set).join()
+        cat["np"] = Source(
+            "directory",
+            driver_kwargs={
+                "url": tmp_dir,
+                "file_format": "npy",
+            },
+        )
+        yield cat
 
 
 @pytest.fixture
 def image_ray() -> Iterator:
     """Create a temporary directory, write some dummy data to it and yield it"""
-    _data = get_records_with_np()
+    _data = get_records_with_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
         ds = ray.data.from_items(_data)
         ds.write_images(path=tmp_dir, column="image")
@@ -285,7 +326,7 @@ def image_ray() -> Iterator:
 @pytest.fixture
 def np_ray() -> Iterator:
     """A Ray dataset from numpy arrays"""
-    _data = get_records_with_np()
+    _data = get_records_with_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
         ds = ray.data.from_items(_data)
         ds.write_numpy(tmp_dir, column="image")
@@ -295,7 +336,7 @@ def np_ray() -> Iterator:
 @pytest.fixture
 def image_parquet_ray() -> Iterator:
     """A parquet dataset containing np.array written using Ray"""
-    _data = get_records_with_np()
+    _data = get_records_with_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
         ds = ray.data.from_items(_data)
         ds.write_parquet(tmp_dir)
@@ -305,7 +346,7 @@ def image_parquet_ray() -> Iterator:
 @pytest.fixture
 def no_image_parquet_deltalake_with_ray() -> Iterator:
     """A deltalake dataset written using Ray"""
-    _data = get_records_without_np()
+    _data = get_records_without_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
         ds = ray.data.from_items(_data)
         schema = pa.schema(
@@ -329,7 +370,7 @@ def no_image_parquet_deltalake_with_ray() -> Iterator:
 @pytest.fixture
 def normal_parquet_ray() -> Iterator:
     """A parquet dataset without np.array written using Ray"""
-    _data = get_records_without_np()
+    _data = get_records_without_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
         ds = ray.data.from_items(_data)
         ds.write_parquet(tmp_dir)
@@ -339,7 +380,7 @@ def normal_parquet_ray() -> Iterator:
 @pytest.fixture
 def numpy_directory() -> Iterator:
     """Create a directory of npy files"""
-    _data = get_records_with_np()
+    _data = get_records_with_np(NUM_ROWS)
     _data = [d["image"] for d in _data]
     with tempfile.TemporaryDirectory() as tmp_dir:
         dstore = DirectoryStore(tmp_dir, serializer=NumpySerializer)
@@ -351,7 +392,7 @@ def numpy_directory() -> Iterator:
 def png_image_directory() -> Iterator:
     """Create a directory of PNG files"""
     a = list(np.arange(0, 255))
-    _data = [np.random.choice(a, size=3 * 3 * 3).reshape((3, 3, 3)).astype(np.uint8) for _ in range(10)]
+    _data = [np.random.choice(a, size=3 * 3 * 3).reshape((3, 3, 3)).astype(np.uint8) for _ in range(NUM_ROWS)]
     with tempfile.TemporaryDirectory() as tmp_dir:
         dstore = DirectoryStore(tmp_dir, serializer=PNGSerializer)
         for a in _data:

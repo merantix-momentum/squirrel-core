@@ -22,6 +22,8 @@ def squirrel_drivers() -> List[Type[Driver]]:
         StoreDriver,
         ExcelDriver,
         ZarrDriver,
+        StreamingParquetDriver,
+        DirectoryDriver,
     )
 
     return [
@@ -35,4 +37,6 @@ def squirrel_drivers() -> List[Type[Driver]]:
         StoreDriver,
         ExcelDriver,
         ZarrDriver,
+        StreamingParquetDriver,
+        DirectoryDriver,
     ]

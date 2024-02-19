@@ -24,8 +24,9 @@ class DirectoryDriver(StoreDriver):
 
     def __init__(self, url: str, file_format: str, storage_options: dict[str, Any] | None = None, **kwargs):
         """
-        A driver to access a directory of files in the same file formats. the class attribute SERIALIZE contains the supported
-        formats along with the corresponding serializerd from `squirrel.serialization` package.
+        A driver to access a directory of files in the same file formats. the class attribute
+        SERIALIZE contains the supported formats along with the corresponding serializerd from
+        `squirrel.serialization` package.
         """
         if "store" in kwargs:
             raise ValueError("Store of MessagepackDriver is fixed, `store` cannot be provided.")
@@ -33,17 +34,17 @@ class DirectoryDriver(StoreDriver):
         self._ser = self.SERIALIZERS.get(file_format, None)
         if self._ser is None:
             raise ValueError(
-                f"the file_format argument {file_format} is invalid, valid file_formats are {''.join(list(self._SERIALIZERS.keys))}"
+                f"""the file_format argument {file_format} is invalid,
+                valid file_formats are {''.join(list(self._SERIALIZERS.keys))}"""
             )
         super().__init__(url=url, serializer=self._ser, storage_options=storage_options, **kwargs)
 
     def get_iter(self, **kwargs) -> Composable:
+        """Get iter"""
         return super().get_iter(flatten=False, **kwargs)
 
     def get_iter_ray(self) -> None:
-        """
-        TODO: if the same api for get_iter can be used for ray, we should go for that.
-        """
+        """TODO: if the same api for get_iter can be used for ray, we should go for that."""
         raise NotImplementedError()
 
     @property

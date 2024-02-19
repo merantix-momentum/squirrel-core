@@ -3,6 +3,7 @@ import tempfile
 from typing import Dict, Iterable, List
 
 import ray
+from squirrel.catalog.catalog import Catalog
 from test.conftest import get_records_with_np
 import torch.utils.data as tud
 import polars as pl
@@ -15,8 +16,6 @@ from squirrel.store.parquet_store import ParquetStore
 from squirrel.driver.streaming_parquet import StreamingParquetDriver
 from squirrel.iterstream.source import IterableSource
 
-# from squirrel.constants import URL
-
 
 def assert_equal_arrays(arrays: List[np.array]) -> None:
     """Assert arrays are equal by summing each and comparing the result"""
@@ -24,21 +23,30 @@ def assert_equal_arrays(arrays: List[np.array]) -> None:
     assert np.isclose(sum(sums - sums[0]), 0)
 
 
+def test_streaming_parquet_driver_in_catalog(parquet_catalog: Catalog) -> None:
+    """Test StreamingParquetDriver registration win catalog"""
+    par = parquet_catalog["parquet"].get_driver().get_iter().collect()
+    assert len(par) == parquet_catalog["parquet"].metadata["num_samples"]
+
+
 def test_numpy_with_ray(np_ray: Iterable) -> None:
+    """Test reading numpy directory with ray"""
     _path, _data = np_ray
     ds = ray.data.read_numpy(_path)
     ds = list(ds.iter_rows())
     assert all((ds[i]["data"] == _data[i]["image"]).all() for i in range(len(_data)))
 
 
-def test_parquet_with_ray(image_parquet_ray: Iterable) -> None:
+def test_reading_parquet_that_contains_array_with_ray(image_parquet_ray: Iterable) -> None:
+    """Test reading parquet that contains arrays with ray"""
     _path, _data = image_parquet_ray
     ds = ray.data.read_parquet(_path)
     ds = list(ds.iter_rows())
     assert all((ds[i]["image"] == _data[i]["image"]).all() for i in range(len(_data)))
 
 
-def test_write_deltalake_read_ray(no_image_parquet_deltalake_with_ray: Iterable) -> None:
+def test_reading_deltalake_with_ray(no_image_parquet_deltalake_with_ray: Iterable) -> None:
+    """Test reading deltalake with ray"""
     _path, _data = no_image_parquet_deltalake_with_ray
     ds = ray.data.read_parquet(_path)
     ds = list(ds.iter_rows())
@@ -47,7 +55,8 @@ def test_write_deltalake_read_ray(no_image_parquet_deltalake_with_ray: Iterable)
 
 
 @pytest.mark.parametrize("directory", ["normal_parquet_ray", "no_image_parquet_deltalake_with_ray"])
-def test_streaming_prquet_driver(directory, request) -> None:
+def test_streaming_prquet_driver(directory: str, request: pytest.FixtureRequest) -> None:
+    """Test streaing parquet"""
     _path, _data = request.getfixturevalue(directory)
     it = StreamingParquetDriver(url=_path).get_iter().collect()
 
@@ -62,26 +71,9 @@ def test_streaming_prquet_driver(directory, request) -> None:
     assert sorted(i["lable"] for i in it) == sorted(i["lable"] for i in _data) == sorted(i["lable"] for i in retrieved)
 
 
-def test_polars_streaming(normal_parquet_ray: Iterable) -> None:
-    _path, _data = normal_parquet_ray
-    lazy_df = pl.scan_parquet(_path + "/*")
-    it = IterableSource(lazy_df.collect(streaming=True).iter_rows(named=True)).collect()
-    c1 = Counter([i["lable"] for i in _data])
-    c2 = Counter([i["lable"] for i in it])
-    assert c1 == c2
-
-
-def test_polars_streaming_deltalake(no_image_parquet_deltalake_with_ray: Iterable):
-    _path, _data = no_image_parquet_deltalake_with_ray
-    lazy_df = pl.scan_delta(_path)
-    it = IterableSource(lazy_df.collect(streaming=True).iter_rows(named=True)).collect()
-    c1 = Counter([i["lable"] for i in _data])
-    c2 = Counter([i["lable"] for i in it])
-    assert c1 == c2
-
-
 @pytest.mark.parametrize("directory", ["normal_parquet_ray", "no_image_parquet_deltalake_with_ray"])
-def test_polars_streaming(directory, request) -> None:
+def test_polars_streaming(directory: str, request: pytest.FixtureRequest) -> None:
+    """Test polars streaming"""
     _path, _data = request.getfixturevalue(directory)
 
     if directory == "normal_parquet_ray":
@@ -95,7 +87,18 @@ def test_polars_streaming(directory, request) -> None:
     assert c1 == c2
 
 
+def test_polars_streaming_deltalake(no_image_parquet_deltalake_with_ray: Iterable) -> None:
+    """Test polars streaming with deltalake"""
+    _path, _data = no_image_parquet_deltalake_with_ray
+    lazy_df = pl.scan_delta(_path)
+    it = IterableSource(lazy_df.collect(streaming=True).iter_rows(named=True)).collect()
+    c1 = Counter([i["lable"] for i in _data])
+    c2 = Counter([i["lable"] for i in it])
+    assert c1 == c2
+
+
 def test_streaming_parquet_with_pytorch_dataloader(normal_parquet_ray: Iterable) -> None:
+    """Test streaming parquet with pytorch dataloader"""
     _path, _data = normal_parquet_ray
     ds = ray.data.read_parquet(_path)
     num_workers = 4
@@ -117,7 +120,7 @@ def test_streaming_parquet_with_pytorch_dataloader(normal_parquet_ray: Iterable)
 
 def test_msgpack_with_ray() -> None:
     """
-    Test more complext scenario of distributed load (and potentially transformation) with 
+    Test more complext scenario of distributed load (and potentially transformation) with
     Ray wrapped in IterableSource
     """
 

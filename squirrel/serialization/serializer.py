@@ -24,7 +24,6 @@ class SquirrelSerializer(abc.ABC):
 
 
 class SquirrelFileSerializer(SquirrelSerializer):
-
     @property
     @abc.abstractmethod
     def file_extension(self) -> str:

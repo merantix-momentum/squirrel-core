@@ -6,17 +6,17 @@ from skimage.io import imsave, imread
 
 
 class PNGSerializer(SquirrelFileSerializer):
-
     @property
     def file_extension(self) -> str:
+        """File Extension, i.e png"""
         return "png"
 
     def serialize(self, obj: Any) -> Any:
-        """NotImplemented"""
+        """Not Implemented"""
         raise NotImplementedError()
 
     def deserialize(self, obj: Any) -> Any:
-        """NotImplemented"""
+        """Not Implemented"""
         raise NotImplementedError()
 
     def serialize_shard_to_file(self, obj: np.ndarray, fp: str, **kwargs) -> None:
