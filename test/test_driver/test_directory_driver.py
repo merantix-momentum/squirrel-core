@@ -46,6 +46,7 @@ def test_directory_with_numpy(directory: str, request: pytest.FixtureRequest) ->
 
 def test_directory_store(directory_np_catalog: Catalog) -> None:
     """Test directory store"""
-    _ret = directory_np_catalog["np"].get_driver().get_iter().collect()
+    d: DirectoryDriver = directory_np_catalog["np"].get_driver()
+    _it = d.get_iter().collect()
     _paths = FilePathGenerator(directory_np_catalog["np"].driver_kwargs["url"]).collect()
-    assert len(_ret) == len(_paths)
+    assert len(_it) == len(_paths)

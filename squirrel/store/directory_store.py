@@ -24,15 +24,26 @@ class DirectoryStore(FilesystemStore):
         """Store the `value` using the method provided by SquirrelSerializer.serialize_shard_to_file"""
         if key is None:
             key = get_random_key()
-        self.serializer().serialize_shard_to_file(obj=value, fp=f"{self.url}/{key}")
+
+        fp = f"{self.url}/{key}.{self.serializer().file_extension}"
+
+        if not self._dir_exists:
+            self.fs.makedirs(self.url, exist_ok=True)
+            self._dir_exists = True
+
+        self.serializer().serialize_shard_to_file(obj=value, fp=fp, fs=self.fs)
 
     def get(self, key: str) -> t.Any:
         """Retrieve the value of the key using SquirrelSerializer.deserialize_shard_from_file."""
-        return self.serializer().deserialize_shard_from_file(fp=f"{self.url}/{key}")
+        fp = f"{self.url}/{key}.{self.serializer().file_extension}"
+        return self.serializer().deserialize_shard_from_file(fp=fp, fs=self.fs)  # f"{self.url}/{key}"
 
     def keys(self, nested: bool = True, **kwargs) -> t.Iterator[str]:
         """
         Keys of this store that contain file extension (defined by 'self.serializer().file_extension')
         Any file without this extension is simply ignored.
         """
-        yield from super().keys(nested=nested, regex_filter=f"{self.serializer().file_extension}", **kwargs)
+        _ext = self.serializer().file_extension
+        for k in super().keys(nested=nested, regex_filter=f"{self.serializer().file_extension}", **kwargs):
+            if k.endswith(_ext):
+                yield k.rsplit(f".{_ext}", 1)[0]

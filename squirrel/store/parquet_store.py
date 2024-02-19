@@ -9,7 +9,7 @@ class ParquetStore(FilesystemStore):
         """Store that uses pyarrow to read from / write to the dataset"""
         super().__init__(url=url, serializer=None, storage_options=storage_options)
 
-    def get(self, key: str, dataset_kwargs: t.Dict | None = None, **open_kwargs) -> t.Any:
+    def get(self, key: str, dataset_kwargs: t.Optional[t.Dict] = None, **open_kwargs) -> t.Any:
         """Return the item with the given key.
 
         Args:

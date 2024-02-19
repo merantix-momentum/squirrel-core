@@ -16,7 +16,7 @@ import subprocess
 import random
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Dict, Iterable, Iterator, List, Tuple
+from typing import TYPE_CHECKING, Dict, Iterator, List, Tuple
 from uuid import uuid4
 
 from faker import Faker
@@ -26,6 +26,7 @@ import pyarrow as pa
 from deltalake import write_deltalake
 import pytest
 from pytest import FixtureRequest, TempPathFactory
+from squirrel.fsspec.fs import get_fs_from_url
 from zarr.hierarchy import Group
 import ray
 
@@ -275,42 +276,40 @@ def get_records_without_np(n: int = NUM_ROWS) -> List[Dict]:
 
 
 @pytest.fixture
-def parquet_catalog() -> Iterable[Catalog]:
+def parquet_catalog(test_path: URL) -> Catalog:
     """A catalog with a single driver 'parquer' in it."""
     _data = get_records_without_np(NUM_ROWS)
     cat = Catalog()
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        ds = ray.data.from_items(_data)
-        ds.write_parquet(tmp_dir)
+    ds = ray.data.from_items(_data)
+    ds.write_parquet(test_path, filesystem=get_fs_from_url(test_path))
 
-        cat["parquet"] = Source(
-            "streaming_parquet",
-            driver_kwargs={
-                "url": tmp_dir,
-            },
-            metadata={"num_samples": NUM_ROWS},
-        )
-        yield cat
+    cat["parquet"] = Source(
+        "streaming_parquet",
+        driver_kwargs={
+            "url": test_path,
+        },
+        metadata={"num_samples": NUM_ROWS},
+    )
+    return cat
 
 
 @pytest.fixture
-def directory_np_catalog() -> Iterator[Catalog]:
+def directory_np_catalog(test_path: URL) -> Catalog:
     """A catalog with a single driver 'np' in it."""
     _numpy = get_records_with_np(NUM_ROWS)
     _numpy = [d["image"] for d in _numpy]
     cat = Catalog()
-    with tempfile.TemporaryDirectory() as tmp_dir:
 
-        dstore = DirectoryStore(tmp_dir, serializer=NumpySerializer)
-        IterableSource(_numpy).map(dstore.set).join()
-        cat["np"] = Source(
-            "directory",
-            driver_kwargs={
-                "url": tmp_dir,
-                "file_format": "npy",
-            },
-        )
-        yield cat
+    dstore = DirectoryStore(test_path, serializer=NumpySerializer)
+    IterableSource(_numpy).map(dstore.set).join()
+    cat["np"] = Source(
+        "directory",
+        driver_kwargs={
+            "url": test_path,
+            "file_format": "npy",
+        },
+    )
+    return cat
 
 
 @pytest.fixture

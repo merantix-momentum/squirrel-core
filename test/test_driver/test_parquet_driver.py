@@ -25,8 +25,9 @@ def assert_equal_arrays(arrays: List[np.array]) -> None:
 
 def test_streaming_parquet_driver_in_catalog(parquet_catalog: Catalog) -> None:
     """Test StreamingParquetDriver registration win catalog"""
-    par = parquet_catalog["parquet"].get_driver().get_iter().collect()
-    assert len(par) == parquet_catalog["parquet"].metadata["num_samples"]
+    d: StreamingParquetDriver = parquet_catalog["parquet"].get_driver()
+    it = d.get_iter().collect()
+    assert len(it) == parquet_catalog["parquet"].metadata["num_samples"]
 
 
 def test_numpy_with_ray(np_ray: Iterable) -> None:
