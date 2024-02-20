@@ -27,6 +27,15 @@ def test_directory_driver_with_images(directory: str, request: pytest.FixtureReq
     assert_equal_arrays([a, b, c, d, _data])
 
 
+def test_ray_iter(directory_img_catalog) -> None:
+    """Test DirectoryDriver.get_iter_ray() for images"""
+    d = directory_img_catalog["im"].get_driver()
+    it = d.get_iter().collect()
+    it_ray = d.get_iter_ray().collect()
+    assert len(it) == len(it_ray)
+    assert_equal_arrays([it, it_ray])
+
+
 @pytest.mark.parametrize("directory", ["numpy_directory", "np_ray"])
 def test_directory_with_numpy(directory: str, request: pytest.FixtureRequest) -> None:
     """Test directory driver with numpy"""

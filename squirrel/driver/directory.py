@@ -1,11 +1,13 @@
 from __future__ import annotations
+from functools import partial
 
-from typing import Any
+from typing import Any, Dict
 
 import ray
 
 from squirrel.driver.store import StoreDriver
 from squirrel.iterstream import Composable
+from squirrel.iterstream.source import IterableSource
 from squirrel.serialization import PNGSerializer
 from squirrel.serialization import NumpySerializer
 from squirrel.store.directory_store import DirectoryStore
@@ -31,21 +33,17 @@ class DirectoryDriver(StoreDriver):
         if "store" in kwargs:
             raise ValueError("Store of MessagepackDriver is fixed, `store` cannot be provided.")
 
-        self._ser = self.SERIALIZERS.get(file_format, None)
-        if self._ser is None:
+        self.serializer = self.SERIALIZERS.get(file_format, None)
+        if self.serializer is None:
             raise ValueError(
                 f"""the file_format argument {file_format} is invalid,
                 valid file_formats are {''.join(list(self._SERIALIZERS.keys))}"""
             )
-        super().__init__(url=url, serializer=self._ser, storage_options=storage_options, **kwargs)
+        super().__init__(url=url, serializer=self.serializer, storage_options=storage_options, **kwargs)
 
     def get_iter(self, **kwargs) -> Composable:
         """Get iter"""
         return super().get_iter(flatten=False, **kwargs)
-
-    def get_iter_ray(self) -> None:
-        """TODO: if the same api for get_iter can be used for ray, we should go for that."""
-        raise NotImplementedError()
 
     @property
     def store(self) -> DirectoryStore:
@@ -55,7 +53,7 @@ class DirectoryDriver(StoreDriver):
     @property
     def ray(self) -> ray.data.Dataset:
         """Ray Dataset"""
-        if self._ser == PNGSerializer:
+        if self.serializer == PNGSerializer:
             return ray.data.read_images(self.url)
-        elif self._ser == NumpySerializer:
+        elif self.serializer == NumpySerializer:
             return ray.data.read_numpy(self.url)

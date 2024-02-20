@@ -10,6 +10,8 @@ from typing import Any, Callable, Iterable
 
 from squirrel.catalog import Catalog
 from squirrel.iterstream import Composable, IterableSource
+from squirrel.serialization.np import NumpySerializer
+from squirrel.serialization.png import PNGSerializer
 
 
 __all__ = ["Driver", "IterDriver", "MapDriver"]

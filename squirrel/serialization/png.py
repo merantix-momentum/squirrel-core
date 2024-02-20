@@ -56,4 +56,4 @@ class PNGSerializer(SquirrelFileSerializer):
     ) -> np.ndarray:
         """Read a PNG image into numpy.ndarray"""
         # TODO: use fs
-        return imread(fp, **kwargs)
+        return imread(fp, **kwargs)  # f".{self.file_extension}"

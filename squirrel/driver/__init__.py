@@ -10,7 +10,7 @@ from squirrel.driver.source_combiner import SourceCombiner
 from squirrel.driver.store import StoreDriver
 from squirrel.driver.excel import ExcelDriver
 from squirrel.driver.zarr import ZarrDriver
-from squirrel.driver.streaming_parquet import StreamingParquetDriver
+from squirrel.driver.streaming_parquet import StreamingParquetDriver, DeltalakeDriver, PolardParquetDriver
 from squirrel.driver.directory import DirectoryDriver
 
 __all__ = [
@@ -29,5 +29,7 @@ __all__ = [
     "ExcelDriver",
     "ZarrDriver",
     "StreamingParquetDriver",
+    "DeltalakeDriver",
+    "PolardParquetDriver",
     "DirectoryDriver",
 ]

@@ -16,17 +16,17 @@ import subprocess
 import random
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Dict, Iterator, List, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, Iterator, List, Tuple
 from uuid import uuid4
 
 from faker import Faker
 import fsspec
 import numpy as np
 import pyarrow as pa
+import pyarrow.parquet as pq
 from deltalake import write_deltalake
 import pytest
 from pytest import FixtureRequest, TempPathFactory
-from squirrel.fsspec.fs import get_fs_from_url
 from zarr.hierarchy import Group
 import ray
 
@@ -39,6 +39,7 @@ from squirrel.iterstream import Composable, IterableSource
 from squirrel.serialization import JsonSerializer, MessagepackSerializer, NumpySerializer, PNGSerializer
 from squirrel.store import FilesystemStore, DirectoryStore, SquirrelStore
 from squirrel.zarr.group import get_group
+from squirrel.fsspec.fs import get_fs_from_url
 
 if TYPE_CHECKING:
     from squirrel.constants import SampleType
@@ -313,7 +314,36 @@ def directory_np_catalog(test_path: URL) -> Catalog:
 
 
 @pytest.fixture
-def image_ray() -> Iterator:
+def directory_img_catalog(test_path: URL) -> Catalog:
+    # import os
+    # os.mkdir(f"{test_path}/im")
+    # _numpy = get_records_with_np(NUM_ROWS)
+    _numpy = [np.arange(2 * 3 * 4).reshape((2, 3, 4)).astype(dtype=np.uint8) for _ in range(NUM_ROWS)]
+    cat = Catalog()
+    dstore = DirectoryStore(test_path, serializer=PNGSerializer)
+    IterableSource(_numpy).map(dstore.set).join()
+    cat["im"] = Source(
+        "directory",
+        driver_kwargs={
+            "url": test_path,
+            "file_format": "png",
+        },
+    )
+    return cat
+
+
+@pytest.fixture
+def partitioned_parquet() -> Iterable:
+    """Partitioned parquet"""
+    _data = get_records_without_np(NUM_ROWS * 10)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        rb = pa.RecordBatch.from_pylist(_data)
+        pq.write_to_dataset(pa.table(rb), tmp_dir, partition_cols=["lable"])
+        yield tmp_dir, _data
+
+
+@pytest.fixture
+def image_ray() -> Iterable:
     """Create a temporary directory, write some dummy data to it and yield it"""
     _data = get_records_with_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -323,7 +353,7 @@ def image_ray() -> Iterator:
 
 
 @pytest.fixture
-def np_ray() -> Iterator:
+def np_ray() -> Iterable:
     """A Ray dataset from numpy arrays"""
     _data = get_records_with_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -333,7 +363,7 @@ def np_ray() -> Iterator:
 
 
 @pytest.fixture
-def image_parquet_ray() -> Iterator:
+def image_parquet_ray() -> Iterable:
     """A parquet dataset containing np.array written using Ray"""
     _data = get_records_with_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -343,7 +373,7 @@ def image_parquet_ray() -> Iterator:
 
 
 @pytest.fixture
-def no_image_parquet_deltalake_with_ray() -> Iterator:
+def no_image_parquet_deltalake_with_ray() -> Iterable:
     """A deltalake dataset written using Ray"""
     _data = get_records_without_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -367,7 +397,7 @@ def no_image_parquet_deltalake_with_ray() -> Iterator:
 
 
 @pytest.fixture
-def normal_parquet_ray() -> Iterator:
+def normal_parquet_ray() -> Iterable:
     """A parquet dataset without np.array written using Ray"""
     _data = get_records_without_np(NUM_ROWS)
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -377,7 +407,7 @@ def normal_parquet_ray() -> Iterator:
 
 
 @pytest.fixture
-def numpy_directory() -> Iterator:
+def numpy_directory() -> Iterable:
     """Create a directory of npy files"""
     _data = get_records_with_np(NUM_ROWS)
     _data = [d["image"] for d in _data]
@@ -388,7 +418,7 @@ def numpy_directory() -> Iterator:
 
 
 @pytest.fixture
-def png_image_directory() -> Iterator:
+def png_image_directory() -> Iterable:
     """Create a directory of PNG files"""
     a = list(np.arange(0, 255))
     _data = [np.random.choice(a, size=3 * 3 * 3).reshape((3, 3, 3)).astype(np.uint8) for _ in range(NUM_ROWS)]

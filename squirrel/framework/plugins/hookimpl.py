@@ -23,6 +23,8 @@ def squirrel_drivers() -> List[Type[Driver]]:
         ExcelDriver,
         ZarrDriver,
         StreamingParquetDriver,
+        DeltalakeDriver,
+        PolardParquetDriver,
         DirectoryDriver,
     )
 
@@ -38,5 +40,7 @@ def squirrel_drivers() -> List[Type[Driver]]:
         ExcelDriver,
         ZarrDriver,
         StreamingParquetDriver,
+        DeltalakeDriver,
+        PolardParquetDriver,
         DirectoryDriver,
     ]

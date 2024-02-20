@@ -3,7 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Iterable
 
 from squirrel.driver.driver import MapDriver
+from squirrel.iterstream.source import IterableSource
 from squirrel.serialization import SquirrelSerializer
+from squirrel.serialization.jsonl import JsonSerializer
+from squirrel.serialization.msgpack import MessagepackSerializer
+from squirrel.serialization.np import NumpySerializer
+from squirrel.serialization.parquet import ParquetSerializer
+from squirrel.serialization.png import PNGSerializer
 from squirrel.store import SquirrelStore
 
 if TYPE_CHECKING:
@@ -58,6 +64,59 @@ class StoreDriver(MapDriver):
             (squirrel.iterstream.Composable) Iterable over the items in the store.
         """
         return super().get_iter(flatten=flatten, **kwargs)
+
+    def get_iter_ray(
+        self,
+        # keys_iterable: Iterable | None = None,
+        # shuffle_key_buffer: int = 1,
+        # key_hooks: Iterable[Callable | type[Composable] | functools.partial] | None = None,
+        # max_workers: int | None = None,
+        prefetch_buffer: int = 10,
+        shuffle_item_buffer: int = 1,
+        # flatten: bool = False,
+        # keys_kwargs: dict | None = None,
+        # get_kwargs: dict | None = None,
+        key_shuffle_kwargs: dict | None = None,
+        item_shuffle_kwargs: dict | None = None,
+        drop_last: bool = False,
+        batch_size: int = 100,
+    ) -> None:
+        """TODO: if the same api for get_iter can be used for ray, we should go for that."""
+        import ray
+
+        item_shuffle_kwargs = {} if item_shuffle_kwargs is None else item_shuffle_kwargs
+
+        ds = ray.data
+        if self.serializer == PNGSerializer:
+            ds = ds.read_images(self.url)
+        elif self.serializer == NumpySerializer:
+            ds = ds.read_numpy(self.url)
+        elif isinstance(self.serializer(), ParquetSerializer):
+            ds = ds.read_parquet(self.url)
+        elif self.serializer == MessagepackSerializer or JsonSerializer:
+            raise NotImplementedError("msgpack and jsonl drivers not implemented")
+        else:
+            raise NotImplementedError(f"serializer is {self.serializer}!")
+
+        ds = ds.iter_batches(
+            prefetch_batches=prefetch_buffer,
+            batch_format="numpy",
+            drop_last=drop_last,
+            batch_size=batch_size,
+            local_shuffle_buffer_size=shuffle_item_buffer,
+            local_shuffle_seed=42,
+        )
+
+        it = IterableSource(ds)
+        if self.serializer == PNGSerializer:
+            it = it.map(lambda x: x["image"]).flatten()
+        if self.serializer == NumpySerializer:
+            it = it.map(lambda x: x["data"]).flatten()
+        if self.serializer == ParquetSerializer:
+            import pyarrow as pa
+
+            it = it.map(lambda x: pa.RecordBatch.to_pylist(pa.RecordBatch.from_pydict(x))).flatten()
+        return it.shuffle(size=shuffle_item_buffer, **item_shuffle_kwargs)
 
     def get(self, key: Any, **kwargs) -> Iterable:
         """Returns an iterable over the items corresponding to `key` using the store instance.
