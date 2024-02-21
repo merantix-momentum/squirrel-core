@@ -68,6 +68,11 @@ class JsonSerializer(SquirrelSerializer):
         super().__init__()
         self.deser_hook = deser_hook
 
+    @property
+    def file_extension(self) -> str:
+        """File extension, i.e. `gz`"""
+        return "gz"
+
     @staticmethod
     def serialize(obj: t.Any) -> bytes:
         """Returns the object serialized with json."""

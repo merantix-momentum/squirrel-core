@@ -16,7 +16,7 @@ import subprocess
 import random
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Dict, Iterable, Iterator, List, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple
 from uuid import uuid4
 
 from faker import Faker
@@ -315,9 +315,7 @@ def directory_np_catalog(test_path: URL) -> Catalog:
 
 @pytest.fixture
 def directory_img_catalog(test_path: URL) -> Catalog:
-    # import os
-    # os.mkdir(f"{test_path}/im")
-    # _numpy = get_records_with_np(NUM_ROWS)
+    """Create a Catalog with a single Source of png files created using DirectoryStore."""
     _numpy = [np.arange(2 * 3 * 4).reshape((2, 3, 4)).astype(dtype=np.uint8) for _ in range(NUM_ROWS)]
     cat = Catalog()
     dstore = DirectoryStore(test_path, serializer=PNGSerializer)

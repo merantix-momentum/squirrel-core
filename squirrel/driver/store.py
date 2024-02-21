@@ -4,12 +4,7 @@ from typing import TYPE_CHECKING, Any, Iterable
 
 from squirrel.driver.driver import MapDriver
 from squirrel.iterstream.source import IterableSource
-from squirrel.serialization import SquirrelSerializer
-from squirrel.serialization.jsonl import JsonSerializer
-from squirrel.serialization.msgpack import MessagepackSerializer
-from squirrel.serialization.np import NumpySerializer
-from squirrel.serialization.parquet import ParquetSerializer
-from squirrel.serialization.png import PNGSerializer
+from squirrel.serialization import SquirrelSerializer, NumpySerializer, ParquetSerializer, PNGSerializer
 from squirrel.store import SquirrelStore
 
 if TYPE_CHECKING:
@@ -67,38 +62,15 @@ class StoreDriver(MapDriver):
 
     def get_iter_ray(
         self,
-        # keys_iterable: Iterable | None = None,
-        # shuffle_key_buffer: int = 1,
-        # key_hooks: Iterable[Callable | type[Composable] | functools.partial] | None = None,
-        # max_workers: int | None = None,
         prefetch_buffer: int = 10,
         shuffle_item_buffer: int = 1,
-        # flatten: bool = False,
-        # keys_kwargs: dict | None = None,
-        # get_kwargs: dict | None = None,
-        key_shuffle_kwargs: dict | None = None,
         item_shuffle_kwargs: dict | None = None,
         drop_last: bool = False,
         batch_size: int = 100,
     ) -> None:
-        """TODO: if the same api for get_iter can be used for ray, we should go for that."""
-        import ray
+        """TODO: This should probably be refactored"""
 
-        item_shuffle_kwargs = {} if item_shuffle_kwargs is None else item_shuffle_kwargs
-
-        ds = ray.data
-        if self.serializer == PNGSerializer:
-            ds = ds.read_images(self.url)
-        elif self.serializer == NumpySerializer:
-            ds = ds.read_numpy(self.url)
-        elif isinstance(self.serializer(), ParquetSerializer):
-            ds = ds.read_parquet(self.url)
-        elif self.serializer == MessagepackSerializer or JsonSerializer:
-            raise NotImplementedError("msgpack and jsonl drivers not implemented")
-        else:
-            raise NotImplementedError(f"serializer is {self.serializer}!")
-
-        ds = ds.iter_batches(
+        ds_iter_batch = self.get_ray_iter_batch(
             prefetch_batches=prefetch_buffer,
             batch_format="numpy",
             drop_last=drop_last,
@@ -107,14 +79,15 @@ class StoreDriver(MapDriver):
             local_shuffle_seed=42,
         )
 
-        it = IterableSource(ds)
-        if self.serializer == PNGSerializer:
+        it = IterableSource(ds_iter_batch)
+        if isinstance(self.serializer, PNGSerializer):
             it = it.map(lambda x: x["image"]).flatten()
-        if self.serializer == NumpySerializer:
+        elif isinstance(self.serializer, NumpySerializer):
             it = it.map(lambda x: x["data"]).flatten()
-        if self.serializer == ParquetSerializer:
+        elif isinstance(self.serializer, ParquetSerializer):
             import pyarrow as pa
 
+            # TODO: check the performance of the line below and maybe change
             it = it.map(lambda x: pa.RecordBatch.to_pylist(pa.RecordBatch.from_pydict(x))).flatten()
         return it.shuffle(size=shuffle_item_buffer, **item_shuffle_kwargs)
 
@@ -154,3 +127,36 @@ class StoreDriver(MapDriver):
         if self._store is None:
             self._store = SquirrelStore(url=self.url, serializer=self.serializer, **self.storage_options)
         return self._store
+
+    def get_ray_dataset(self) -> ray.data.Dataset:
+        """Get a ray dataset"""
+        import ray
+
+        ds = ray.data
+        if isinstance(self.serializer, PNGSerializer):
+            ds = ds.read_images(self.url)
+        elif isinstance(self.serializer, NumpySerializer):
+            ds = ds.read_numpy(self.url)
+        elif isinstance(self.serializer, ParquetSerializer):
+            ds = ds.read_parquet(self.url)
+        else:
+            raise NotImplementedError(f"serializer {self.serializer} does not support Ray")
+        return ds
+
+    def get_ray_iter_batch(
+        self,
+        prefetch_buffer: int = 10,
+        shuffle_item_buffer: int = 1,
+        drop_last: bool = False,
+        batch_size: int = 100,
+    ) -> Iterable:
+        """Get a ray iter_batch"""
+        ds = self.get_ray_dataset()
+        return ds.iter_batches(
+            prefetch_batches=prefetch_buffer,
+            batch_format="numpy",
+            drop_last=drop_last,
+            batch_size=batch_size,
+            local_shuffle_buffer_size=shuffle_item_buffer,
+            local_shuffle_seed=42,
+        )

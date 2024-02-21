@@ -1,16 +1,13 @@
 from __future__ import annotations
-from functools import partial
 
-from typing import Any, Dict
+from typing import Any
 
 import ray
 
 from squirrel.driver.store import StoreDriver
 from squirrel.iterstream import Composable
-from squirrel.iterstream.source import IterableSource
-from squirrel.serialization import PNGSerializer
-from squirrel.serialization import NumpySerializer
-from squirrel.store.directory_store import DirectoryStore
+from squirrel.serialization import PNGSerializer, NumpySerializer
+from squirrel.store import DirectoryStore
 
 __all__ = [
     "DirectoryDriver",
@@ -22,7 +19,7 @@ class DirectoryDriver(StoreDriver):
 
     name = "directory"
 
-    SERIALIZERS = {"npy": NumpySerializer, "png": PNGSerializer}
+    SERIALIZERS = {"npy": NumpySerializer(), "png": PNGSerializer()}
 
     def __init__(self, url: str, file_format: str, storage_options: dict[str, Any] | None = None, **kwargs):
         """
@@ -53,7 +50,7 @@ class DirectoryDriver(StoreDriver):
     @property
     def ray(self) -> ray.data.Dataset:
         """Ray Dataset"""
-        if self.serializer == PNGSerializer:
+        if isinstance(self.serializer, PNGSerializer):
             return ray.data.read_images(self.url)
-        elif self.serializer == NumpySerializer:
+        elif isinstance(self.serializer, NumpySerializer):
             return ray.data.read_numpy(self.url)

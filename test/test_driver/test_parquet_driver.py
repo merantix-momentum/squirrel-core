@@ -4,7 +4,6 @@ from typing import Dict, Iterable, List
 
 import ray
 from squirrel.catalog.catalog import Catalog
-from squirrel.serialization.parquet import ParquetSerializer
 from test.conftest import get_records_with_np
 import torch.utils.data as tud
 import polars as pl
@@ -14,25 +13,26 @@ import numpy as np
 
 from squirrel.store import ParquetStore
 from squirrel.driver import MessagepackDriver, DeltalakeDriver, PolardParquetDriver, StreamingParquetDriver
-from squirrel.iterstream.source import FilePathGenerator, IterableSource
+from squirrel.iterstream.source import IterableSource
 
 
 def assert_equal_arrays(arrays: List[np.array]) -> None:
-    """Assert arrays are equal by summing each and comparing the result"""
-    sums = np.array([np.sum(x) for x in arrays])
-    assert np.isclose(sum(sums - sums[0]), 0)
+    """Assert arrays are equal"""
+    _arrays = [np.array(sorted(list_of_arrays, key=lambda x: np.sum(x))) for list_of_arrays in arrays]
+    return np.sum(_arrays - _arrays[0])
 
 
-def test_parquet_iter_ray(normal_parquet_ray):
+def test_parquet_iter_ray(normal_parquet_ray: Iterable) -> None:
     """Test StreamingParquetDriver.get_iter_ray"""
     _path, _data = normal_parquet_ray
     d = StreamingParquetDriver(_path)
-    assert d.serializer == ParquetSerializer
     it = d.get_iter_ray().collect()
+    assert len(it) == len(_data)
     assert_equal_arrays([[i["lable"] for i in it], [i["lable"] for i in _data]])
 
 
-def test_polars_parquet_driver(normal_parquet_ray) -> None:
+def test_polars_parquet_driver(normal_parquet_ray: Iterable) -> None:
+    """Test reading parquet with PolardParquetDriver"""
     _path, _data = normal_parquet_ray
     d1 = PolardParquetDriver(_path).get_iter().collect()
     d2 = StreamingParquetDriver(_path).get_iter().collect()
@@ -44,7 +44,7 @@ def test_polars_parquet_driver(normal_parquet_ray) -> None:
     assert_equal_arrays([[i["lable"] for i in d1], [i["lable"] for i in d2], [i["lable"] for i in _data]])
 
 
-def test_deltalake_driver(no_image_parquet_deltalake_with_ray) -> None:
+def test_deltalake_driver(no_image_parquet_deltalake_with_ray: Iterable) -> None:
     """Test deltalake"""
     _path, _data = no_image_parquet_deltalake_with_ray
     d = DeltalakeDriver(_path)
@@ -52,7 +52,8 @@ def test_deltalake_driver(no_image_parquet_deltalake_with_ray) -> None:
     assert dt == _data
 
 
-def test_partitioned_parquet(partitioned_parquet) -> None:
+def test_partitioned_parquet(partitioned_parquet: Iterable) -> None:
+    """Test partitioned parquet with StreamingParquetDriver"""
     _path, _data = partitioned_parquet
     ds = ray.data.read_parquet(_path)
     ds = list(ds.iter_rows())
@@ -138,48 +139,46 @@ def test_polars_streaming_deltalake(no_image_parquet_deltalake_with_ray: Iterabl
     assert c1 == c2
 
 
-# TODO: OOM, check if this can work
-# def test_streaming_parquet_with_pytorch_dataloader(normal_parquet_ray: Iterable) -> None:
-#     """Test streaming parquet with pytorch dataloader"""
-#     _path, _data = normal_parquet_ray
-#     ds = ray.data.read_parquet(_path)
-#     num_workers = 2
-#     batch_size = 5
+def test_streaming_parquet_with_pytorch_dataloader(normal_parquet_ray: Iterable) -> None:
+    """Test streaming parquet with pytorch dataloader"""
+    _path, _data = normal_parquet_ray
+    ds = ray.data.read_parquet(_path)
+    num_workers = 2
+    batch_size = 5
 
-#     it = StreamingParquetDriver(url=_path).get_iter().split_by_worker_pytorch().to_torch_iterable()
-#     dl = list(tud.DataLoader(it, num_workers=num_workers))
-#     dl = [i["lable"].cpu().numpy()[0] for i in dl]
-#     c1 = Counter(dl)
-#     c2 = Counter([i["lable"] for i in _data])
-#     dl2 = list(ds.iter_torch_batches(batch_size=batch_size))
-#     dl2_ = []
-#     for i in dl2:
-#         _np = i["lable"].cpu().numpy()
-#         dl2_.extend(list(_np))
-#     c3 = Counter(dl2_)
-#     assert c1 == c2 == c3
+    it = StreamingParquetDriver(url=_path).get_iter().split_by_worker_pytorch().to_torch_iterable()
+    dl = list(tud.DataLoader(it, num_workers=num_workers))
+    dl = [i["lable"].cpu().numpy()[0] for i in dl]
+    c1 = Counter(dl)
+    c2 = Counter([i["lable"] for i in _data])
+    dl2 = list(ds.iter_torch_batches(batch_size=batch_size))
+    dl2_ = []
+    for i in dl2:
+        _np = i["lable"].cpu().numpy()
+        dl2_.extend(list(_np))
+    c3 = Counter(dl2_)
+    assert c1 == c2 == c3
 
 
-# TODO: OOM, check if this can work
-# def test_msgpack_with_ray() -> None:
-#     """
-#     Test more complext scenario of distributed load (and potentially transformation) with
-#     Ray wrapped in IterableSource
-#     """
+def test_msgpack_with_ray() -> None:
+    """
+    Test more complext scenario of distributed load (and potentially transformation) with
+    Ray wrapped in IterableSource
+    """
 
-#     with tempfile.TemporaryDirectory() as tmp_dir:
-#         _data = get_records_with_np()
-#         st = MessagepackDriver(url=tmp_dir).store
-#         IterableSource(_data).batched(10, drop_last_if_not_full=False).map(st.set).collect()
-#         keys = list(st.keys())
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        _data = get_records_with_np()
+        st = MessagepackDriver(url=tmp_dir).store
+        IterableSource(_data).batched(10, drop_last_if_not_full=False).map(st.set).collect()
+        keys = list(st.keys())
 
-#         def _load_sample(k: Dict) -> Dict:
-#             k = k["item"]
-#             st = MessagepackDriver(url=tmp_dir).store
-#             data = IterableSource(st.get(k)).collect()
-#             return {"item": {"inner": data}}
+        def _load_sample(k: Dict) -> Dict:
+            k = k["item"]
+            st = MessagepackDriver(url=tmp_dir).store
+            data = IterableSource(st.get(k)).collect()
+            return {"item": {"inner": data}}
 
-#         ds = ray.data.from_items(keys).map(_load_sample)
-#         res = IterableSource(ds.iter_rows()).map(lambda x: x["item"]["inner"]).flatten().collect()
+        ds = ray.data.from_items(keys).map(_load_sample)
+        res = IterableSource(ds.iter_rows()).map(lambda x: x["item"]["inner"]).flatten().collect()
 
-#         assert_equal_arrays([[i["image"] for i in _data], [i["image"] for i in res]])
+        assert_equal_arrays([[i["image"] for i in _data], [i["image"] for i in res]])

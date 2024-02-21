@@ -27,7 +27,7 @@ def test_directory_driver_with_images(directory: str, request: pytest.FixtureReq
     assert_equal_arrays([a, b, c, d, _data])
 
 
-def test_ray_iter(directory_img_catalog) -> None:
+def test_ray_iter(directory_img_catalog: Catalog) -> None:
     """Test DirectoryDriver.get_iter_ray() for images"""
     d = directory_img_catalog["im"].get_driver()
     it = d.get_iter().collect()

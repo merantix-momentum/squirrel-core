@@ -13,9 +13,9 @@ class StreamingParquetDriver(StoreDriver):
 
     name = "streaming_parquet"
 
-    def __init__(self, url: str, serializer=None, storage_options: Optional[Dict[str, Any]] = None, **kwargs):
+    def __init__(self, url: str, storage_options: Optional[Dict[str, Any]] = None, **kwargs):
         """Driver to stream data from a parquet dataset."""
-        super().__init__(url=url, serializer=ParquetSerializer, storage_options=storage_options, **kwargs)
+        super().__init__(url=url, serializer=ParquetSerializer(), storage_options=storage_options, **kwargs)
 
     @property
     def store(self) -> ParquetStore:
@@ -32,9 +32,10 @@ class StreamingParquetDriver(StoreDriver):
 class DeltalakeDriver(StreamingParquetDriver):
     name = "deltalake_parquet"
 
-    def __init__(self, url: str, serializer=None, storage_options: Optional[Dict[str, Any]] = None, **kwargs):
+    def __init__(self, url: str, storage_options: Optional[Dict[str, Any]] = None, **kwargs):
         """Driver to stream data from a parquet dataset."""
-        super().__init__(url=url, serializer=DeltalakeSerializer, storage_options=storage_options, **kwargs)
+        super().__init__(url=url, storage_options=storage_options, **kwargs)
+        self.serializer = DeltalakeSerializer()
 
     def deltatable(self, **kwargs) -> "deltalake.DeltaTable":  # noqa F821
         """
@@ -49,35 +50,68 @@ class DeltalakeDriver(StreamingParquetDriver):
 class PolardParquetDriver(StreamingParquetDriver):
     name = "polars_parquet"
 
-    def __init__(self, url: str, serializer=None, storage_options: Optional[Dict[str, Any]] = None, **kwargs):
+    def __init__(self, url: str, storage_options: Optional[Dict[str, Any]] = None, **kwargs):
         """Driver to stream data from a parquet dataset."""
-        super().__init__(url=url, serializer=PolarsSerializer, storage_options=storage_options, **kwargs)
-        # self.flavour = flavour  # TODO: introduce deltalake
+        super().__init__(url=url, storage_options=storage_options, **kwargs)
+        self.serializer = PolarsSerializer()
 
-    def lazy_frame(self):
-        """Returns a polard.LazyFrame object"""
+    def lazy_frame(self, **scan_kwargs) -> "polars.LazyFrame":  # noqa F821
+        """
+        Returns a polard.LazyFrame object
+
+        Args:
+            - scan_kwargs: kwargs passed to Polars.scan_parquet()
+
+        Note: the `source` argument of scan_parquet is set to self.url + "/*", which assumes non-partitioned
+        parquet
+        """
         import polars as pl
 
-        return pl.scan_parquet(source=self.url + "/*")
+        return pl.scan_parquet(source=self.url + "/*", **scan_kwargs)
 
-    def query(self, query: str = "SELECT * FROM frame LIMIT 2"):
+    def query(
+        self,
+        query: str = "SELECT * FROM frame LIMIT 2",
+        scan_kwargs: Optional[Dict] = None,
+        sql_context_kwargs: Optional[Dict] = None,
+    ) -> "polars.LazyFrame":  # noqa F821
         """Run the query against the parquet dataset and return a polard.LazyFrame object"""
         import polars as pl
 
-        res = pl.SQLContext(frame=self.lazy_frame()).execute(query)
+        if scan_kwargs is None:
+            scan_kwargs = {}
+        if sql_context_kwargs is None:
+            sql_context_kwargs = {}
+
+        res = pl.SQLContext(frame=self.lazy_frame(**scan_kwargs), **sql_context_kwargs).execute(query)
         return res
 
-    def get_iter(self, query: Optional[str] = None, streaming: bool = True, **kwargs) -> Composable:
-        """
-        A Composable based on the polars.LazyFrame
+    def get_iter(
+        self,
+        query: Optional[str] = None,
+        streaming: bool = True,
+        scan_kwargs: Optional[Dict] = None,
+        sql_context_kwargs: Optional[Dict] = None,
+    ) -> Composable:
+        """A Composable based on the polars.LazyFrame.
 
         Args:
-            - query (str): apply this query before fetching the data.
+            - query (str): apply this query before fetching the data. The general form should be
+                `"SELECT * FROM frame`.
             - streaming (bool): whether to stream data using Polars or not. Some opperations might not be
                 compatible with streaming. Please consult the Polars documentation for more info.
+            - scan_kwargs (Optional[Dict]): kwargs passed to `polars.scan_parquet`.
+            - sql_context_kwargs (Optional[Dict]): kwargs passed to `polars.SQLContext`. Only applicable if
+                `query` is not None.
+
         """
+        if scan_kwargs is None:
+            scan_kwargs = {}
+        if sql_context_kwargs is None:
+            sql_context_kwargs = {}
+
         if query is not None:
-            it = self.query(q=query)
+            it = self.query(q=query, scan_kwargs=scan_kwargs, sql_context_kwargs=sql_context_kwargs)
         else:
-            it = self.lazy_frame()
+            it = self.lazy_frame(**scan_kwargs)
         return IterableSource(it.collect(streaming=streaming).iter_rows(named=True))

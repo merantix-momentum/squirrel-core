@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 import fsspec
 import numpy as np
 
@@ -15,14 +15,6 @@ class NumpySerializer(SquirrelFileSerializer):
     def file_extension(self) -> str:
         """File extension, i.e. npy"""
         return "npy"
-
-    def serialize(self, obj: Any) -> Any:
-        """Not Implemented"""
-        raise NotImplementedError()
-
-    def deserialize(self, obj: Any) -> Any:
-        """Not Implemented"""
-        raise NotImplementedError()
 
     def serialize_shard_to_file(
         self,
