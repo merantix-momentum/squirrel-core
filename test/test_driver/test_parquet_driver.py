@@ -4,7 +4,9 @@ from typing import Dict, Iterable, List
 
 import ray
 from squirrel.catalog.catalog import Catalog
-from test.conftest import get_records_with_np
+from squirrel.constants import URL
+from squirrel.store.parquet_store import DeltalakeStore
+from test.conftest import get_records_with_np, get_records_without_np
 import torch.utils.data as tud
 import polars as pl
 import pytest
@@ -13,13 +15,25 @@ import numpy as np
 
 from squirrel.store import ParquetStore
 from squirrel.driver import MessagepackDriver, DeltalakeDriver, PolardParquetDriver, StreamingParquetDriver
-from squirrel.iterstream.source import IterableSource
+from squirrel.iterstream.source import FilePathGenerator, IterableSource
 
 
 def assert_equal_arrays(arrays: List[np.array]) -> None:
     """Assert arrays are equal"""
     _arrays = [np.array(sorted(list_of_arrays, key=lambda x: np.sum(x))) for list_of_arrays in arrays]
     return np.sum(_arrays - _arrays[0])
+
+
+def test_deltalake_store(test_path: URL) -> None:
+    """Test deltalake store"""
+    _data = get_records_without_np(10)
+    dst = DeltalakeStore(test_path)
+    IterableSource(_data).batched(5).map(dst.set).join()
+    _ret = DeltalakeDriver(test_path).get_iter().collect()
+    assert len(_ret) == len(_data)
+    all_paths = FilePathGenerator(test_path, nested=True).collect()
+    assert len([p for p in all_paths if ".parquet" in p]) == 2
+    assert len([p for p in all_paths if ".json" in p]) == len(list(dst.keys())) == 2
 
 
 def test_parquet_iter_ray(normal_parquet_ray: Iterable) -> None:

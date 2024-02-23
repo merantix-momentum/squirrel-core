@@ -1,5 +1,7 @@
 import typing as t
 
+from deltalake import write_deltalake
+
 from squirrel.fsspec.fs import get_fs_from_url
 from squirrel.store.filesystem import FilesystemStore
 
@@ -60,3 +62,24 @@ class ParquetStore(FilesystemStore):
             (str) Paths to files and directories in the store relative to the root directory.
         """
         yield from super().keys(regex_filter=".parquet", **kwargs)
+
+
+class DeltalakeStore(ParquetStore):
+    def __init__(self, url: str, **storage_options):
+        """Store that uses deltalake to read from / write to the dataset"""
+        super().__init__(url=url, serializer=None, storage_options=storage_options)
+
+    def set(self, value: t.Any, mode: str = "append", **kwargs) -> None:
+        """Store value
+
+        Args:
+            - value (Iterable[Dict]): the shard to be written
+            - mode (str): passed to write_deltalake(), one of the 'error', 'append',
+                'overwrite', 'ignore', default to append
+            - kwargs: passed to write_deltalake
+        """
+        import pyarrow as pa
+
+        rec_batch = pa.RecordBatch.from_pylist(value)
+        # TODO: can we use get_fs_from_url(self.url)?
+        return write_deltalake(f"{self.url}", rec_batch, mode=mode, **kwargs)

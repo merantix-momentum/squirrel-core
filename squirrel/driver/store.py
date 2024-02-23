@@ -69,9 +69,11 @@ class StoreDriver(MapDriver):
         batch_size: int = 100,
     ) -> None:
         """TODO: This should probably be refactored"""
+        if item_shuffle_kwargs is None:
+            item_shuffle_kwargs = {}
 
         ds_iter_batch = self.get_ray_iter_batch(
-            prefetch_batches=prefetch_buffer,
+            prefetch_buffer=prefetch_buffer,
             batch_format="numpy",
             drop_last=drop_last,
             batch_size=batch_size,
@@ -128,7 +130,7 @@ class StoreDriver(MapDriver):
             self._store = SquirrelStore(url=self.url, serializer=self.serializer, **self.storage_options)
         return self._store
 
-    def get_ray_dataset(self) -> ray.data.Dataset:
+    def get_ray_dataset(self) -> "Dataset":  # noqa
         """Get a ray dataset"""
         import ray
 
@@ -146,7 +148,9 @@ class StoreDriver(MapDriver):
     def get_ray_iter_batch(
         self,
         prefetch_buffer: int = 10,
-        shuffle_item_buffer: int = 1,
+        batch_format: str = "numpy",
+        local_shuffle_buffer_size: int = 1,
+        local_shuffle_seed: int = 42,
         drop_last: bool = False,
         batch_size: int = 100,
     ) -> Iterable:
@@ -154,9 +158,9 @@ class StoreDriver(MapDriver):
         ds = self.get_ray_dataset()
         return ds.iter_batches(
             prefetch_batches=prefetch_buffer,
-            batch_format="numpy",
+            batch_format=batch_format,
             drop_last=drop_last,
             batch_size=batch_size,
-            local_shuffle_buffer_size=shuffle_item_buffer,
-            local_shuffle_seed=42,
+            local_shuffle_buffer_size=local_shuffle_buffer_size,
+            local_shuffle_seed=local_shuffle_seed,
         )

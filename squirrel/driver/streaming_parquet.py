@@ -5,6 +5,7 @@ from squirrel.iterstream import Composable
 from squirrel.iterstream.source import IterableSource
 from squirrel.serialization.parquet import DeltalakeSerializer, ParquetSerializer, PolarsSerializer
 from squirrel.store import ParquetStore
+from squirrel.store.parquet_store import DeltalakeStore
 
 __all__ = ["StreamingParquetDriver", "DeltalakeDriver", "PolardParquetDriver"]
 
@@ -37,11 +38,13 @@ class DeltalakeDriver(StreamingParquetDriver):
         super().__init__(url=url, storage_options=storage_options, **kwargs)
         self.serializer = DeltalakeSerializer()
 
+    @property
+    def store(self) -> DeltalakeStore:
+        """Return squirrel.store.DeltalakeStore"""
+        return DeltalakeStore(self.url, **self.storage_options)
+
     def deltatable(self, **kwargs) -> "deltalake.DeltaTable":  # noqa F821
-        """
-        If the underlying store is a deltalake table, this property return a deltalake.DeltaTable object.
-        If this in not the case, it will fail
-        """
+        """Return a deltalake.DeltaTable"""
         from deltalake import DeltaTable
 
         return DeltaTable(table_uri=self.url, **kwargs)
@@ -93,7 +96,7 @@ class PolardParquetDriver(StreamingParquetDriver):
         scan_kwargs: Optional[Dict] = None,
         sql_context_kwargs: Optional[Dict] = None,
     ) -> Composable:
-        """A Composable based on the polars.LazyFrame.
+        """A Composable based on the polars.LazyFrame.  # noqaD417
 
         Args:
             - query (str): apply this query before fetching the data. The general form should be
