@@ -51,8 +51,8 @@ xlrd = {version = ">=2.0.1", optional = true}
 zarr = {version = ">=2.10.3", optional = true}
 ray = {version = "^2.9.1", optional = true, extras = ["data"]}
 deltalake = {version = "^0.15.2", optional = true}
+polars = {version = "^0.20.6", extras = ["deltalake", "numpy", "pandas", "pyarrow"]}
 scikit-image = {version = "^0.22.0", optional = true}
-# jsonschema = "3.0.2"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -72,8 +72,6 @@ setuptools = "69.0.2"
 twine = "4.0.2"
 wheel = "0.42.0"
 mlflow = "2.9.2"
-polars = {version = "^0.20.6", extras = ["deltalake", "numpy", "pandas", "pyarrow"]}
-# getdaft = "^0.2.12"
 
 [tool.poetry.group.doc.dependencies]
 # doc dependencies are pinned for faster resolution
@@ -103,7 +101,6 @@ myst-nb = "0.15.0"
 # grpcio-tools = "^1.60.0"
 
 
-
 [tool.poetry.extras]
 azure = ["adlfs"]
 dask = ["dask"]
@@ -119,7 +116,8 @@ zarr = ["zarr"]
 ray = ["ray"]
 deltalake = ["deltalake"]
 scikit-image = ["scikit-image"]
-all = ["adlfs", "dask", "odfpy", "openpyxl", "pyxlsb", "xlrd", "pyarrow", "gcsfs", "s3fs", "torch", "zarr", "wandb", "numba", "ray", "deltalake", "scikit-image"]
+polars = ["polars"]
+all = ["adlfs", "dask", "odfpy", "openpyxl", "pyxlsb", "xlrd", "pyarrow", "gcsfs", "s3fs", "torch", "zarr", "wandb", "numba", "ray", "deltalake", "polars", "scikit-image"]
 
 [build-system]
 requires = ["poetry-core"]
