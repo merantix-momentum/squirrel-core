@@ -40,8 +40,9 @@ def test_parquet_iter_ray(normal_parquet_ray: Iterable) -> None:
     """Test StreamingParquetDriver.get_iter_ray"""
     _path, _data = normal_parquet_ray
     d = StreamingParquetDriver(_path)
+    nrows = len(d.store)
     it = d.get_iter_ray().collect()
-    assert len(it) == len(_data)
+    assert len(it) == len(_data) == nrows
     assert_equal_arrays([[i["lable"] for i in it], [i["lable"] for i in _data]])
 
 
@@ -50,6 +51,8 @@ def test_polars_parquet_driver(normal_parquet_ray: Iterable) -> None:
     _path, _data = normal_parquet_ray
     d1 = PolardParquetDriver(_path).get_iter().collect()
     d2 = StreamingParquetDriver(_path).get_iter().collect()
+
+    assert len(PolardParquetDriver(_path).store) == len(StreamingParquetDriver(_path).store)
 
     for i in range(1, 4):
         pdr = PolardParquetDriver(_path).query(f"SELECT lable FROM frame WHERE lable = {i}").collect()

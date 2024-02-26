@@ -10,6 +10,7 @@ from squirrel.store import SquirrelStore
 if TYPE_CHECKING:
     from squirrel.iterstream import Composable
     from squirrel.store.store import AbstractStore
+    from ray.data import Dataset
 
 
 class StoreDriver(MapDriver):
@@ -130,7 +131,7 @@ class StoreDriver(MapDriver):
             self._store = SquirrelStore(url=self.url, serializer=self.serializer, **self.storage_options)
         return self._store
 
-    def get_ray_dataset(self) -> "Dataset":  # noqa
+    def get_ray_dataset(self) -> Dataset:
         """Get a ray dataset"""
         import ray
 

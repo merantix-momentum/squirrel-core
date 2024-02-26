@@ -3,6 +3,7 @@ import typing as t
 from deltalake import write_deltalake
 
 from squirrel.fsspec.fs import get_fs_from_url
+from squirrel.iterstream.source import FilePathGenerator
 from squirrel.store.filesystem import FilesystemStore
 
 
@@ -61,7 +62,18 @@ class ParquetStore(FilesystemStore):
         Yields:
             (str) Paths to files and directories in the store relative to the root directory.
         """
-        yield from super().keys(regex_filter=".parquet", **kwargs)
+        yield from super().keys(regex_filter=".parquet", nested=nested, **kwargs)
+
+    def __len__(self) -> int:
+        """Number of rows in the parquet dataset"""
+        import pyarrow.parquet as pq
+
+        return sum(
+            FilePathGenerator(self.url, nested=True)
+            .filter(lambda x: x.endswith(".parquet"))
+            .map(lambda x: pq.read_metadata(x).num_rows)
+            .collect()
+        )
 
 
 class DeltalakeStore(ParquetStore):
@@ -70,13 +82,13 @@ class DeltalakeStore(ParquetStore):
         super().__init__(url=url, serializer=None, storage_options=storage_options)
 
     def set(self, value: t.Any, mode: str = "append", **kwargs) -> None:
-        """Store value
+        """Store value in deltalake dataset.
 
         Args:
-            - value (Iterable[Dict]): the shard to be written
-            - mode (str): passed to write_deltalake(), one of the 'error', 'append',
+            value (Iterable[Dict]): the shard to be written
+            mode (str): passed to write_deltalake(), one of the 'error', 'append',
                 'overwrite', 'ignore', default to append
-            - kwargs: passed to write_deltalake
+            kwargs: passed to write_deltalake
         """
         import pyarrow as pa
 
