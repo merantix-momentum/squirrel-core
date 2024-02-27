@@ -6297,7 +6297,7 @@ docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.link
 testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy (>=0.9.1)", "pytest-ruff"]
 
 [extras]
-all = ["adlfs", "dask", "deltalake", "gcsfs", "numba", "odfpy", "openpyxl", "pyarrow", "pyxlsb", "ray", "s3fs", "scikit-image", "torch", "wandb", "xlrd", "zarr"]
+all = ["adlfs", "dask", "deltalake", "gcsfs", "numba", "odfpy", "openpyxl", "polars", "pyarrow", "pyxlsb", "ray", "s3fs", "scikit-image", "torch", "wandb", "xlrd", "zarr"]
 azure = ["adlfs"]
 dask = ["dask"]
 deltalake = ["deltalake"]
@@ -6306,6 +6306,7 @@ feather = ["pyarrow"]
 gcp = ["gcsfs"]
 numba = ["numba"]
 parquet = ["pyarrow"]
+polars = ["polars"]
 ray = ["ray"]
 s3 = ["s3fs"]
 scikit-image = ["scikit-image"]
@@ -6316,4 +6317,4 @@ zarr = ["zarr"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f7b0a931004209e1571727a9c124231913aaf8bec406273b30c5e182f93d1efa"
+content-hash = "083381f5dea6bc6a0657d5f3d3ce6c9dc32fc0a3387db3682da625c44ca53c48"

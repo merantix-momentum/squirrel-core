@@ -45,6 +45,12 @@ def test_parquet_iter_ray(normal_parquet_ray: Iterable) -> None:
     assert len(it) == len(_data) == nrows
     assert_equal_arrays([[i["lable"] for i in it], [i["lable"] for i in _data]])
 
+    def _fn(batch: Dict) -> Dict:
+        return {"lable": batch["lable"] * 10}
+
+    it = d.get_iter_ray(collate_fn=_fn).collect()
+    assert assert_equal_arrays([[i["lable"] * 10 for i in it], [i["lable"] for i in _data]])
+
 
 def test_polars_parquet_driver(normal_parquet_ray: Iterable) -> None:
     """Test reading parquet with PolardParquetDriver"""
