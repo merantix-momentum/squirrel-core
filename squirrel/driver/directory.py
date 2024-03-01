@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import ray
-
 from squirrel.driver.store import StoreDriver
 from squirrel.iterstream import Composable
 from squirrel.serialization import PNGSerializer, NumpySerializer
@@ -50,6 +48,8 @@ class DirectoryDriver(StoreDriver):
     @property
     def ray(self) -> ray.data.Dataset:
         """Ray Dataset"""
+        import ray
+
         if isinstance(self.serializer, PNGSerializer):
             return ray.data.read_images(self.url)
         elif isinstance(self.serializer, NumpySerializer):

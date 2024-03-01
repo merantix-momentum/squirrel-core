@@ -1,7 +1,5 @@
 import typing as t
 
-from deltalake import write_deltalake
-
 from squirrel.fsspec.fs import get_fs_from_url
 from squirrel.iterstream.source import FilePathGenerator
 from squirrel.store.filesystem import FilesystemStore
@@ -91,6 +89,7 @@ class DeltalakeStore(ParquetStore):
             kwargs: passed to write_deltalake
         """
         import pyarrow as pa
+        from deltalake import write_deltalake
 
         rec_batch = pa.RecordBatch.from_pylist(value)
         # TODO: can we use get_fs_from_url(self.url)?
