@@ -25,7 +25,6 @@ def squirrel_drivers() -> List[Type[Driver]]:
         StreamingParquetDriver,
         DeltalakeDriver,
         PolardParquetDriver,
-        DirectoryDriver,
     )
 
     return [
@@ -42,5 +41,4 @@ def squirrel_drivers() -> List[Type[Driver]]:
         StreamingParquetDriver,
         DeltalakeDriver,
         PolardParquetDriver,
-        DirectoryDriver,
     ]

@@ -11,7 +11,6 @@ from squirrel.driver.store import StoreDriver
 from squirrel.driver.excel import ExcelDriver
 from squirrel.driver.zarr import ZarrDriver
 from squirrel.driver.streaming_parquet import StreamingParquetDriver, DeltalakeDriver, PolardParquetDriver
-from squirrel.driver.directory import DirectoryDriver
 
 __all__ = [
     "CsvDriver",
@@ -31,5 +30,4 @@ __all__ = [
     "StreamingParquetDriver",
     "DeltalakeDriver",
     "PolardParquetDriver",
-    "DirectoryDriver",
 ]
