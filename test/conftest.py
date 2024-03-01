@@ -301,7 +301,7 @@ def directory_np_catalog(test_path: URL) -> Catalog:
     _numpy = [d["image"] for d in _numpy]
     cat = Catalog()
 
-    dstore = DirectoryStore(test_path, serializer=NumpySerializer)
+    dstore = DirectoryStore(test_path, serializer=NumpySerializer())
     IterableSource(_numpy).map(dstore.set).join()
     cat["np"] = Source(
         "directory",
@@ -318,7 +318,7 @@ def directory_img_catalog(test_path: URL) -> Catalog:
     """Create a Catalog with a single Source of png files created using DirectoryStore."""
     _numpy = [np.arange(2 * 3 * 4).reshape((2, 3, 4)).astype(dtype=np.uint8) for _ in range(NUM_ROWS)]
     cat = Catalog()
-    dstore = DirectoryStore(test_path, serializer=PNGSerializer)
+    dstore = DirectoryStore(test_path, serializer=PNGSerializer())
     IterableSource(_numpy).map(dstore.set).join()
     cat["im"] = Source(
         "directory",
@@ -410,7 +410,7 @@ def numpy_directory() -> Iterable:
     _data = get_records_with_np(NUM_ROWS)
     _data = [d["image"] for d in _data]
     with tempfile.TemporaryDirectory() as tmp_dir:
-        dstore = DirectoryStore(tmp_dir, serializer=NumpySerializer)
+        dstore = DirectoryStore(tmp_dir, serializer=NumpySerializer())
         IterableSource(_data).map(dstore.set).join()
         yield tmp_dir, _data
 
@@ -421,7 +421,7 @@ def png_image_directory() -> Iterable:
     a = list(np.arange(0, 255))
     _data = [np.random.choice(a, size=3 * 3 * 3).reshape((3, 3, 3)).astype(np.uint8) for _ in range(NUM_ROWS)]
     with tempfile.TemporaryDirectory() as tmp_dir:
-        dstore = DirectoryStore(tmp_dir, serializer=PNGSerializer)
+        dstore = DirectoryStore(tmp_dir, serializer=PNGSerializer())
         for a in _data:
             dstore.set(a)
         yield tmp_dir, _data

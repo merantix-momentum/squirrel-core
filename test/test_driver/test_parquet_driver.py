@@ -21,7 +21,8 @@ from squirrel.iterstream.source import FilePathGenerator, IterableSource
 def assert_equal_arrays(arrays: List[np.array]) -> None:
     """Assert arrays are equal"""
     _arrays = [np.array(sorted(list_of_arrays, key=lambda x: np.sum(x))) for list_of_arrays in arrays]
-    return np.sum(_arrays - _arrays[0])
+    # print(f"...................{len(_arrays)} {', '.join([str(_a.shape) for _a in _arrays])}")
+    assert np.sum(_arrays - _arrays[0]) == 0
 
 
 def test_deltalake_store(test_path: URL) -> None:
@@ -49,7 +50,7 @@ def test_parquet_iter_ray(normal_parquet_ray: Iterable) -> None:
         return {"lable": batch["lable"] * 10}
 
     it = d.get_iter_ray(collate_fn=_fn).collect()
-    assert assert_equal_arrays([[i["lable"] * 10 for i in it], [i["lable"] for i in _data]])
+    assert_equal_arrays([[i["lable"] for i in it], [i["lable"] * 10 for i in _data]])
 
 
 def test_polars_parquet_driver(normal_parquet_ray: Iterable) -> None:
