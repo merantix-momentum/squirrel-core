@@ -36,8 +36,8 @@ from squirrel.driver import JsonlDriver, MessagepackDriver
 from squirrel.integration_test.helpers import SHAPE, get_sample
 from squirrel.integration_test.shared_fixtures import *  # noqa: F401, F403
 from squirrel.iterstream import Composable, IterableSource
-from squirrel.serialization import JsonSerializer, MessagepackSerializer
-from squirrel.store import FilesystemStore, SquirrelStore
+from squirrel.store import FilesystemStore, DirectoryStore, SquirrelStore
+from squirrel.serialization import JsonSerializer, MessagepackSerializer, NumpySerializer, PNGSerializer
 from squirrel.zarr.group import get_group
 from squirrel.fsspec.fs import get_fs_from_url
 
@@ -295,6 +295,42 @@ def parquet_catalog(test_path: URL) -> Catalog:
 
 
 @pytest.fixture
+def directory_np_catalog(test_path: URL) -> Catalog:
+    """A catalog with a single driver 'np' in it."""
+    _numpy = get_records_with_np(NUM_ROWS)
+    _numpy = [d["image"] for d in _numpy]
+    cat = Catalog()
+
+    dstore = DirectoryStore(test_path, serializer=NumpySerializer())
+    IterableSource(_numpy).map(dstore.set).join()
+    cat["np"] = Source(
+        "directory",
+        driver_kwargs={
+            "url": test_path,
+            "file_format": "npy",
+        },
+    )
+    return cat
+
+
+@pytest.fixture
+def directory_img_catalog(test_path: URL) -> Catalog:
+    """Create a Catalog with a single Source of png files created using DirectoryStore."""
+    _numpy = [np.arange(2 * 3 * 4).reshape((2, 3, 4)).astype(dtype=np.uint8) for _ in range(NUM_ROWS)]
+    cat = Catalog()
+    dstore = DirectoryStore(test_path, serializer=PNGSerializer())
+    IterableSource(_numpy).map(dstore.set).join()
+    cat["im"] = Source(
+        "directory",
+        driver_kwargs={
+            "url": test_path,
+            "file_format": "png",
+        },
+    )
+    return cat
+
+
+@pytest.fixture
 def partitioned_parquet() -> Iterable:
     """Partitioned parquet"""
     _data = get_records_without_np(NUM_ROWS * 10)
@@ -365,4 +401,27 @@ def normal_parquet_ray() -> Iterable:
     with tempfile.TemporaryDirectory() as tmp_dir:
         ds = ray.data.from_items(_data)
         ds.write_parquet(tmp_dir)
+        yield tmp_dir, _data
+
+
+@pytest.fixture
+def numpy_directory() -> Iterable:
+    """Create a directory of npy files"""
+    _data = get_records_with_np(NUM_ROWS)
+    _data = [d["image"] for d in _data]
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        dstore = DirectoryStore(tmp_dir, serializer=NumpySerializer())
+        IterableSource(_data).map(dstore.set).join()
+        yield tmp_dir, _data
+
+
+@pytest.fixture
+def png_image_directory() -> Iterable:
+    """Create a directory of PNG files"""
+    a = list(np.arange(0, 255))
+    _data = [np.random.choice(a, size=3 * 3 * 3).reshape((3, 3, 3)).astype(np.uint8) for _ in range(NUM_ROWS)]
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        dstore = DirectoryStore(tmp_dir, serializer=PNGSerializer())
+        for a in _data:
+            dstore.set(a)
         yield tmp_dir, _data

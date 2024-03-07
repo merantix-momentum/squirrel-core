@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable
 
 from squirrel.driver.driver import MapDriver
 from squirrel.iterstream.source import IterableSource
-from squirrel.serialization import SquirrelSerializer, ParquetSerializer
+from squirrel.serialization import SquirrelSerializer, NumpySerializer, ParquetSerializer, PNGSerializer
 from squirrel.store import SquirrelStore
 
 if TYPE_CHECKING:
@@ -138,7 +138,11 @@ class StoreDriver(MapDriver):
         )
 
         it = IterableSource(ds_iter_batch)
-        if isinstance(self.serializer, ParquetSerializer):
+        if isinstance(self.serializer, PNGSerializer):
+            it = it.map(lambda x: x["image"]).flatten()
+        elif isinstance(self.serializer, NumpySerializer):
+            it = it.map(lambda x: x["data"]).flatten()
+        elif isinstance(self.serializer, ParquetSerializer):
             import pyarrow as pa
 
             # TODO: check the performance of the line below and maybe change
@@ -150,6 +154,10 @@ class StoreDriver(MapDriver):
         import ray
 
         ds = ray.data
+        if isinstance(self.serializer, PNGSerializer):
+            ds = ds.read_images(self.url)
+        elif isinstance(self.serializer, NumpySerializer):
+            ds = ds.read_numpy(self.url)
         if isinstance(self.serializer, ParquetSerializer):
             ds = ds.read_parquet(self.url)
         else:
