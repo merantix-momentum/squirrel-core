@@ -360,7 +360,7 @@ class CatalogSource(Source):
         """Read only property"""
         return self._versions
 
-    def get_driver(self, **kwargs) -> Driver:
+    def get_driver(self, **kwargs) -> Type[Driver]:
         """Returns an instance of the driver specified by the source."""
         from squirrel.framework.plugins.plugin_manager import squirrel_plugin_manager
 

@@ -27,6 +27,12 @@ repos:
           - flake8-docstrings==1.6.0
           - flake8-walrus==1.2.0
           - flake8-typing-imports==1.13.0
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.7.1
+    hooks:
+      - id: mypy
+        args: [--install-types, --non-interactive, --config-file=pyproject.toml]
+        additional_dependencies: [--index-url=https://pypi.org/simple/, keyrings.google-artifactregistry-auth]
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.27.1
     hooks:

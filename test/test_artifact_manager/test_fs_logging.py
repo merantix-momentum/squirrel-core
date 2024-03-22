@@ -3,6 +3,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+import typing
 
 from squirrel.artifact_manager.filesystem import FileSystemArtifactManager
 from squirrel.catalog import Source
@@ -74,8 +75,9 @@ def test_multi_serializer() -> None:
     tmpdir.cleanup()
 
 
+@typing.no_type_check
 @pytest.mark.skip(reason="Logging of python values not yet supported")
-def test_log_object() -> None:
+def test_log_object() -> None:  # type: ignore
     """Log an object to the default collection and check details of the catalog entry."""
     obj = {"name": "John", "age": 30}
     artifact_name = "john"
@@ -129,6 +131,7 @@ def test_get_artifact() -> None:
     assert manager.get_artifact(artifact_name, collection, "v0") == obj
 
 
+@typing.no_type_check
 def test_log_file() -> None:
     """Test logging files to the artifact store."""
     src_dir = tempfile.TemporaryDirectory()
@@ -171,6 +174,7 @@ def test_log_file() -> None:
     store_dir.cleanup()
 
 
+@typing.no_type_check
 def test_exists() -> None:
     """Test existence checks for artifacts in the artifact store."""
     test_files = {
@@ -242,6 +246,7 @@ def test_get_file() -> None:
     store_dir.cleanup()
 
 
+@typing.no_type_check
 def test_log_folder() -> None:
     """Test logging of folders using the context manager provided by the artifact store."""
     store_dir = tempfile.TemporaryDirectory()
@@ -276,6 +281,7 @@ def test_log_folder() -> None:
     store_dir.cleanup()
 
 
+@typing.no_type_check
 def test_store_to_catalog() -> None:
     """Test retrieval of catalog description of artifacts stored in the artifact store."""
     test_files = {

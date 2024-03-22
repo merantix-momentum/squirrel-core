@@ -15,6 +15,8 @@ if t.TYPE_CHECKING:
 
 
 class MessagepackSerializer(SquirrelSerializer):
+    name: str = "messagepack"
+
     @staticmethod
     def serialize(obj: t.Any) -> bytes:
         """Returns the object serialized with msgpack."""

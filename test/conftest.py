@@ -29,13 +29,13 @@ from zarr.hierarchy import Group
 from squirrel.catalog import Catalog, Source
 from squirrel.constants import URL
 from squirrel.driver import JsonlDriver, MessagepackDriver
-from squirrel.integration_test.helpers import SHAPE, get_sample
-from squirrel.integration_test.shared_fixtures import *  # noqa: F401, F403
+from test.integration_test.shared_fixtures import *  # noqa: F401, F403
 from squirrel.iterstream import Composable, IterableSource
 from squirrel.serialization import JsonSerializer, MessagepackSerializer
 from squirrel.store import FilesystemStore
 from squirrel.store.squirrel_store import SquirrelStore
 from squirrel.zarr.group import get_group
+from test.helpers import get_sample, SHAPE
 
 if TYPE_CHECKING:
     from squirrel.constants import SampleType

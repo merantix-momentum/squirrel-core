@@ -49,6 +49,7 @@ torch = {version = ">=1.13.1", optional = true}     # dependabot: GHSA-47fc-vmwq
 wandb = {version = "*", optional = true}
 xlrd = {version = ">=2.0.1", optional = true}
 zarr = {version = ">=2.10.3", optional = true}
+mypy = "^1.9.0"
 
 [tool.poetry.group.dev.dependencies]
 # dev dependencies pinned for faster resolution
@@ -133,3 +134,10 @@ norecursedirs = [
     "{arch}",
     "*.egg",
 ]
+
+[tool.mypy]
+explicit_package_bases = true
+ignore_missing_imports = true
+implicit_optional = true
+allow_redefinition = true
+exclude = '^test/'

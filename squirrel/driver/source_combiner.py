@@ -50,7 +50,8 @@ class SourceCombiner(MapDriver):
         key, version = self._subsets[subset]
         return self._catalog[key][version]
 
-    def get_iter(self, subset: str | None = None, **kwargs) -> Composable:
+    #  TODO: #187 refactor drivers
+    def get_iter(self, subset: str | None = None, **kwargs) -> Composable:  # type: ignore
         """Routes to the :py:meth:`get_iter` method of the appropriate subset driver.
 
         Args:

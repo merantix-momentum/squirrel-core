@@ -58,6 +58,8 @@ class SquirrelJsonDecoder(json.JSONDecoder):
 
 
 class JsonSerializer(SquirrelSerializer):
+    name: str = "jsonl"
+
     def __init__(self, deser_hook: t.Optional[t.Callable] = None) -> None:
         """Initializes JsonSerializer.
 

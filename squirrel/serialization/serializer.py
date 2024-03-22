@@ -8,6 +8,8 @@ if t.TYPE_CHECKING:
 
 
 class SquirrelSerializer(abc.ABC):
+    name: str
+
     @abc.abstractmethod
     def serialize(self, obj: t.Any) -> t.Any:
         """Returns the serialized object."""

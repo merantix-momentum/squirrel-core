@@ -14,12 +14,15 @@ if t.TYPE_CHECKING:
     from squirrel.serialization import SquirrelSerializer
 
 
+FS = t.TypeVar("FS")
+
+
 def get_random_key(length: int = 16) -> str:
     """Generates a random key"""
     return "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(length))
 
 
-class FilesystemStore(AbstractStore):
+class FilesystemStore(AbstractStore, t.Generic[FS]):
     """Store that uses fsspec to read from / write to files."""
 
     def __init__(
@@ -40,7 +43,7 @@ class FilesystemStore(AbstractStore):
         self.url = url.rstrip("/")
         self.storage_options = storage_options
         self.serializer = serializer
-        self.fs = get_fs_from_url(self.url, **self.storage_options)
+        self.fs: FS = get_fs_from_url(self.url, **self.storage_options)
         self._dir_exists = self.fs.exists(self.url)
         if clean and self._dir_exists:
             self.fs.rm(self.url, recursive=True)

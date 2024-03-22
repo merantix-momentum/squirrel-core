@@ -1,6 +1,6 @@
 import pytest
 
-from squirrel.benchmark.quantify_randomness import quantify_randomness
+from test.benchmark.quantify_randomness import quantify_randomness
 
 
 @pytest.mark.parametrize("shards", [5, 10])

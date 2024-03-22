@@ -41,6 +41,7 @@ class IterDriver(Driver):
         """
 
 
+#  TODO: #187 refactor drivers
 class MapDriver(IterDriver):
     """A Driver that allows retrieval of items using keys, in addition to allowing iteration over the items."""
 

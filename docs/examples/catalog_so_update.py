@@ -1,4 +1,5 @@
 from squirrel.catalog import Catalog, Source
+from squirrel.driver import CsvDriver
 
 # user 1 creates a catalog, saves it, and shares it with user 2
 cat = Catalog()
@@ -13,7 +14,7 @@ cat.to_file("catalog.yaml")
 
 # user 2 loads catalog from file and inserts their storage_options
 cat = Catalog.from_files(["catalog.yaml"])
-driver = cat["source"].get_driver(
+driver: CsvDriver = cat["source"].get_driver(
     storage_options={
         "protocol": "simplecache",
         "target_protocol": "gs",
