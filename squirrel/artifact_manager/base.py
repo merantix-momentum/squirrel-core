@@ -213,11 +213,14 @@ class ArtifactManager(ABC):
         """Create a context manager for logging a directory of files as a single artifact."""
         return DirectoryLogger(self, artifact, collection)
 
-    def download_collection(self, collection: Optional[str] = None, to: Path = "./") -> Catalog:
+    def download_collection(self, to: Path, collection: Optional[str] = None) -> Catalog:
         """Download all artifacts in collection to local directory."""
         collection = collection or self.active_collection
         catalog = self.collection_to_catalog(collection)
         for _, artifact in catalog:
-            artifact_name = artifact.metadata["artifact"]
-            self.download_artifact(artifact_name, collection, to=to)
+            if artifact.metadata:
+                artifact_name = artifact.metadata["artifact"]
+                self.download_artifact(artifact_name, collection, to=to)
+            else:
+                logger.warning(f"Skipping artifact {artifact} as it has no metadata.")
         return catalog

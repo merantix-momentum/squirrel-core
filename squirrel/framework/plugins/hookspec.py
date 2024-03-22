@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List, Tuple, Type
 
 import pluggy
@@ -11,7 +12,7 @@ hookspec = pluggy.HookspecMarker(PLUGGY_HOOKGROUP)
 
 
 @hookspec
-def squirrel_sources() -> List[Tuple[CatalogKey, Source]]:
+def squirrel_sources() -> List[Tuple[CatalogKey, Source]]:  # type: ignore
     """Hook for plugins to add sources to Catalog.from_plugins.
 
     Returns:
@@ -21,6 +22,6 @@ def squirrel_sources() -> List[Tuple[CatalogKey, Source]]:
 
 
 @hookspec
-def squirrel_drivers() -> List[Type[Driver]]:
+def squirrel_drivers() -> List[Type[Driver]]:  # type: ignore
     """Hook for plugins to add drivers that can be used in Catalogs."""
     pass

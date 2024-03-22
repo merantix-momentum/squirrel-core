@@ -340,9 +340,9 @@ def test_download_collection() -> None:
 
             manager.log_files(filename[:3], Path(f"{src_dir.name}/{filename}"), collection, Path(filename))
 
-    cat1 = manager.download_collection("my_collection", Path(src_dir.name, "downloaded/my_collection"))
+    cat1 = manager.download_collection(Path(src_dir.name, "downloaded/my_collection"), "my_collection")
     assert len(cat1) == 2
-    cat2 = manager.download_collection("default", Path(src_dir.name, "downloaded/default"))
+    cat2 = manager.download_collection(Path(src_dir.name, "downloaded/default"), "default")
     assert len(cat2) == 1
     for collection in test_files:
         for filename in test_files[collection]:

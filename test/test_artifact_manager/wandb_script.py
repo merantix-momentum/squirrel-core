@@ -98,7 +98,7 @@ with artifact_manager.download_artifact("test_folder", collection, "v0") as path
             assert f.read() == content
 
 # test download collection
-artifact_manager.download_collection(collection, Path(src_dir.name, "my_collection"))
+artifact_manager.download_collection(Path(src_dir.name, "my_collection"), collection)
 for (filename, _, _, content) in file_descriptions:
     with open(f"{src_dir.name}/my_collection/test_folder/{filename}") as f:
         assert f.read() == content

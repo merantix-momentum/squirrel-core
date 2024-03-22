@@ -43,9 +43,9 @@ def catalog2yamlcatalog(catobj: Catalog) -> YamlCatalog:
                 YamlSource(
                     identifier=k,
                     driver_name=sv.driver_name,
-                    driver_kwargs=sv.driver_kwargs,
+                    driver_kwargs=sv.driver_kwargs or {},
                     version=sv.version,
-                    metadata=sv.metadata,
+                    metadata=sv.metadata or {},
                 )
             )
     return YamlCatalog(sources=sources)

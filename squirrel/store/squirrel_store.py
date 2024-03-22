@@ -25,7 +25,7 @@ class SquirrelStore(FilesystemStore):
         """
         super().__init__(url=url, serializer=serializer, clean=clean, **storage_options)
 
-    def get(self, key: str, **kwargs) -> t.Iterator[SampleType]:
+    def get(self, key: str, **kwargs) -> t.Iterator[SampleType]:  # type: ignore
         """Yields the item with the given key.
 
         If the store has a serializer, data read from the file will be deserialized.
@@ -38,9 +38,11 @@ class SquirrelStore(FilesystemStore):
             (Any) Item with the given key.
         """
         fp = f"{self.url}/{key}.gz"
+        if not self.serializer:
+            raise AttributeError("Serializer is required to retrieve data.")
         yield from self.serializer.deserialize_shard_from_file(fp, fs=self.fs, **kwargs)
 
-    def set(self, value: t.Union[SampleType, ShardType], key: t.Optional[str] = None, **kwargs) -> None:
+    def set(self, value: t.Union[SampleType, ShardType], key: t.Optional[str] = None, **kwargs) -> None:  # type: ignore
         """Persists a shard or sample with the given key.
 
         Data item will be serialized before writing to a file.
@@ -61,7 +63,8 @@ class SquirrelStore(FilesystemStore):
         if not self._dir_exists:
             self.fs.makedirs(self.url, exist_ok=True)
             self._dir_exists = True
-
+        if not self.serializer:
+            raise AttributeError("Serializer is required to persist data.")
         self.serializer.serialize_shard_to_file(value, fp, fs=self.fs, **kwargs)
 
     def keys(self, nested: bool = False, **kwargs) -> t.Iterator[str]:

@@ -1,23 +1,24 @@
 import fsspec
 import pytest
+from fsspec import AbstractFileSystem
 
-from squirrel.constants import FILESYSTEM, URL, SQUIRREL_BUCKET
+from squirrel.constants import URL, SQUIRREL_BUCKET
 from squirrel.fsspec.custom_gcsfs import CustomGCSFileSystem
 from squirrel.fsspec.fs import get_fs_from_url
 
 
 @pytest.fixture
-def fs(test_gcs_url: URL) -> FILESYSTEM:
+def fs(test_gcs_url: URL) -> AbstractFileSystem:
     """Return an instance of custom gcsfs."""
     return get_fs_from_url(test_gcs_url)
 
 
-def test_make_connection(fs: FILESYSTEM) -> None:
+def test_make_connection(fs: AbstractFileSystem) -> None:
     """Test connection to custom gcsfs by gcs.ls command."""
     fs.ls(SQUIRREL_BUCKET)
 
 
-def test_simple_upload(fs: FILESYSTEM, test_gcs_url: URL) -> None:
+def test_simple_upload(fs: AbstractFileSystem, test_gcs_url: URL) -> None:
     """Test a simple upload case in gcs."""
     file = f"{test_gcs_url}/test_file"
     with fs.open(file, "wb", content_type="text/plain") as f:

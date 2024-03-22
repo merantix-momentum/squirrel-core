@@ -133,7 +133,7 @@ class WandbArtifactManager(ArtifactManager):
                 catalog[str(Path(collection, artifact)), src.version] = src
         return catalog
 
-    def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
+    def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> CatalogSource:
         """Log serialisable object to artifact store."""
         raise NotImplementedError(
             "Logging and retrieving python objects is not yet supported. Please serialize your"
@@ -171,11 +171,10 @@ class WandbArtifactManager(ArtifactManager):
         collection = collection or self.active_collection
         artifact = wandb.Artifact(artifact_name, type=collection)
         if artifact_path is not None:
-            artifact_path = str(artifact_path)
-        if local_path.is_dir():
-            artifact.add_dir(str(local_path), name=artifact_path)
-        else:
-            artifact.add_file(str(local_path), name=artifact_path)
+            if local_path.is_dir():
+                artifact.add_dir(str(local_path), name=str(artifact_path))
+            else:
+                artifact.add_file(str(local_path), name=str(artifact_path))
         artifact.save()
         artifact.wait()
         return self.get_artifact_source(artifact_name, collection)

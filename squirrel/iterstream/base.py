@@ -28,7 +28,7 @@ __all__ = ["Composable", "AsyncContent"]
 class Composable:
     """A mix-in class that provides stream manipulation functionalities."""
 
-    def __init__(self, source: t.Optional[t.Union[t.Iterable, t.Callable]] = None):
+    def __init__(self, source: t.Optional[t.Union[t.Iterable, Composable, t.Callable[..., t.Iterable]]] = None):
         """Init"""
         self.source = source
 
@@ -37,7 +37,7 @@ class Composable:
         """Abstract iter"""
         pass
 
-    def compose(self, constructor: t.Type[Composable], *args, **kw) -> Composable:
+    def compose(self, constructor: t.Type[Composable] | t.Callable[..., Composable], *args, **kw) -> Composable:
         """
         Apply the transformation expressed in the `__iter__` method of the `constructor` to items in the stream.
         If the provided constructor has an __init__ method, then the source argument should not be provided.
@@ -55,7 +55,7 @@ class Composable:
         assert "source" not in kw
         return _Iterable(self, f, *args, **kw)
 
-    def source_(self, source: t.Union[t.Iterable, t.Callable]) -> Composable:
+    def source_(self, source: t.Union[t.Iterable, Composable]) -> Composable:
         """Set the source of the stream"""
         self.source = source
         return self
@@ -283,8 +283,8 @@ class Composable:
     def monitor(
         self,
         callback: t.Callable[[MetricsType], t.Any],
+        metrics_conf: MetricsConf,
         prefix: t.Optional[str] = None,
-        metrics_conf: MetricsConf = MetricsConf,
         window_size: int = 5,
         **kw,
     ) -> _Iterable:
@@ -371,6 +371,8 @@ class _Iterable(Composable):
 
     def __iter__(self) -> t.Iterator:
         """Returns the iterator that is obtained by applying `self.f` to `self.source`."""
+        if callable(self.source):
+            self.source = self.source()
         assert self.source is not None, f"must set source before calling iter {self.f} {self.args} {self.kw}"
         assert callable(self.f), self.f
         return self.f(iter(self.source), *self.args, **self.kw)
@@ -418,7 +420,7 @@ class _SlidingIter(Composable):
             ):
                 return
 
-    def _step(self, win_: t.List, it_: t.Iterable) -> t.List | None:
+    def _step(self, win_: t.List, it_: t.Iterator) -> t.List | None:
         _new_items = []
         for _ in range(self.stride):
             try:
@@ -427,7 +429,7 @@ class _SlidingIter(Composable):
                 if not self.drop_last_if_not_full:
                     return self._fill_na(win_[self.stride :] + _new_items)
                 else:
-                    return
+                    return None
         return win_[self.stride :] + _new_items
 
     def _yield(self, _win: t.List) -> t.Generator[t.List[t.Any], None, None]:
@@ -438,7 +440,7 @@ class _SlidingIter(Composable):
 
     def _fill_na(self, _win: t.List) -> t.List | None:
         if all([i is None for i in _win]):
-            return
+            return None
         if self.fill_nan_on_partial and len(_win) < self.window_size:
             return _win + [None for _ in range(self.window_size - len(_win))]
         else:
@@ -455,6 +457,10 @@ class _LoopIterable(Composable):
     def __iter__(self) -> t.Iterator:
         """Iterate over the iterable n times"""
         _started = False
+        if not self.source:
+            raise AttributeError("LoopIterable requires a source to be set.")
+        if callable(self.source):
+            self.source = self.source()
         if self.n is None:
             current_ = iter(deepcopy(self.source))
             while True:
@@ -481,15 +487,18 @@ class _ZipIndexIterable(Composable):
 
     def __iter__(self) -> t.Iterator:
         """Zip the index and the data"""
+        if not self.source:
+            raise AttributeError("ZipIndexIterable requires a source to be set.")
+        if callable(self.source):
+            self.source = self.source()
         for i in self.source:
             yield self._next_idx(), i
 
     def _next_idx(self) -> t.Union[int, str]:
-        _idx = None
         if self.pad_length is not None:
             str_idx = str(self.idx)
 
-            _idx = "0" * (self.pad_length - len(str_idx)) + str_idx
+            _idx = int("0" * (self.pad_length - len(str_idx)) + str_idx)
         else:
             _idx = self.idx
         self.idx += 1
@@ -519,57 +528,57 @@ class _AsyncMap(Composable):
 
     def __iter__(self) -> t.Iterator:
         """An iterator"""
-
-        self.queue = queue.Queue(self.buffer)
+        stream_queue: queue.Queue = queue.Queue(self.buffer)
+        if not self.source:
+            raise AttributeError("AsyncMap requires a source to be set.")
+        if callable(self.source):
+            self.source = self.source()
         it = iter(self.source)
         try:
-            import dask.distributed
+            from distributed import Client
         except ImportError:
             pass
 
-        if self._executor_not_provided():
+        if not self.executor:
             with ThreadPoolExecutor(max_workers=self.max_workers) as exec_:
-                yield from self._iter(it, exec_)
+                yield from self._iter(it, exec_, stream_queue)
         elif isinstance(self.executor, Executor):
-            yield from self._iter(it, self.executor)
-        elif isinstance(self.executor, dask.distributed.Client):
-            yield from self._dask_iter(it)
+            yield from self._iter(it, self.executor, stream_queue)
+        elif isinstance(self.executor, Client):
+            yield from self._dask_iter(it, self.executor, stream_queue)
         else:
             raise ValueError(f"Executor {self.executor} not recognized")
 
-    def _executor_not_provided(self) -> bool:
-        return self.executor is None
-
-    def _iter(self, it: t.Iterator, executor: Executor) -> t.Iterator:
+    def _iter(self, it: t.Iterator, executor: Executor, stream_queue: queue.Queue) -> t.Iterator:
         sentinel = object()
         while True:
             # Fill queue
-            while not self.queue.full():
+            while not stream_queue.full():
                 item = next(it, sentinel)
                 if item is sentinel:
                     break
-                self.queue.put(AsyncContent(item=item, func=self.callback, executor=executor))
+                stream_queue.put(AsyncContent(item=str(item), func=self.callback, executor=executor))
 
             # stop iterating if all samples processed
-            if self.queue.empty():
+            if stream_queue.empty():
                 break
 
             # yield sample
-            yield self.queue.get().value()
+            yield stream_queue.get().value()
 
-    def _dask_iter(self, it: t.Iterator) -> t.Iterator:
+    def _dask_iter(self, it: t.Iterator, executor: Executor, stream_queue: queue.Queue) -> t.Iterator:
         sentinel = object()
         while True:
-            while not self.queue.full():
+            while not stream_queue.full():
                 item = next(it, sentinel)
                 if item is sentinel:
                     break
-                self.queue.put(self.executor.submit(self.callback, item))
+                stream_queue.put(executor.submit(self.callback, item))  # type: ignore
 
-            if self.queue.empty():
+            if stream_queue.empty():
                 break
 
-            yield self.queue.get().result()
+            yield stream_queue.get().result()
 
 
 class _NumbaMap(Composable):

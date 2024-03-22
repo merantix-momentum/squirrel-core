@@ -49,6 +49,7 @@ wandb = {version = "*", optional = true}
 xlrd = {version = ">=2.0.1", optional = true}
 zarr = {version = ">=2.10.3", optional = true}
 pandas = "^2.0.3"
+mypy = "^1.10.0"
 
 [tool.poetry.group.dev.dependencies]
 # dev dependencies pinned for faster resolution

@@ -14,9 +14,12 @@ with open("pyproject.toml", "rb") as f:
 
     def get_var(var_name: str) -> str:
         """Parsing of squirrel project infos defined in __init__.py"""
-        pattern = re.compile(r"%s\s+=\s+(.*)" % var_name)
-        match = pattern.search(init_contents).group(1)
-        return str(ast.literal_eval(match))
+        pattern = re.compile(r"%s\s+=\s+(.*)" % re.escape(var_name))
+        match = pattern.search(init_contents)
+        if match:
+            return str(ast.literal_eval(match.group(1)))
+        else:
+            raise ValueError(f"Variable '{var_name}' not found")
 
     version = get_var("version")
 

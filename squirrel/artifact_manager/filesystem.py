@@ -1,17 +1,14 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Iterable, List, Optional, Union
+from typing import Any, Iterable
 
 from squirrel.artifact_manager.base import ArtifactManager, TmpArtifact
 from squirrel.catalog import Catalog
 from squirrel.catalog.catalog import CatalogSource, Source
-from squirrel.serialization import JsonSerializer, MessagepackSerializer, SquirrelSerializer
+from squirrel.serialization import JsonSerializer, SquirrelSerializer
 from squirrel.store import FilesystemStore
 from squirrel.store.filesystem import get_random_key
-
-Serializers = {
-    MessagepackSerializer: "messagepack",
-    JsonSerializer: "jsonl",
-}
 
 
 class ArtifactFileStore(FilesystemStore):
@@ -23,7 +20,7 @@ class ArtifactFileStore(FilesystemStore):
         If the final path component is "files", the data is stored as a raw file.
     """
 
-    def complete_key(self, partial_key: Path, **open_kwargs) -> List[str]:
+    def complete_key(self, partial_key: Path, **open_kwargs) -> list[str]:
         """Returns a list of possible key continuations given a partial key."""
         full_path = Path(self.url, partial_key)
         if not self.fs.exists(full_path, **open_kwargs):
@@ -34,11 +31,14 @@ class ArtifactFileStore(FilesystemStore):
         """Checks if a key exists."""
         return self.fs.exists(Path(self.url) / key, **open_kwargs)
 
-    def get(self, key: Path, mode: str = "rb", **open_kwargs) -> Any:
+    def get(self, key: Path, mode: str = "rb", **open_kwargs) -> Any:  # type: ignore
         """Retrieves an item with the given key."""
-        if self.fs.exists(Path(self.url, key, Serializers[self.serializer.__class__]), **open_kwargs):
+        if self.serializer is None:
+            raise ValueError("No serializer specified!")
+
+        if self.fs.exists(Path(self.url, key, self.serializer.name), **open_kwargs):
             # retrieve and deserialize data
-            return super().get(str(Path(key, Serializers[self.serializer.__class__])), mode, **open_kwargs)
+            return super().get(str(Path(key, self.serializer.name)), mode, **open_kwargs)
         elif self.fs.exists(Path(self.url, key, "files"), **open_kwargs):
             if "target" in open_kwargs:
                 target_dir = str(open_kwargs.pop("target"))
@@ -50,15 +50,20 @@ class ArtifactFileStore(FilesystemStore):
         else:
             raise ValueError(f"Key {key} does not exist!")
 
-    def set(self, value: Any, key: Optional[Path] = None, mode: str = "wb", **open_kwargs) -> None:
+    def set(self, value: Any, key: str | Path | None = None, mode: str = "wb", **open_kwargs) -> None:  # type: ignore
         """Persists an item with the given key."""
         if key is None:
             key = get_random_key()
-        # construct path under which to store the data
+
+        if not self.serializer:
+            raise ValueError("No serializer specified!")
+
+        serializer_name = self.serializer.name
+
         if isinstance(value, Path):
             target = Path(self.url, key, "files", open_kwargs.pop("suffix", ""))
         else:
-            target = Path(self.url, key, Serializers[self.serializer.__class__], open_kwargs.pop("suffix", ""))
+            target = Path(self.url, key, serializer_name, open_kwargs.pop("suffix", ""))
 
         if self.fs.exists(target, **open_kwargs):
             raise ValueError(f"Key {key} already exists!")
@@ -74,7 +79,7 @@ class ArtifactFileStore(FilesystemStore):
 
 class FileSystemArtifactManager(ArtifactManager):
     def __init__(
-        self, url: str, serializer: Optional[SquirrelSerializer] = None, collection: str = "default", **fs_kwargs
+        self, url: str, serializer: SquirrelSerializer | None = None, collection: str = "default", **fs_kwargs
     ):
         """
         Artifactmanager backed by fsspec filesystems.
@@ -96,7 +101,7 @@ class FileSystemArtifactManager(ArtifactManager):
         """List all collections managed by this ArtifactManager."""
         return self.backend.keys(nested=False)
 
-    def exists_in_collection(self, artifact: str, collection: Optional[str] = None) -> bool:
+    def exists_in_collection(self, artifact: str, collection: str | None = None) -> bool:
         """Check if artifact exists in specified collection."""
         collection = collection or self.active_collection
         return self.backend.key_exists(Path(collection, artifact))
@@ -104,9 +109,9 @@ class FileSystemArtifactManager(ArtifactManager):
     def get_artifact_source(
         self,
         artifact: str,
-        collection: Optional[str] = None,
-        version: Optional[str] = None,
-        catalog: Optional[Catalog] = None,
+        collection: str | None = None,
+        version: str | None = None,
+        catalog: Catalog | None = None,
     ) -> CatalogSource:
         """Catalog entry for a specific artifact"""
         if catalog is None:
@@ -136,7 +141,7 @@ class FileSystemArtifactManager(ArtifactManager):
             version=int(version[1:]) + 1,  # Squirrel Catalog version is 1-based
         )
 
-    def collection_to_catalog(self, collection: Optional[str] = None) -> Catalog:
+    def collection_to_catalog(self, collection: str | None = None) -> Catalog:
         """Provide catalog of all artifacts and their versions contained within specific collection"""
         collection = collection or self.active_collection
         catalog = Catalog()
@@ -146,7 +151,7 @@ class FileSystemArtifactManager(ArtifactManager):
                 catalog[str(Path(collection, artifact)), src.version] = src
         return catalog
 
-    def log_artifact(self, obj: Any, name: str, collection: Optional[str] = None) -> Source:
+    def log_artifact(self, obj: Any, name: str, collection: str | None = None) -> CatalogSource:
         """Log an arbitrary python object using store serialisation."""
         raise NotImplementedError(
             "Logging and retrieving python objects is not yet supported. Please serialize your"
@@ -155,7 +160,7 @@ class FileSystemArtifactManager(ArtifactManager):
         # Implementation for logging python objects can make use of
         # self.backend.set(obj, Path(collection, name, version))
 
-    def get_artifact(self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None) -> Any:
+    def get_artifact(self, artifact: str, collection: str | None = None, version: str | None = None) -> Any:
         """Retrieve specific artifact value."""
         raise NotImplementedError(
             "Logging and retrieving python objects is not yet supported. Please serialize your"
@@ -166,8 +171,8 @@ class FileSystemArtifactManager(ArtifactManager):
         self,
         artifact_name: str,
         local_path: Path,
-        collection: Optional[str] = None,
-        artifact_path: Optional[Path] = None,
+        collection: str | None = None,
+        artifact_path: Path | None = None,
     ) -> CatalogSource:
         """Upload local file or folder to artifact store without serialisation"""
         if not isinstance(local_path, (str, Path)):
@@ -183,16 +188,16 @@ class FileSystemArtifactManager(ArtifactManager):
 
         version = f"v{len(self.backend.complete_key(Path(collection, artifact_name)))}"
 
-        open_kwargs = {"auto_mkdir": True}
+        open_kwargs: dict[str, bool | Path] = {"auto_mkdir": True}
         if artifact_path is not None:
             open_kwargs["suffix"] = artifact_path
-        self.backend.set(local_path, Path(collection, artifact_name, version), **open_kwargs)
+        self.backend.set(value=local_path, key=Path(collection, artifact_name, version), mode="wb", **open_kwargs)
 
         return self.get_artifact_source(artifact_name, collection)
 
     def download_artifact(
-        self, artifact: str, collection: Optional[str] = None, version: Optional[str] = None, to: Optional[Path] = None
-    ) -> Union[Path, TmpArtifact]:
+        self, artifact: str, collection: str | None = None, version: str | None = None, to: Path | None = None
+    ) -> Path | TmpArtifact:
         """Download artifact to local path."""
         collection = collection or self.active_collection
         if version is None or version == "latest":

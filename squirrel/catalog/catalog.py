@@ -19,7 +19,7 @@ from squirrel.fsspec.fs import get_fs_from_url
 
 if TYPE_CHECKING:
     from ruamel.yaml import Constructor, Representer, SequenceNode
-    from squirrel.driver import Driver
+    from squirrel.driver import MapDriver
 
 __all__ = ["Catalog", "CatalogKey", "CatalogSource"]
 
@@ -76,7 +76,7 @@ class Catalog(MutableMapping):
 
         return True
 
-    def __contains__(self, identifier: str | CatalogKey | tuple[str, int]) -> bool:  # noqa D105
+    def __contains__(self, identifier: str | CatalogKey | tuple[str, int]) -> bool:  # type: ignore # noqa D105
         if isinstance(identifier, str):
             return identifier in self._sources
 
@@ -108,12 +108,7 @@ class Catalog(MutableMapping):
 
     def __getitem__(self, identifier: str | CatalogKey | tuple[str, int]) -> CatalogSource:  # noqa D105
         if identifier not in self:
-            if isinstance(identifier, str):
-                # return a dummy object to let the user set a version directly
-                return DummyCatalogSource(identifier, self)
-            else:
-                # DummyCatalogSource only allows setting the version after initialization, cannot set it at this point
-                raise KeyError(f"The catalog does not have an entry for identifier {identifier}.")
+            raise KeyError(f"The catalog does not have an entry for identifier {identifier}.")
 
         if isinstance(identifier, str):
             # we return the latest if the version is not specified explicitly
@@ -123,7 +118,7 @@ class Catalog(MutableMapping):
 
         return self.sources[identifier][version]
 
-    def items(self) -> Iterator[tuple[str, Source]]:  # noqa D105
+    def items(self) -> Iterator[tuple[str, Source]]:  # type: ignore # noqa D105
         return self.__iter__()
 
     def __iter__(self) -> Iterator[tuple[str, Source]]:  # noqa D105
@@ -360,52 +355,21 @@ class CatalogSource(Source):
         """Read only property"""
         return self._versions
 
-    def get_driver(self, **kwargs) -> Driver:
+    def get_driver(self, **kwargs) -> type[MapDriver]:
         """Returns an instance of the driver specified by the source."""
         from squirrel.framework.plugins.plugin_manager import squirrel_plugin_manager
 
-        plugins: list[list[type[Driver]]] = squirrel_plugin_manager.hook.squirrel_drivers()
+        plugins = squirrel_plugin_manager.hook.squirrel_drivers()
         for plugin in plugins:
             for driver_cls in plugin:
                 if driver_cls.name == self.driver_name:
-                    # Problem: If users provide "storage_options" in the `kwargs` and the `self.driver_kwargs`
-                    # already defines "storage_options", then vanilla dict merging
-                    # (i.e., {**self.driver_kwargs, **kwargs}) will overwrite the "storage_options" in
-                    # `self.driver_kwargs` entirely. This is undesired, since important information like
-                    # bucket configurations (e.g., "requester_pays") may be stored in the `self.driver_kwargs`
-                    # "storage_options", which users don't want to provide again using `kwargs`.
-                    # Solution: The below mechanism merges the "storage_options" in `kwargs` with the existing
-                    # "storage_options" in `self.driver_kwargs` (while the newly passed "storage_options"
-                    # in `kwargs` take precendence).
-                    kwargs["storage_options"] = {
-                        **self.driver_kwargs.get("storage_options", {}),
-                        **kwargs.get("storage_options", {}),
-                    }
-                    return driver_cls(catalog=self._catalog, **{**self.driver_kwargs, **kwargs})
+                    merged_driver_kwargs = self.driver_kwargs or {}
+                    if "storage_options" in kwargs or "storage_options" in merged_driver_kwargs:
+                        merged_storage_options = {
+                            **merged_driver_kwargs.get("storage_options", {}),
+                            **kwargs.get("storage_options", {}),
+                        }
+                        merged_driver_kwargs["storage_options"] = merged_storage_options
+                    return driver_cls(catalog=self._catalog, **{**merged_driver_kwargs, **kwargs})
 
         raise ValueError(f"driver {self.driver_name} not found")
-
-
-class DummyCatalogSource:
-    def __init__(
-        self,
-        identifier: str,
-        catalog: Catalog,
-    ) -> None:
-        """Init a dummy catalog source to assign versions even if source does not exist yet"""
-        self._identifier = identifier
-        self._catalog = catalog
-
-    def __setitem__(self, index: int, value: Source) -> None:  # noqa D105
-        assert index > 0
-        self._catalog._sources[self.identifier] = CatalogSource(
-            source=value, identifier=self.identifier, catalog=self._catalog, version=index
-        )
-
-    def __contains__(self, index: str) -> bool:  # noqa D105
-        return False
-
-    @property
-    def identifier(self) -> str:
-        """Read only property"""
-        return self._identifier
