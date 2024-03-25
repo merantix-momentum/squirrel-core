@@ -14,15 +14,12 @@ if t.TYPE_CHECKING:
     from squirrel.serialization import SquirrelSerializer
 
 
-FS = t.TypeVar("FS")
-
-
 def get_random_key(length: int = 16) -> str:
     """Generates a random key"""
     return "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(length))
 
 
-class FilesystemStore(AbstractStore, t.Generic[FS]):
+class FilesystemStore(AbstractStore):
     """Store that uses fsspec to read from / write to files."""
 
     def __init__(
@@ -43,13 +40,13 @@ class FilesystemStore(AbstractStore, t.Generic[FS]):
         self.url = url.rstrip("/")
         self.storage_options = storage_options
         self.serializer = serializer
-        self.fs: FS = get_fs_from_url(self.url, **self.storage_options)
+        self.fs = get_fs_from_url(self.url, **self.storage_options)
         self._dir_exists = self.fs.exists(self.url)
         if clean and self._dir_exists:
             self.fs.rm(self.url, recursive=True)
             self._dir_exists = False
 
-    def get(self, key: str, mode: str = "rb", **open_kwargs) -> t.Any:
+    def get(self, key: str, mode: str = "rb", **open_kwargs) -> t.Any:  # type: ignore
         """Yields the item with the given key.
 
         If the store has a serializer, data read from the file will be deserialized.
@@ -65,7 +62,7 @@ class FilesystemStore(AbstractStore, t.Generic[FS]):
         open_kwargs["mode"] = mode
         return read_from_file(f"{self.url}/{key}", self.fs, self.serializer, **open_kwargs)
 
-    def set(self, value: t.Any, key: t.Optional[str] = None, mode: str = "wb", **open_kwargs) -> None:
+    def set(self, value: t.Any, key: t.Optional[str] = None, mode: str = "wb", **open_kwargs) -> None:  # type: ignore
         """Persists an item with the given key.
 
         If the store has a serializer, data item will be serialized before writing to a file.

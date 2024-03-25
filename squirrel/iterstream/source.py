@@ -1,5 +1,7 @@
 import random
 import typing as t
+from abc import ABC, abstractmethod
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 
 from squirrel.fsspec.fs import get_fs_from_url, get_protocol
@@ -22,18 +24,24 @@ class IterableSource(Composable):
     For the detailed description of each, please refer to the corresponding docstring in :py:class:`Composable`.
     """
 
-    def __init__(self, source: t.Optional[t.Union[t.Iterable, t.Callable]] = ()):
+    def __init__(self, source: t.Optional[t.Union[t.Iterable, Callable]] = ()):
         """Initialize IterableSource.
 
         Args:
             source (Union[Iterable, Callable], Optional): An Iterable that the IterableSource is
                 built based on, or a callable that generates items when called.
         """
+        if source is None:
+            source = iter(())
+        elif not isinstance(source, t.Iterable) and not callable(source):
+            raise TypeError("Source must be an Iterable or Callable.")
         super().__init__(source=source)
 
     def __iter__(self) -> t.Iterator:
         """Iterates over the items in the iterable"""
-        if isinstance(self.source, t.Callable):
+        if not self.source:
+            raise AttributeError("IterableSource requires a source to be set.")
+        if callable(self.source):
             yield from self.source()
         else:
             yield from self.source
@@ -79,25 +87,23 @@ class FilePathGenerator(Composable):
     def __iter__(self) -> t.Iterator[str]:
         """Iterator that does ls and yield filepaths under the given url"""
         self.fs = get_fs_from_url(self.url, **self.storage_options)
-        urls = self.fs.ls(self.url) if self.fs.exists(self.url) else []
-        urls.sort()
+        urls = sorted(self.fs.ls(self.url)) if self.fs.exists(self.url) else []
         if self.nested:
-            dirs = []
+            dirs: t.List[AsyncContent] = []
             with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
-                while len(urls) > 0 or dirs:
-                    if len(urls) > 0:
-                        url = urls.pop()
-                        if self.fs.isdir(path=url):
-                            future = AsyncContent(url, self.fs.ls, pool)
-                            dirs.append(future)
+                while urls or dirs:
+                    if urls and (len(dirs) < self.max_dirs or not dirs):
+                        url = urls.pop(0)
+                        if self.fs.isdir(url):
+                            dirs.append(AsyncContent(url, self.fs.ls, pool))
                         else:
-                            yield f"{self.protocol}{url}"
-                    if (len(dirs) >= self.max_dirs and len(urls) < self.max_keys) or len(urls) == 0 and dirs:
+                            yield f"{self.protocol}://{url}"
+                    while dirs and (len(urls) < self.max_keys or not urls):
                         d = dirs.pop(0).value()
                         urls.extend(d)
         else:
             for url in urls:
-                yield f"{self.protocol}{url}"
+                yield f"{self.protocol}://{url}"
 
 
 class IterableSamplerSource(Composable):
@@ -120,26 +126,32 @@ class IterableSamplerSource(Composable):
                 `rng`. If None, a unique identifier will be used to seed.
         """
         super().__init__(source=())
-        self.rng = get_random_range(rng, seed)
+        self.rng = rng if rng is not None else random.Random(seed)
         self.iterables = iterables
         if probs is not None:
-            assert len(probs) == len(self.iterables), "number of iterables and probs must be equal"
-            assert sum(probs) == 1, "sum of probs must add up to 1"
-            assert all(p > 0 for p in probs), "probability for each iterable must be positive"
+            if len(probs) != len(iterables):
+                raise ValueError("Number of iterables and probs must be equal.")
+            if not all(p > 0 for p in probs):
+                raise ValueError("Probability for each iterable must be positive.")
+            if sum(probs) != 1:
+                raise ValueError("Sum of probs must add up to 1.")
         self.probs = probs
 
     def __iter__(self) -> t.Iterator:
         """Samples items from the iterables, returns all samples until all iterables are exhausted."""
         iterators = [iter(it) for it in self.iterables]
-        while True:
-            idx = self.rng.choices(range(len(iterators)), weights=self.probs)[0]
+        while iterators:
+            if self.probs:
+                weights = self.probs
+            else:
+                weights = None
+            idx = self.rng.choices(range(len(iterators)), weights=weights)[0]
             try:
                 yield next(iterators[idx])
             except StopIteration:
-                iterators = iterators[:idx] + iterators[idx + 1 :]
+                iterators.pop(idx)
                 if self.probs is not None:
-                    probs = self.probs[:idx] + self.probs[idx + 1 :]
-                    s = sum(probs)
-                    self.probs = [p / s for p in probs]
-            if len(iterators) == 0:
-                break
+                    self.probs.pop(idx)
+                    if self.probs:
+                        total = sum(self.probs)
+                        self.probs = [p / total for p in self.probs]

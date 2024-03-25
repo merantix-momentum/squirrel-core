@@ -1,8 +1,6 @@
 from pathlib import Path
 from typing import Any, Iterable, List, Optional, Union, Dict
 
-from fsspec import AbstractFileSystem
-
 from squirrel.artifact_manager.base import ArtifactManager, TmpArtifact
 from squirrel.catalog import Catalog
 from squirrel.catalog.catalog import CatalogSource, Source
@@ -11,7 +9,7 @@ from squirrel.store import FilesystemStore
 from squirrel.store.filesystem import get_random_key
 
 
-class ArtifactFileStore(FilesystemStore[AbstractFileSystem]):
+class ArtifactFileStore(FilesystemStore):
     """
     A FilesystemStore serving as the backend for the FileSystemArtifactManager.
 
@@ -56,7 +54,7 @@ class ArtifactFileStore(FilesystemStore[AbstractFileSystem]):
             key = get_random_key()
         key = Path(key)
 
-        if self.serializer is None:
+        if not self.serializer:
             raise ValueError("No serializer specified!")
 
         serializer_name = self.serializer.name

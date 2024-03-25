@@ -28,7 +28,7 @@ __all__ = ["Composable", "AsyncContent"]
 class Composable:
     """A mix-in class that provides stream manipulation functionalities."""
 
-    def __init__(self, source: t.Optional[t.Union[t.Iterable, t.Callable]] = None):
+    def __init__(self, source: t.Optional[t.Union[t.Iterable, Composable]] = None):
         """Init"""
         self.source = source
 
@@ -55,7 +55,7 @@ class Composable:
         assert "source" not in kw
         return _Iterable(self, f, *args, **kw)
 
-    def source_(self, source: t.Union[t.Iterable, t.Callable]) -> Composable:
+    def source_(self, source: t.Union[t.Iterable, Composable]) -> Composable:
         """Set the source of the stream"""
         self.source = source
         return self
@@ -520,56 +520,56 @@ class _AsyncMap(Composable):
     def __iter__(self) -> t.Iterator:
         """An iterator"""
 
-        self.queue = queue.Queue(self.buffer)
+        stream_queue = queue.Queue(self.buffer)
         it = iter(self.source)
         try:
-            import dask.distributed
+            from distributed import Client
         except ImportError:
             pass
 
         if self._executor_not_provided():
             with ThreadPoolExecutor(max_workers=self.max_workers) as exec_:
-                yield from self._iter(it, exec_)
+                yield from self._iter(it, exec_, stream_queue)
         elif isinstance(self.executor, Executor):
-            yield from self._iter(it, self.executor)
-        elif isinstance(self.executor, dask.distributed.Client):
-            yield from self._dask_iter(it)
+            yield from self._iter(it, self.executor, stream_queue)
+        elif isinstance(self.executor, Client):
+            yield from self._dask_iter(it, stream_queue)
         else:
             raise ValueError(f"Executor {self.executor} not recognized")
 
     def _executor_not_provided(self) -> bool:
         return self.executor is None
 
-    def _iter(self, it: t.Iterator, executor: Executor) -> t.Iterator:
+    def _iter(self, it: t.Iterator, executor: Executor, stream_queue: queue.Queue) -> t.Iterator:
         sentinel = object()
         while True:
             # Fill queue
-            while not self.queue.full():
+            while not stream_queue.full():
                 item = next(it, sentinel)
                 if item is sentinel:
                     break
-                self.queue.put(AsyncContent(item=item, func=self.callback, executor=executor))
+                stream_queue.put(AsyncContent(item=item, func=self.callback, executor=executor))
 
             # stop iterating if all samples processed
-            if self.queue.empty():
+            if stream_queue.empty():
                 break
 
             # yield sample
-            yield self.queue.get().value()
+            yield stream_queue.get().value()
 
-    def _dask_iter(self, it: t.Iterator) -> t.Iterator:
+    def _dask_iter(self, it: t.Iterator, stream_queue: queue.Queue) -> t.Iterator:
         sentinel = object()
         while True:
-            while not self.queue.full():
+            while not stream_queue.full():
                 item = next(it, sentinel)
                 if item is sentinel:
                     break
-                self.queue.put(self.executor.submit(self.callback, item))
+                stream_queue.put(self.executor.submit(self.callback, item))
 
-            if self.queue.empty():
+            if stream_queue.empty():
                 break
 
-            yield self.queue.get().result()
+            yield stream_queue.get().result()
 
 
 class _NumbaMap(Composable):
@@ -626,3 +626,17 @@ class AsyncContent:
             Any: Content.
         """
         return self.future.result(timeout)
+
+
+def test_iter():
+    class MyIterable:
+        def __init__(self, limit):
+            self.limit = limit
+
+    def generator_example():
+        my_object = MyIterable(10)
+        yield from my_object
+
+    # This will print numbers from 0 to 4
+    for value in generator_example():
+        print(value)

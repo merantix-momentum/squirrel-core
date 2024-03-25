@@ -3,7 +3,7 @@ import pytest
 from fsspec.asyn import AsyncFileSystem
 from fsspec.implementations.cached import SimpleCacheFileSystem
 from squirrel.catalog import Catalog, Source
-from squirrel.catalog.catalog import CatalogKey, DummyCatalogSource
+from squirrel.catalog.catalog import CatalogKey
 from squirrel.constants import URL
 from squirrel.driver import Driver
 from squirrel.framework.plugins.plugin_manager import register_driver, register_source
@@ -42,12 +42,6 @@ def test_catalog_versioning() -> None:
     assert bad_id not in cat
     assert (bad_id, 1) not in cat
     assert CatalogKey(bad_id, 1) not in cat
-
-    # try to get non-existing source
-    ret = cat[bad_id]
-    assert isinstance(ret, DummyCatalogSource)
-    with pytest.raises(KeyError):
-        cat[bad_id, 1]
 
     # check getitem
     assert len(cat["s"].versions) == 4

@@ -4,6 +4,7 @@ from itertools import islice
 from typing import Callable, Iterable, Iterator, Optional
 
 import torch
+from torch._C._distributed_c10d import ProcessGroup
 from torch.utils.data import IterableDataset
 
 from squirrel.iterstream import Composable, Multiplexer, IterableSamplerSource
@@ -17,7 +18,7 @@ class SplitByRank(Composable):
 
     def __init__(
         self,
-        torch_dist_group: Optional[str] = None,
+        torch_dist_group: Optional[ProcessGroup] = None,
     ) -> None:
         """Init the SplitByRank composable."""
         super().__init__()
@@ -32,6 +33,8 @@ class SplitByRank(Composable):
 
     def __iter__(self) -> Iterator:
         """Method to iterate over the source and yield the elements that will be processed by a particular node"""
+        if not self.source:
+            raise AttributeError("SplitByRank requires a source to be set.")
         if torch.distributed.is_available() and self.size > 1:
             yield from islice(self.source, self.rank, None, self.size)
         else:
@@ -51,7 +54,9 @@ class SplitByWorker(Composable):
 
     def __iter__(self) -> Iterator:
         """Method to iterate over the source and yield the elements that will be processed by a particular worker"""
-        self.winfo = torch.utils.data.get_worker_info()
+        self.winfo = torch.utils.data.get_worker_info()  # type: ignore
+        if not self.source:
+            raise AttributeError("SplitByWorker requires a source to be set.")
         if self.winfo is None:
             yield from self.source
         else:
@@ -69,6 +74,8 @@ class TorchIterable(Composable, IterableDataset):
 
     def __iter__(self) -> Iterator:
         """Method to iterate over the source"""
+        if not self.source:
+            raise AttributeError("TorchIterable requires a source to be set.")
         if self.enforce_rank_check and _in_multi_rank_env():
             if not self._contains_rank_split(self.source):
                 raise PyTorchSplittingException(
@@ -83,25 +90,29 @@ class TorchIterable(Composable, IterableDataset):
                 )
         yield from self.source
 
-    def _contains_rank_split(self, source: Composable) -> bool:
+    def _contains_rank_split(self, source: Composable | Iterable) -> bool:
         """Check if SplitByRank was chained to this Composable"""
         if isinstance(source, SplitByRank):
             return True
         elif not isinstance(source, Composable):
             return False
         else:
+            if not source.source:
+                raise AttributeError("Multiplexer or IterableSamplerSource requires a source to be set.")
             if isinstance(source, (Multiplexer, IterableSamplerSource)):
                 return all(self._contains_rank_split(src) for src in source.source)
             else:
                 return self._contains_rank_split(source.source)
 
-    def _contains_worker_split(self, source: Composable) -> bool:
+    def _contains_worker_split(self, source: Composable | Iterable) -> bool:
         """Check if SplitByWorker was chained to this Composable"""
         if isinstance(source, SplitByWorker):
             return True
         elif not isinstance(source, Composable):
             return False
         else:
+            if not source.source:
+                raise AttributeError("Multiplexer or IterableSamplerSource requires a source to be set.")
             if isinstance(source, (Multiplexer, IterableSamplerSource)):
                 return all(self._contains_worker_split(src) for src in source.source)
             else:

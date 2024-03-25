@@ -1,12 +1,13 @@
 import fsspec
+from fsspec import AbstractFileSystem
 from fsspec.core import split_protocol
 
-from squirrel.constants import FILESYSTEM, URL
+from squirrel.constants import URL
 
 __all__ = ["get_fs_from_url", "get_protocol"]
 
 
-def get_fs_from_url(url: URL, **storage_options) -> FILESYSTEM:
+def get_fs_from_url(url: URL, **storage_options) -> AbstractFileSystem:
     """Get filesystem suitable for a url.
 
     Only the protocol part of the url is used, thus there is no need to call this method several times for different

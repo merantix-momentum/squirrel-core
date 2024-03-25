@@ -41,7 +41,8 @@ class StoreDriver(MapDriver):
         self.serializer = serializer
         self.storage_options = storage_options if storage_options is not None else {}
 
-    def get_iter(self, flatten: bool = True, **kwargs) -> Composable:
+    # TODO: #187 refactor drivers
+    def get_iter(self, flatten: bool = True, **kwargs) -> Composable:  # type: ignore
         """Returns an iterable of items in the form of a :py:class:`squirrel.iterstream.Composable`, which allows
         various stream manipulation functionalities.
 
@@ -91,4 +92,6 @@ class StoreDriver(MapDriver):
     @property
     def store(self) -> AbstractStore:
         """Store that is used by the driver."""
+        if not self.serializer:
+            raise ValueError("No serializer specified!")
         return SquirrelStore(url=self.url, serializer=self.serializer, **self.storage_options)

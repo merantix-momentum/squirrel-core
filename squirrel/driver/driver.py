@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import functools
 from abc import ABC, abstractmethod
+from collections import abc
 from functools import partial
 from inspect import isclass
 from typing import Any, Callable, Iterable
@@ -63,7 +64,8 @@ class MapDriver(IterDriver):
     def keys(self, **kwargs) -> Iterable:
         """Returns an iterable of the keys for the objects that are obtainable through the driver."""
 
-    def get_iter(
+    # TODO: #187 refactor drivers
+    def get_iter(  # type: ignore
         self,
         keys_iterable: Iterable | None = None,
         shuffle_key_buffer: int = 1,
@@ -125,32 +127,28 @@ class MapDriver(IterDriver):
         Returns:
             (squirrel.iterstream.Composable) Iterable over the items in the store.
         """
-        keys_kwargs = {} if keys_kwargs is None else keys_kwargs
-        get_kwargs = {} if get_kwargs is None else get_kwargs
-        key_shuffle_kwargs = {} if key_shuffle_kwargs is None else key_shuffle_kwargs
-        item_shuffle_kwargs = {} if item_shuffle_kwargs is None else item_shuffle_kwargs
-        keys_it = keys_iterable if keys_iterable is not None else partial(self.keys, **keys_kwargs)
+        keys_kwargs = keys_kwargs or {}
+        get_kwargs = get_kwargs or {}
+        key_shuffle_kwargs = key_shuffle_kwargs or {}
+        item_shuffle_kwargs = item_shuffle_kwargs or {}
+        keys_it: Iterable | Callable = keys_iterable if keys_iterable is not None else partial(self.keys, **keys_kwargs)
         it = IterableSource(keys_it).shuffle(size=shuffle_key_buffer, **key_shuffle_kwargs)
 
-        if key_hooks:
-            for hook in key_hooks:
-                arg = []
-                kwarg = {}
-                f = hook
-                if isinstance(hook, partial):
-                    arg = hook.args
-                    kwarg = hook.keywords
-                    f = hook.func
+        for hook in key_hooks or []:
+            args, kwargs = (), {}
+            func = hook
+            if isinstance(hook, partial):
+                args, kwargs = hook.args, hook.keywords
+                func = hook.func
 
-                if isclass(f) and issubclass(f, Composable):
-                    it = it.compose(f, *arg, **kwarg)
-                elif isinstance(f, Callable):
-                    it = it.to(f, *arg, **kwarg)
-                else:
-                    raise ValueError(
-                        f"wrong argument for hook {hook}, it should be a Callable, partial function, or a subclass "
-                        f"of Composable"
-                    )
+            if isclass(func) and issubclass(func, Composable):
+                it = it.compose(func, *args, **kwargs)
+            elif callable(func):
+                it = it.to(func, *args, **kwargs)
+            else:
+                raise ValueError(
+                    f"Invalid hook {hook}: must be a Callable, partial function, or a subclass of Composable."
+                )
 
         map_fn = partial(self.get, **get_kwargs)
         _map = (
