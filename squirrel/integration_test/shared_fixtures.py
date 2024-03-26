@@ -21,7 +21,7 @@ from pytest import FixtureRequest
 
 from squirrel.constants import URL, SQUIRREL_TMP_DATA_BUCKET
 from squirrel.fsspec.fs import get_fs_from_url
-from test.helpers import create_torch_mock
+from squirrel.integration_test.helpers import create_torch_mock
 
 SHAPE = Tuple[int, int, int]
 

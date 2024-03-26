@@ -21,7 +21,6 @@ from uuid import uuid4
 
 from faker import Faker
 import fsspec
-import numpy as np
 import pytest
 from pytest import FixtureRequest, TempPathFactory
 from zarr.hierarchy import Group
@@ -29,13 +28,12 @@ from zarr.hierarchy import Group
 from squirrel.catalog import Catalog, Source
 from squirrel.constants import URL
 from squirrel.driver import JsonlDriver, MessagepackDriver
-from test.integration_test.shared_fixtures import *  # noqa: F401, F403
+from squirrel.integration_test.helpers import *
 from squirrel.iterstream import Composable, IterableSource
 from squirrel.serialization import JsonSerializer, MessagepackSerializer
 from squirrel.store import FilesystemStore
 from squirrel.store.squirrel_store import SquirrelStore
 from squirrel.zarr.group import get_group
-from test.helpers import get_sample, SHAPE
 
 if TYPE_CHECKING:
     from squirrel.constants import SampleType
