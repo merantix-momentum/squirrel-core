@@ -52,7 +52,6 @@ class ArtifactFileStore(FilesystemStore):
         """Persists an item with the given key."""
         if key is None:
             key = get_random_key()
-        key = Path(key)
 
         if not self.serializer:
             raise ValueError("No serializer specified!")

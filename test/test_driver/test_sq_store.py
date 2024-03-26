@@ -5,11 +5,11 @@ import pytest
 import tempfile
 
 from squirrel.driver import StoreDriver
-from squirrel.integration_test.helpers import SHAPE
 from squirrel.iterstream import FilePathGenerator
 from squirrel.serialization import MessagepackSerializer
 from squirrel.store import SquirrelStore
 from squirrel.fsspec.fs import get_fs_from_url
+from squirrel.integration_test.helpers import SHAPE, get_sample
 
 
 def test_store_creation(dummy_sq_store: SquirrelStore, array_shape: SHAPE, num_samples: int) -> None:
