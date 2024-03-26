@@ -1,12 +1,10 @@
 import random
 import typing as t
-from abc import ABC, abstractmethod
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 
 from squirrel.fsspec.fs import get_fs_from_url, get_protocol
 from squirrel.iterstream.base import AsyncContent, Composable
-from squirrel.iterstream.iterators import get_random_range
 
 __all__ = ["IterableSource", "FilePathGenerator", "IterableSamplerSource"]
 
@@ -41,8 +39,6 @@ class IterableSource(Composable):
         """Iterates over the items in the iterable"""
         if not self.source:
             raise AttributeError("IterableSource requires a source to be set.")
-        if callable(self.source):
-            yield from self.source()
         else:
             yield from self.source
 

@@ -28,7 +28,7 @@ class MessagepackSerializer(SquirrelSerializer):
         return msgpack.unpackb(obj, object_hook=msgpack_numpy.decode)
 
     @staticmethod
-    def serialize_shard_to_file(
+    def serialize_shard_to_file(  # type: ignore
         shard: ShardType,
         fp: str,
         fs: t.Optional[AbstractFileSystem] = None,

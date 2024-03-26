@@ -80,7 +80,7 @@ class JsonSerializer(SquirrelSerializer):
         return json.loads(obj, cls=SquirrelJsonDecoder, object_hook=self.deser_hook)
 
     @staticmethod
-    def serialize_shard_to_file(
+    def serialize_shard_to_file(  # type: ignore
         shard: ShardType,
         fp: str,
         fs: t.Optional[AbstractFileSystem] = None,

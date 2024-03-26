@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import io
 import json
-from collections.abc import Container
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -12,7 +11,6 @@ from typing import (
     KeysView,
     MutableMapping,
     NamedTuple,
-    Type,
 )
 
 import fsspec
@@ -21,7 +19,7 @@ from squirrel.fsspec.fs import get_fs_from_url
 
 if TYPE_CHECKING:
     from ruamel.yaml import Constructor, Representer, SequenceNode
-    from squirrel.driver import Driver, MapDriver
+    from squirrel.driver import MapDriver
 
 __all__ = ["Catalog", "CatalogKey", "CatalogSource"]
 
@@ -120,7 +118,7 @@ class Catalog(MutableMapping):
 
         return self.sources[identifier][version]
 
-    def items(self) -> Iterator[tuple[str, Source]]:  # noqa D105
+    def items(self) -> Iterator[tuple[str, Source]]:  # type: ignore # noqa D105
         return self.__iter__()
 
     def __iter__(self) -> Iterator[tuple[str, Source]]:  # noqa D105
@@ -365,20 +363,13 @@ class CatalogSource(Source):
         for plugin in plugins:
             for driver_cls in plugin:
                 if driver_cls.name == self.driver_name:
-                    if self.driver_kwargs:
-                        # Problem: If users provide "storage_options" in the `kwargs` and the `self.driver_kwargs`
-                        # already defines "storage_options", then vanilla dict merging
-                        # (i.e., {**self.driver_kwargs, **kwargs}) will overwrite the "storage_options" in
-                        # `self.driver_kwargs` entirely. This is undesired, since important information like
-                        # bucket configurations (e.g., "requester_pays") may be stored in the `self.driver_kwargs`
-                        # "storage_options", which users don't want to provide again using `kwargs`.
-                        # Solution: The below mechanism merges the "storage_options" in `kwargs` with the existing
-                        # "storage_options" in `self.driver_kwargs` (while the newly passed "storage_options"
-                        # in `kwargs` take precendence).
-                        kwargs["storage_options"] = {
-                            **self.driver_kwargs.get("storage_options", {}),
+                    merged_driver_kwargs = self.driver_kwargs or {}
+                    if "storage_options" in kwargs or "storage_options" in merged_driver_kwargs:
+                        merged_storage_options = {
+                            **merged_driver_kwargs.get("storage_options", {}),
                             **kwargs.get("storage_options", {}),
                         }
-                    return driver_cls(catalog=self._catalog, **{**self.driver_kwargs, **kwargs})
+                        merged_driver_kwargs["storage_options"] = merged_storage_options
+                    return driver_cls(catalog=self._catalog, **{**merged_driver_kwargs, **kwargs})
 
         raise ValueError(f"driver {self.driver_name} not found")

@@ -1,7 +1,7 @@
 import logging
 from functools import partial
 from itertools import islice
-from typing import Callable, Iterable, Iterator, Optional
+from typing import Callable, Iterable, Iterator, Optional, Union
 
 import torch
 from torch._C._distributed_c10d import ProcessGroup
@@ -90,7 +90,7 @@ class TorchIterable(Composable, IterableDataset):
                 )
         yield from self.source
 
-    def _contains_rank_split(self, source: Composable | Iterable | Callable) -> bool:
+    def _contains_rank_split(self, source: Union[Composable, Iterable, Callable]) -> bool:
         """Check if SplitByRank was chained to this Composable"""
         if isinstance(source, SplitByRank):
             return True
@@ -104,7 +104,7 @@ class TorchIterable(Composable, IterableDataset):
             else:
                 return self._contains_rank_split(source.source)
 
-    def _contains_worker_split(self, source: Composable | Iterable) -> bool:
+    def _contains_worker_split(self, source: Union[Composable, Iterable]) -> bool:
         """Check if SplitByWorker was chained to this Composable"""
         if isinstance(source, SplitByWorker):
             return True

@@ -30,6 +30,8 @@ class Composable:
 
     def __init__(self, source: t.Optional[t.Union[t.Iterable, Composable, t.Callable[..., t.Iterable]]] = None):
         """Init"""
+        if callable(source):
+            source = source()
         self.source = source
 
     @abstractmethod
@@ -37,7 +39,7 @@ class Composable:
         """Abstract iter"""
         pass
 
-    def compose(self, constructor: t.Type[Composable], *args, **kw) -> Composable:
+    def compose(self, constructor: t.Type[Composable] | t.Callable[..., Composable], *args, **kw) -> Composable:
         """
         Apply the transformation expressed in the `__iter__` method of the `constructor` to items in the stream.
         If the provided constructor has an __init__ method, then the source argument should not be provided.
@@ -283,8 +285,8 @@ class Composable:
     def monitor(
         self,
         callback: t.Callable[[MetricsType], t.Any],
+        metrics_conf: MetricsConf,
         prefix: t.Optional[str] = None,
-        metrics_conf: MetricsConf = MetricsConf,
         window_size: int = 5,
         **kw,
     ) -> _Iterable:
@@ -418,7 +420,7 @@ class _SlidingIter(Composable):
             ):
                 return
 
-    def _step(self, win_: t.List, it_: t.Iterable) -> t.List | None:
+    def _step(self, win_: t.List, it_: t.Iterator) -> t.List | None:
         _new_items = []
         for _ in range(self.stride):
             try:
@@ -427,7 +429,7 @@ class _SlidingIter(Composable):
                 if not self.drop_last_if_not_full:
                     return self._fill_na(win_[self.stride :] + _new_items)
                 else:
-                    return
+                    return None
         return win_[self.stride :] + _new_items
 
     def _yield(self, _win: t.List) -> t.Generator[t.List[t.Any], None, None]:
@@ -438,7 +440,7 @@ class _SlidingIter(Composable):
 
     def _fill_na(self, _win: t.List) -> t.List | None:
         if all([i is None for i in _win]):
-            return
+            return None
         if self.fill_nan_on_partial and len(_win) < self.window_size:
             return _win + [None for _ in range(self.window_size - len(_win))]
         else:
@@ -455,6 +457,8 @@ class _LoopIterable(Composable):
     def __iter__(self) -> t.Iterator:
         """Iterate over the iterable n times"""
         _started = False
+        if not self.source:
+            raise AttributeError("LoopIterable requires a source to be set.")
         if self.n is None:
             current_ = iter(deepcopy(self.source))
             while True:
@@ -481,6 +485,8 @@ class _ZipIndexIterable(Composable):
 
     def __iter__(self) -> t.Iterator:
         """Zip the index and the data"""
+        if not self.source:
+            raise AttributeError("ZipIndexIterable requires a source to be set.")
         for i in self.source:
             yield self._next_idx(), i
 
@@ -518,8 +524,9 @@ class _AsyncMap(Composable):
 
     def __iter__(self) -> t.Iterator:
         """An iterator"""
-
         stream_queue: queue.Queue = queue.Queue(self.buffer)
+        if not self.source:
+            raise AttributeError("AsyncMap requires a source to be set.")
         it = iter(self.source)
         try:
             from distributed import Client
@@ -622,17 +629,3 @@ class AsyncContent:
             Any: Content.
         """
         return self.future.result(timeout)
-
-
-def test_iter():
-    class MyIterable:
-        def __init__(self, limit):
-            self.limit = limit
-
-    def generator_example():
-        my_object = MyIterable(10)
-        yield from my_object
-
-    # This will print numbers from 0 to 4
-    for value in generator_example():
-        print(value)

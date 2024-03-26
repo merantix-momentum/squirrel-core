@@ -140,4 +140,4 @@ explicit_package_bases = true
 ignore_missing_imports = true
 implicit_optional = true
 allow_redefinition = true
-exclude = '^test/'
+exclude = ['^test/', "docs/"]
