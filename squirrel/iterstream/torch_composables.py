@@ -90,7 +90,7 @@ class TorchIterable(Composable, IterableDataset):
                 )
         yield from self.source
 
-    def _contains_rank_split(self, source: Composable | Iterable) -> bool:
+    def _contains_rank_split(self, source: Composable | Iterable | Callable) -> bool:
         """Check if SplitByRank was chained to this Composable"""
         if isinstance(source, SplitByRank):
             return True

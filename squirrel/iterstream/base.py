@@ -28,7 +28,7 @@ __all__ = ["Composable", "AsyncContent"]
 class Composable:
     """A mix-in class that provides stream manipulation functionalities."""
 
-    def __init__(self, source: t.Optional[t.Union[t.Iterable, Composable]] = None):
+    def __init__(self, source: t.Optional[t.Union[t.Iterable, Composable, t.Callable[..., t.Iterable]]] = None):
         """Init"""
         self.source = source
 
@@ -485,11 +485,10 @@ class _ZipIndexIterable(Composable):
             yield self._next_idx(), i
 
     def _next_idx(self) -> t.Union[int, str]:
-        _idx = None
         if self.pad_length is not None:
             str_idx = str(self.idx)
 
-            _idx = "0" * (self.pad_length - len(str_idx)) + str_idx
+            _idx = int("0" * (self.pad_length - len(str_idx)) + str_idx)
         else:
             _idx = self.idx
         self.idx += 1
@@ -520,25 +519,22 @@ class _AsyncMap(Composable):
     def __iter__(self) -> t.Iterator:
         """An iterator"""
 
-        stream_queue = queue.Queue(self.buffer)
+        stream_queue: queue.Queue = queue.Queue(self.buffer)
         it = iter(self.source)
         try:
             from distributed import Client
         except ImportError:
             pass
 
-        if self._executor_not_provided():
+        if not self.executor:
             with ThreadPoolExecutor(max_workers=self.max_workers) as exec_:
                 yield from self._iter(it, exec_, stream_queue)
         elif isinstance(self.executor, Executor):
             yield from self._iter(it, self.executor, stream_queue)
         elif isinstance(self.executor, Client):
-            yield from self._dask_iter(it, stream_queue)
+            yield from self._dask_iter(it, self.executor, stream_queue)
         else:
             raise ValueError(f"Executor {self.executor} not recognized")
-
-    def _executor_not_provided(self) -> bool:
-        return self.executor is None
 
     def _iter(self, it: t.Iterator, executor: Executor, stream_queue: queue.Queue) -> t.Iterator:
         sentinel = object()
@@ -548,7 +544,7 @@ class _AsyncMap(Composable):
                 item = next(it, sentinel)
                 if item is sentinel:
                     break
-                stream_queue.put(AsyncContent(item=item, func=self.callback, executor=executor))
+                stream_queue.put(AsyncContent(item=str(item), func=self.callback, executor=executor))
 
             # stop iterating if all samples processed
             if stream_queue.empty():
@@ -557,14 +553,14 @@ class _AsyncMap(Composable):
             # yield sample
             yield stream_queue.get().value()
 
-    def _dask_iter(self, it: t.Iterator, stream_queue: queue.Queue) -> t.Iterator:
+    def _dask_iter(self, it: t.Iterator, executor: Executor, stream_queue: queue.Queue) -> t.Iterator:
         sentinel = object()
         while True:
             while not stream_queue.full():
                 item = next(it, sentinel)
                 if item is sentinel:
                     break
-                stream_queue.put(self.executor.submit(self.callback, item))
+                stream_queue.put(executor.submit(self.callback, item))  # type: ignore
 
             if stream_queue.empty():
                 break
