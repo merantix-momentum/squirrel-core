@@ -15,6 +15,11 @@ if t.TYPE_CHECKING:
 
 
 class MessagepackSerializer(SquirrelSerializer):
+    @property
+    def file_extension(self) -> str:
+        """File extension, i.e. `gz`"""
+        return "gz"
+
     @staticmethod
     def serialize(obj: t.Any) -> bytes:
         """Returns the object serialized with msgpack."""

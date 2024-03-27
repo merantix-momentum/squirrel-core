@@ -16,15 +16,19 @@ import subprocess
 import random
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple
 from uuid import uuid4
 
 from faker import Faker
 import fsspec
 import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
+from deltalake import write_deltalake
 import pytest
 from pytest import FixtureRequest, TempPathFactory
 from zarr.hierarchy import Group
+import ray
 
 from squirrel.catalog import Catalog, Source
 from squirrel.constants import URL
@@ -33,14 +37,17 @@ from squirrel.integration_test.helpers import SHAPE, get_sample
 from squirrel.integration_test.shared_fixtures import *  # noqa: F401, F403
 from squirrel.iterstream import Composable, IterableSource
 from squirrel.serialization import JsonSerializer, MessagepackSerializer
-from squirrel.store import FilesystemStore
-from squirrel.store.squirrel_store import SquirrelStore
+from squirrel.store import FilesystemStore, SquirrelStore
 from squirrel.zarr.group import get_group
+from squirrel.fsspec.fs import get_fs_from_url
 
 if TYPE_CHECKING:
     from squirrel.constants import SampleType
 
 logger = logging.getLogger(__name__)
+
+
+NUM_ROWS = 10
 
 
 @pytest.fixture(params=[1, 2, 3])
@@ -250,3 +257,112 @@ def dummy_data_catalog(tmp_path_factory: TempPathFactory) -> Catalog:
     )
 
     return cat
+
+
+def get_records_with_np(n: int = NUM_ROWS) -> List[Dict]:
+    """Generate n records with random numpy array"""
+    return [
+        {
+            "id": i,
+            "lable": int(np.random.choice([1, 2, 3, 4], n, replace=True)[0]),
+            "image": np.random.random((3, 3, 3)),
+        }
+        for i in range(n)
+    ]
+
+
+def get_records_without_np(n: int = NUM_ROWS) -> List[Dict]:
+    """Generate n records without random numpy array."""
+    return [{"id": i, "lable": int(np.random.choice([1, 2, 3, 4], n, replace=True)[0]), "image": i} for i in range(n)]
+
+
+@pytest.fixture
+def parquet_catalog(test_path: URL) -> Catalog:
+    """A catalog with a single driver 'parquer' in it."""
+    _data = get_records_without_np(NUM_ROWS)
+    cat = Catalog()
+    ds = ray.data.from_items(_data)
+    ds.write_parquet(test_path, filesystem=get_fs_from_url(test_path))
+
+    cat["parquet"] = Source(
+        "streaming_parquet",
+        driver_kwargs={
+            "url": test_path,
+        },
+        metadata={"num_samples": NUM_ROWS},
+    )
+    return cat
+
+
+@pytest.fixture
+def partitioned_parquet() -> Iterable:
+    """Partitioned parquet"""
+    _data = get_records_without_np(NUM_ROWS * 10)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        rb = pa.RecordBatch.from_pylist(_data)
+        pq.write_to_dataset(pa.table(rb), tmp_dir, partition_cols=["lable"])
+        yield tmp_dir, _data
+
+
+@pytest.fixture
+def image_ray() -> Iterable:
+    """Create a temporary directory, write some dummy data to it and yield it"""
+    _data = get_records_with_np(NUM_ROWS)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        ds = ray.data.from_items(_data)
+        ds.write_images(path=tmp_dir, column="image")
+        yield tmp_dir, _data
+
+
+@pytest.fixture
+def np_ray() -> Iterable:
+    """A Ray dataset from numpy arrays"""
+    _data = get_records_with_np(NUM_ROWS)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        ds = ray.data.from_items(_data)
+        ds.write_numpy(tmp_dir, column="image")
+        yield tmp_dir, _data
+
+
+@pytest.fixture
+def image_parquet_ray() -> Iterable:
+    """A parquet dataset containing np.array written using Ray"""
+    _data = get_records_with_np(NUM_ROWS)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        ds = ray.data.from_items(_data)
+        ds.write_parquet(tmp_dir)
+        yield tmp_dir, _data
+
+
+@pytest.fixture
+def no_image_parquet_deltalake_with_ray() -> Iterable:
+    """A deltalake dataset written using Ray"""
+    _data = get_records_without_np(NUM_ROWS)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        ds = ray.data.from_items(_data)
+        schema = pa.schema(
+            [
+                ("id", pa.int64()),
+                ("lable", pa.int64()),
+                ("image", pa.int64()),
+            ]
+        )
+        IterableSource(ds.iter_batches(batch_size=10)).map(pa.RecordBatch.from_pydict).map(
+            lambda batch: write_deltalake(
+                tmp_dir,
+                batch,
+                mode="append",
+                schema=schema,
+            )
+        ).collect()
+        yield tmp_dir, _data
+
+
+@pytest.fixture
+def normal_parquet_ray() -> Iterable:
+    """A parquet dataset without np.array written using Ray"""
+    _data = get_records_without_np(NUM_ROWS)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        ds = ray.data.from_items(_data)
+        ds.write_parquet(tmp_dir)
+        yield tmp_dir, _data
