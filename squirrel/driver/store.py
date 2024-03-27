@@ -149,11 +149,11 @@ class StoreDriver(MapDriver):
         """Get a ray dataset"""
         import ray
 
-        ds = ray.data
-        if isinstance(self.serializer, ParquetSerializer):
-            ds = ds.read_parquet(self.url)
-        else:
+        
+        if not isinstance(self.serializer, ParquetSerializer):
             raise NotImplementedError(f"serializer {self.serializer} does not support Ray")
+        ds = ray.data
+        ds = ds.read_parquet(self.url)
         return ds
 
     def get_ray_iter_batch(
