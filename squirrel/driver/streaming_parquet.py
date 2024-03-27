@@ -108,7 +108,7 @@ class PolardParquetDriver(StreamingParquetDriver):
                 `query` is not None.
 
         """
-            scan_kwargs = {} if scan_kwargs is None else scan_kwargs
+        scan_kwargs = {} if scan_kwargs is None else scan_kwargs
         if sql_context_kwargs is None:
             sql_context_kwargs = {}
 

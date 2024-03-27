@@ -8,9 +8,9 @@ from squirrel.store.filesystem import FilesystemStore
 class ParquetStore(FilesystemStore):
     def __init__(self, url: str, **storage_options):
         """Store that uses pyarrow to read from / write to the dataset"""
-        super().__init__(url=url, serializer=None, storage_options=storage_options)
+        super().__init__(url=url, **storage_options)
 
-    def get(self, key: str, dataset_kwargs: t.Optional[t.Dict] = None, **open_kwargs) -> t.Any:
+    def get(self, key: str, dataset_kwargs: t.Optional[t.Dict] = None, **open_kwargs) -> t.List[t.Dict]:
         """Return the item with the given key.
 
         Args:
@@ -30,20 +30,19 @@ class ParquetStore(FilesystemStore):
         dataset = pq.ParquetDataset(self.url + f"/{key}", filesystem=fs, **dataset_kwargs)
         return dataset.read().to_pylist()
 
-    def set(self, value: t.Any, **open_kwargs) -> None:
+    def set(self, value: t.Any, **dataset_kwargs) -> None:
         """Persists an item with the given key.
 
         Args:
             value (Any): Item to be persisted.
             dataset_kwargs: Keyword arguments that will be forwarded to the `pyarrow.parquet.write_to_dataset`.
-            **open_kwargs: Keyword arguments that will be forwarded to the filesystem object when opening the file.
         """
         import pyarrow as pa
         import pyarrow.parquet as pq
 
         table = pa.Table.from_pylist(value)
         fs = get_fs_from_url(self.url)
-        pq.write_to_dataset(table, root_path=self.url, filesystem=fs)
+        pq.write_to_dataset(table, root_path=self.url, filesystem=fs, **dataset_kwargs)
 
     def keys(self, nested: bool = True, **kwargs) -> t.Iterator[str]:
         """Yields all paths in the store, relative to the root directory.
@@ -77,7 +76,7 @@ class ParquetStore(FilesystemStore):
 class DeltalakeStore(ParquetStore):
     def __init__(self, url: str, **storage_options):
         """Store that uses deltalake to read from / write to the dataset"""
-        super().__init__(url=url, serializer=None, storage_options=storage_options)
+        super().__init__(url=url, serializer=None, **storage_options)
 
     def set(self, value: t.Any, mode: str = "append", **kwargs) -> None:
         """Store value in deltalake dataset.

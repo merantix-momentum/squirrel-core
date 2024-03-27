@@ -149,7 +149,6 @@ class StoreDriver(MapDriver):
         """Get a ray dataset"""
         import ray
 
-        
         if not isinstance(self.serializer, ParquetSerializer):
             raise NotImplementedError(f"serializer {self.serializer} does not support Ray")
         ds = ray.data

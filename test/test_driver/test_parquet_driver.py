@@ -21,7 +21,6 @@ from squirrel.iterstream.source import FilePathGenerator, IterableSource
 def assert_equal_arrays(arrays: List[np.array]) -> None:
     """Assert arrays are equal"""
     _arrays = [np.array(sorted(list_of_arrays, key=lambda x: np.sum(x))) for list_of_arrays in arrays]
-    # print(f"...................{len(_arrays)} {', '.join([str(_a.shape) for _a in _arrays])}")
     assert np.sum(_arrays - _arrays[0]) == 0
 
 
