@@ -21,13 +21,14 @@ def fetch(group: Group, key: str) -> t.Any:
 class ZarrDriver(MapDriver):
     name = "zarr"
 
-    def __init__(self, url: str, **kwargs):
+    # TODO: #187 refactor drivers
+    def __init__(self, url: str, **kwargs):  # type: ignore
         """Initializes ZarrDriver."""
         self.url = url
         self._root_group: t.Optional[SquirrelGroup] = None
         self._root_group_args: t.Optional[t.Tuple[str, t.Dict]] = None
 
-    def get_iter(
+    def get_iter(  # type: ignore
         self,
         fetcher_func: t.Callable[[Group, str], t.Any] = fetch,
         storage_options: t.Optional[t.Dict] = None,
@@ -68,12 +69,12 @@ class ZarrDriver(MapDriver):
 
         return self._root_group
 
-    def keys(self) -> t.Iterator[str]:
+    def keys(self) -> t.Iterator[str]:  # type: ignore
         """Returns the keys of the root zarr group."""
         root = self.get_root_group()
         yield from root.keys()
 
-    def get(self, key: str, fetcher_func: t.Callable[[Group, str], t.Any], **storage_options) -> t.Iterator:
+    def get(self, key: str, fetcher_func: t.Callable[[Group, str], t.Any], **storage_options) -> t.Iterator:  # type: ignore
         """Given `key`, returns a sample defined by `self.fetcher_func`."""
         root = self.get_root_group(**storage_options)
         yield fetcher_func(root, key)

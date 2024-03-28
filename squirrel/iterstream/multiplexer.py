@@ -88,7 +88,7 @@ class Multiplexer(Composable):
                 mux = Multiplexer([c0, c1]).to_torch_iterable(False, False)
                 ```
             mux_strategy: Multiplexing strategy.
-            sampling_probas: (optional) list of floats that determine the sampling
+            sampling_probs: (optional) list of floats that determine the sampling
                 ratios for each dataset, i.e. w_{i, eff} from the docstrings.
             max_reinits: (optional) int that determines the maximum oversampling
                 epochs over all datasets.
@@ -102,16 +102,14 @@ class Multiplexer(Composable):
         super().__init__(source=composables)
         self.mux_strategy = mux_strategy
         if mux_strategy == MultiplexingStrategy.SAMPLING:
-            assert sampling_probas is not None
-            assert len(sampling_probas) == len(
-                self.source
-            ), "Need sampling probas and composables to have same number of entries"
+            if not isinstance(sampling_probas, (list, tuple)):
+                raise TypeError("sampling_probas must be a list or tuple.")
 
         self.composables, self.sampling_probas = self._init_composables_and_probas(
             sampling_probas, composables, proba_threshold
         )
         self.rng = np.random.RandomState(np.random.MT19937(seed=seed))
-        self._reinit_counts_ = []
+        self._reinit_counts_: t.List[int] = []
         self._num_samples_ = len(self.composables) * [0]
         self.max_reinits = sys.maxsize
         if max_reinits is not None:
@@ -119,7 +117,7 @@ class Multiplexer(Composable):
 
     def _init_composables_and_probas(
         self,
-        probas: t.List[float],
+        probas: t.Optional[t.List[float]],
         composables: t.List[Composable],
         proba_threshold: float = 1e-3,
     ) -> t.Tuple[t.List[Composable], t.Optional[t.List[float]]]:
@@ -230,7 +228,7 @@ class Multiplexer(Composable):
                     logger.info(
                         f"Removing iterator {mux_it.index} from sampling as" " part of the round robin strategy."
                     )
-                    _ = _iterators.remove(mux_it)
+                    _iterators.remove(mux_it)
                     index_generator = self._get_iterator_sequence(len(_iterators))
                 else:
                     _iterators[mux_it.index] = MuxIterator(

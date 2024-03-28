@@ -41,9 +41,10 @@ class JsonlDriver(StoreDriver):
             url=url, serializer=JsonSerializer(deser_hook=deser_hook), storage_options=storage_options, **kwargs
         )
 
-    def get_iter(
+    #  TODO: #187 refactor drivers
+    def get_iter(  # type: ignore
         self,
-        get_kwargs: t.Optional[t.Dict] = None,
+        get_kwargs: t.Optional[t.Dict] = None,  # type: ignore
         **kwargs,
     ) -> Composable:
         """Returns an iterable of samples as specified by `fetcher_func`.

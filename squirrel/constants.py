@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional, Union
 from fsspec.spec import AbstractFileSystem
 
 URL = Union[str, Path]
-FILESYSTEM = Union[MutableMapping, AbstractFileSystem]
 MetricsType = Dict[str, Union[float, int]]
 SampleType = Dict[str, Any]
 ShardType = List[SampleType]

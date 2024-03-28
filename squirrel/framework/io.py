@@ -3,13 +3,17 @@
 from typing import Any, Optional
 
 import fsspec
+from fsspec import AbstractFileSystem
 
-from squirrel.constants import FILESYSTEM
 from squirrel.serialization import SquirrelSerializer
 
 
 def write_to_file(
-    fp: str, obj: Any, fs: Optional[FILESYSTEM] = None, serializer: Optional[SquirrelSerializer] = None, **open_kwargs
+    fp: str,
+    obj: Any,
+    fs: Optional[AbstractFileSystem] = None,
+    serializer: Optional[SquirrelSerializer] = None,
+    **open_kwargs
 ) -> None:
     """Writes an object to a file.
 
@@ -33,7 +37,7 @@ def write_to_file(
 
 
 def read_from_file(
-    fp: str, fs: Optional[FILESYSTEM] = None, serializer: Optional[SquirrelSerializer] = None, **open_kwargs
+    fp: str, fs: Optional[AbstractFileSystem] = None, serializer: Optional[SquirrelSerializer] = None, **open_kwargs
 ) -> Any:
     """Reads from a file.
 

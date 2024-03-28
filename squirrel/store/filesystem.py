@@ -46,7 +46,7 @@ class FilesystemStore(AbstractStore):
             self.fs.rm(self.url, recursive=True)
             self._dir_exists = False
 
-    def get(self, key: str, mode: str = "rb", **open_kwargs) -> t.Any:
+    def get(self, key: str, mode: str = "rb", **open_kwargs) -> t.Any:  # type: ignore
         """Yields the item with the given key.
 
         If the store has a serializer, data read from the file will be deserialized.
@@ -62,7 +62,7 @@ class FilesystemStore(AbstractStore):
         open_kwargs["mode"] = mode
         return read_from_file(f"{self.url}/{key}", self.fs, self.serializer, **open_kwargs)
 
-    def set(self, value: t.Any, key: t.Optional[str] = None, mode: str = "wb", **open_kwargs) -> None:
+    def set(self, value: t.Any, key: t.Optional[str] = None, mode: str = "wb", **open_kwargs) -> None:  # type: ignore
         """Persists an item with the given key.
 
         If the store has a serializer, data item will be serialized before writing to a file.

@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 __all__ = ["Source"]
 
@@ -17,7 +17,7 @@ class Source:
     """
 
     driver_name: str
-    driver_kwargs: Optional[Dict[str, str]] = field(default_factory=dict)
+    driver_kwargs: Optional[Dict[str, Any]] = field(default_factory=dict)
     metadata: Optional[Dict[str, str]] = field(default_factory=dict)
 
     def __repr__(self) -> str:  # noqa D105

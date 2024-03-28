@@ -149,8 +149,8 @@ def tqdm_(iterable: t.Iterable, **kwargs) -> t.Iterator:
 def monitor_(
     iterable: t.Iterable,
     callback: t.Callable,
+    metrics_conf: MetricsConf,
     prefix: t.Optional[str] = None,
-    metrics_conf: MetricsConf = MetricsConf,
     *,
     window_size: int = 5,
     **kwargs,
@@ -174,9 +174,9 @@ def monitor_(
         **kwargs: arguments to pass to your callback function.
     """
     assert window_size > 0, ValueError("`window_size` must > 0.")
-    q_size = Queue(window_size)
-    q_time = Queue(window_size)
-    size_sum = 0
+    q_size: Queue = Queue(window_size)
+    q_time: Queue = Queue(window_size)
+    size_sum = 0.0
     for item in iterable:
         if metrics_conf.iops or metrics_conf.throughput:
             size_sum, metrics = _update_params(item, q_size, q_time, size_sum, metrics_conf, window_size, prefix)

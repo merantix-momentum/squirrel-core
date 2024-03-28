@@ -4,6 +4,7 @@ from typing import Any, Iterable, TYPE_CHECKING
 
 import more_itertools
 
+from squirrel.catalog.catalog import CatalogSource
 from squirrel.driver.driver import MapDriver
 from squirrel.iterstream.source import IterableSamplerSource, IterableSource
 
@@ -38,7 +39,7 @@ class SourceCombiner(MapDriver):
         """Ids of all subsets defined by this source."""
         return list(self._subsets.keys())
 
-    def get_source(self, subset: str) -> Source:
+    def get_source(self, subset: str) -> CatalogSource:
         """Returns subset source based on subset id.
 
         Args:
@@ -50,7 +51,8 @@ class SourceCombiner(MapDriver):
         key, version = self._subsets[subset]
         return self._catalog[key][version]
 
-    def get_iter(self, subset: str | None = None, **kwargs) -> Composable:
+    #  TODO: #187 refactor drivers
+    def get_iter(self, subset: str | None = None, **kwargs) -> Composable:  # type: ignore
         """Routes to the :py:meth:`get_iter` method of the appropriate subset driver.
 
         Args:
@@ -67,7 +69,8 @@ class SourceCombiner(MapDriver):
             )
         return self.get_source(subset).get_driver().get_iter(**kwargs)
 
-    def get(self, subset: str, key: Any, **kwargs) -> Iterable:
+    # TODO: #187 refactor drivers
+    def get(self, subset: str, key: Any, **kwargs) -> Iterable:  # type: ignore
         """Routes to the :py:meth:`get` method of the appropriate subset driver.
 
         Args:
@@ -80,7 +83,8 @@ class SourceCombiner(MapDriver):
         """
         return self.get_source(subset).get_driver().get(key, **kwargs)
 
-    def keys(self, subset: str, **kwargs) -> Iterable:
+    # TODO: #187 refactor drivers
+    def keys(self, subset: str, **kwargs) -> Iterable:  # type: ignore
         """Routes to the :py:meth:`keys` method of the appropriate subset driver.
 
         Args:
@@ -102,7 +106,7 @@ class SourceCombiner(MapDriver):
         Returns:
             (DataFrame) Data of the subset driver `subset` as a Dask or Pandas DataFrame.
         """
-        return self.get_source(subset).get_driver().get_df(*kwargs)
+        return self.get_source(subset).get_driver().get_df(*kwargs)  # type: ignore
 
     def get_store(self, subset: str) -> AbstractStore:
         """Returns the store of the appropriate subset driver.
@@ -113,7 +117,7 @@ class SourceCombiner(MapDriver):
         Returns:
             (AbstractStore) Store of the subset driver `subset`.
         """
-        return self.get_source(subset).get_driver().store
+        return self.get_source(subset).get_driver().store  # type: ignore
 
     def get_iter_sampler(
         self,

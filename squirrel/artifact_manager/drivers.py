@@ -25,7 +25,7 @@ class DirectoryDriver(StoreDriver):
     @property
     def store(self) -> AbstractStore:
         """Store that is used by the driver."""
-        if self._store is None:
+        if not self._store:
             self._store = FilesystemStore(url=self.url, serializer=self.serializer, **self.storage_options)
         return self._store
 
