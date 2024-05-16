@@ -27,7 +27,7 @@ Here is a complete data loading pipeline:
     train_data = (
         catalog["imagenet"]  # CatalogSource
         .get_driver()  # Driver
-        .get_iter()  # Composable
+        .get_iter()  # Composable | ray.data.Dataset
         .map(lambda x: transform(x))  # Composable
         .filter(lambda x: filter_func(x))  # Composable
     )  # Composable
@@ -37,7 +37,7 @@ Here is a complete data loading pipeline:
 A :py:class:`Catalog` contains zero to many :py:class:`CatalogSource`\s, each of which may be retrieved by an
 identifier (or a tuple of an identifier and the version, see :ref:`usage/catalog:Catalog` for more details). :py:class:`CatalogSource`
 contains all necessary information to instantiate an object of type :py:class:`Driver`. :py:class:`Driver` may have
-a method :py:meth:`get_iter` which returns an object of type :py:class:`Composable`
+a method :py:meth:`get_iter` which returns an object of type :py:class:`Composable` or ray.data.Dataset
 (which belongs to :ref:`usage/iterstream:IterStream` module). `train_data` is an iterable that generates items lazily in a
 streaming way for minimal memory footprint.
 

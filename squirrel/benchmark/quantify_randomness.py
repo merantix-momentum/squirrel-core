@@ -6,6 +6,7 @@ from scipy.stats import kendalltau
 from squirrel.constants import SeedType
 from squirrel.driver import MapDriver
 from squirrel.iterstream.base import Composable
+from ray.data import Dataset
 
 
 class DummyShardedDriver(MapDriver):
@@ -27,7 +28,7 @@ class DummyShardedDriver(MapDriver):
         """Get key iterator"""
         yield from map(str, self.key_it)
 
-    def get_iter(self, flatten: bool = True, **kwargs) -> Composable:
+    def get_iter(self, flatten: bool = True, **kwargs) -> Composable | Dataset:
         """Get iterator"""
         return super().get_iter(flatten=flatten, **kwargs)
 
@@ -76,12 +77,14 @@ def quantify_randomness(
             shuffle_item_buffer=buffer_size,
             item_shuffle_kwargs={"initial": initial, "seed": seed1},
             key_shuffle_kwargs={"seed": seed1},
+            engine='iterstream',
         ).collect()
         result2 = driver.get_iter(
             shuffle_key_buffer=num_shard,
             shuffle_item_buffer=buffer_size,
             item_shuffle_kwargs={"initial": initial, "seed": seed2},
             key_shuffle_kwargs={"seed": seed2},
+            engine='iterstream',
         ).collect()
 
         # and get their distance via the kendall tau function

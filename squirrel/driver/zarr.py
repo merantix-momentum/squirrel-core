@@ -6,7 +6,7 @@ from squirrel.driver.driver import MapDriver
 
 if t.TYPE_CHECKING:
     from zarr.hierarchy import Group
-
+    from ray.data import Dataset
     from squirrel.iterstream import Composable
     from squirrel.zarr.group import SquirrelGroup
 
@@ -33,7 +33,7 @@ class ZarrDriver(MapDriver):
         storage_options: t.Optional[t.Dict] = None,
         flatten: bool = True,
         **kwargs,
-    ) -> Composable:
+    ) -> Composable | Dataset:
         """Returns an iterable of samples as specified by `fetcher_func`.
 
         Args:
@@ -46,7 +46,7 @@ class ZarrDriver(MapDriver):
             **kwargs: Keyword arguments that will be passed to :py:meth:`MapDriver.get_iter`.
 
         Returns:
-            (Composable) Iterable over the items in the store.
+            (Composable | ray.data.Dataset) Iterable over the items in the store.
         """
         get_kwargs = {} if storage_options is None else storage_options
         get_kwargs["fetcher_func"] = fetcher_func

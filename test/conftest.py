@@ -26,6 +26,7 @@ import pytest
 from pytest import FixtureRequest, TempPathFactory
 from zarr.hierarchy import Group
 
+from ray.data import Dataset
 from squirrel.catalog import Catalog, Source
 from squirrel.constants import URL
 from squirrel.driver import JsonlDriver, MessagepackDriver
@@ -130,7 +131,7 @@ def custom_jsonl_store(test_path: URL, num_samples: int) -> SquirrelStore:
 @pytest.fixture(params=["jsonl", "msgpack", "in-memory"])
 def create_all_iterable_source(
     request: FixtureRequest, dummy_msgpack_store: SquirrelStore, dummy_jsonl_store: SquirrelStore, array_shape: SHAPE
-) -> Composable:
+) -> Composable | Dataset:
     """Returns three different iterable sources in formats of `jsonl`, `msgpack` and in-memory `nd-arrays`."""
     if request.param == "msgpack":
         return MessagepackDriver(url=dummy_msgpack_store.url).get_iter()
