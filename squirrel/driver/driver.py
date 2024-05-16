@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 from functools import partial
 from inspect import isclass
 from typing import Any, Callable, Iterable
+from ray.data import Dataset, from_items, range as ray_range
+from pydantic import BaseModel
 
 from squirrel.catalog import Catalog
 from squirrel.iterstream import Composable, IterableSource
@@ -32,8 +34,8 @@ class IterDriver(Driver):
     """
 
     @abstractmethod
-    def get_iter(self, **kwargs) -> Composable:
-        """Returns an iterable of items in the form of a :py:class:`Composable`, which allows various stream
+    def get_iter(self, **kwargs) -> Composable | Dataset:
+        """Returns an iterable of items in the form of a :py:class:`Composable`, or ray.data.Dataset which allows various stream
         manipulation functionalities.
 
         The order of the items in the iterable may or may not be randomized, depending on the implementation and
@@ -45,7 +47,7 @@ class MapDriver(IterDriver):
     """A Driver that allows retrieval of items using keys, in addition to allowing iteration over the items."""
 
     @abstractmethod
-    def get(self, key: Any, **kwargs) -> Any:
+    def get(self, key: Any, **kwargs) -> BaseModel:
         """Returns an iterable over the items corresponding to `key`.
 
         Note that it is possible to implement this method according to your needs. There is no restriction on the type
@@ -75,8 +77,9 @@ class MapDriver(IterDriver):
         get_kwargs: dict | None = None,
         key_shuffle_kwargs: dict | None = None,
         item_shuffle_kwargs: dict | None = None,
-    ) -> Composable:
-        """Returns an iterable of items in the form of a :py:class:`squirrel.iterstream.Composable`, which allows
+        engine: str = 'ray',
+    ) -> Composable | Dataset:
+        """Returns an iterable of items in the form of a :py:class:`squirrel.iterstream.Composable` or a `ray.data.Dataset`, which allows
         various stream manipulation functionalities.
 
         Items are fetched using the :py:meth:`get` method. The returned :py:class:`Composable` iterates over the items
@@ -120,44 +123,87 @@ class MapDriver(IterDriver):
                 Defaults to None. Can be useful to e.g. set the seed etc.
             item_shuffle_kwargs (Dict, optional): Keyword arguments passed to :py:meth:`shuffle` when shuffling items.
                 Defaults to None. Can be useful to e.g. set the seed etc.
+            engine (srt, optional): If engine equals 'ray', the method returns a ray.data.Dataset, if engine is 'iterstream' then return squirrel.iterstream.Composable. 
+                Otherwise, it raise an error.
 
         Returns:
-            (squirrel.iterstream.Composable) Iterable over the items in the store.
+            (squirrel.iterstream.Composable | ray.data.Dataset) Iterable over the items in the store.
         """
         keys_kwargs = {} if keys_kwargs is None else keys_kwargs
         get_kwargs = {} if get_kwargs is None else get_kwargs
         key_shuffle_kwargs = {} if key_shuffle_kwargs is None else key_shuffle_kwargs
         item_shuffle_kwargs = {} if item_shuffle_kwargs is None else item_shuffle_kwargs
         keys_it = keys_iterable if keys_iterable is not None else partial(self.keys, **keys_kwargs)
-        it = IterableSource(keys_it).shuffle(size=shuffle_key_buffer, **key_shuffle_kwargs)
 
-        if key_hooks:
-            for hook in key_hooks:
-                arg = []
-                kwarg = {}
-                f = hook
-                if isinstance(hook, partial):
-                    arg = hook.args
-                    kwarg = hook.keywords
-                    f = hook.func
 
-                if isclass(f) and issubclass(f, Composable):
-                    it = it.compose(f, *arg, **kwarg)
-                elif isinstance(f, Callable):
-                    it = it.to(f, *arg, **kwarg)
-                else:
-                    raise ValueError(
-                        f"wrong argument for hook {hook}, it should be a Callable, partial function, or a subclass "
-                        f"of Composable"
-                    )
+        if engine == 'ray':
+            # read keys in a generator to avoid memory overflow
+            def _key_read_f(x):
+                for y in self.store.keys():
+                    yield {'item': y}
+            it = ray_range(1).flat_map(_key_read_f)
+            num_keys = it.count()
+            it = it.random_shuffle()
 
-        map_fn = partial(self.get, **get_kwargs)
-        _map = (
-            it.map(map_fn)
-            if max_workers is not None and max_workers <= 1
-            else it.async_map(map_fn, prefetch_buffer, max_workers)
-        )
-        if flatten:
-            _map = _map.flatten()
+            # parallelize reading
+            max_workers = num_keys if max_workers is None or max_workers > num_keys else max_workers
+            it = it.repartition(max_workers)
+            
+            # inject hooks
+            if key_hooks:
+                for hook in key_hooks:
+                    arg = []
+                    kwarg = {}
+                    f = hook
+                    if isinstance(hook, partial):
+                        arg = hook.args
+                        kwarg = hook.keywords
+                        f = hook.func
+                    if isinstance(f, Callable):
+                        map_fn = lambda x: {"item": f(x["item"], *arg, **kwarg)}
+                        it = it.map(map_fn)
+                    else:
+                        raise ValueError(
+                            f"wrong argument for hook {hook}, it should be a Callable or partial function"
+                        )
 
-        return _map.shuffle(size=shuffle_item_buffer, **item_shuffle_kwargs)
+            # read items
+            map_fn = lambda x: partial(self.store.get, **get_kwargs)(x["item"])
+            it = it.flat_map(map_fn)
+            #it = it.random_shuffle() WARNING no global shuffling. shuffling has to be done when iterating over batches
+            return it
+        elif engine == 'iterstream':
+            it = IterableSource(keys_it).shuffle(size=shuffle_key_buffer, **key_shuffle_kwargs)
+
+            if key_hooks:
+                for hook in key_hooks:
+                    arg = []
+                    kwarg = {}
+                    f = hook
+                    if isinstance(hook, partial):
+                        arg = hook.args
+                        kwarg = hook.keywords
+                        f = hook.func
+
+                    if isclass(f) and issubclass(f, Composable):
+                        it = it.compose(f, *arg, **kwarg)
+                    elif isinstance(f, Callable):
+                        it = it.to(f, *arg, **kwarg)
+                    else:
+                        raise ValueError(
+                            f"wrong argument for hook {hook}, it should be a Callable, partial function, or a subclass "
+                            f"of Composable"
+                        )
+
+            map_fn = partial(self.get, **get_kwargs)
+            _map = (
+                it.map(map_fn)
+                if max_workers is not None and max_workers <= 1
+                else it.async_map(map_fn, prefetch_buffer, max_workers)
+            )
+            if flatten:
+                _map = _map.flatten()
+
+            return _map.shuffle(size=shuffle_item_buffer, **item_shuffle_kwargs)
+        else:
+            raise ValueError("Invalid engine specified. Choose either 'ray' or 'iterstream'.")

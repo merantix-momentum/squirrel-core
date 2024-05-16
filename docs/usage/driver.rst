@@ -12,7 +12,7 @@ accessing data:
     url = "path/to/my/messagepack/dataset"
     driver = MessagepackDriver(url)  # a driver that reads messagepack-serialized data
     train_data = (
-        driver.get_iter()  # returns a Composable, i.e. an iterable with 'iterstream' powers
+        driver.get_iter()  # returns a Composable or ray.data.Dataset, i.e. an iterable with 'iterstream' powers
         .filter(lambda dct: not dct["is_bad_sample"])  # skip unwanted samples
         .async_map(augment_image)  # possible to use a thread/process pool, or run on dask
         .batched(size=100)
@@ -45,6 +45,7 @@ Let's see an IterDriver in action:
 
     from squirrel.driver import IterDriver
     from squirrel.iterstream import Composable, IterableSource
+    from ray.data import Dataset
 
 
     class MyDriver(IterDriver):
@@ -55,7 +56,7 @@ Let's see an IterDriver in action:
         def __init__(self, txt_path: str):
             self.txt_path = txt_path
 
-        def get_iter(self) -> Composable:
+        def get_iter(self) -> Composable | Dataset:
             with open(self.txt_path, "r") as f:
                 return IterableSource(line.strip() for line in f.readlines())
 

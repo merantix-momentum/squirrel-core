@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
     from dask.dataframe import DataFrame
 
+    from ray.data import Dataset
     from squirrel.catalog import Catalog, CatalogKey
     from squirrel.catalog.source import Source
     from squirrel.iterstream import Composable
@@ -50,7 +51,7 @@ class SourceCombiner(MapDriver):
         key, version = self._subsets[subset]
         return self._catalog[key][version]
 
-    def get_iter(self, subset: str | None = None, **kwargs) -> Composable:
+    def get_iter(self, subset: str | None = None, **kwargs) -> Composable | Dataset:
         """Routes to the :py:meth:`get_iter` method of the appropriate subset driver.
 
         Args:
@@ -59,7 +60,7 @@ class SourceCombiner(MapDriver):
             **kwargs: Keyword arguments passed to the subset driver.
 
         Returns:
-            (Composable) Iterable over the items of subset driver(s) in the form of a :py:class:`Composable`.
+            (Composable | ray.data.Dataset) Iterable over the items of subset driver(s) in the form of a :py:class:`Composable` or ray.data.Dataset.
         """
         if subset is None:
             return IterableSource(

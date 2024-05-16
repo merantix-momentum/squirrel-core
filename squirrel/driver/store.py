@@ -7,6 +7,7 @@ from squirrel.serialization import SquirrelSerializer
 from squirrel.store import SquirrelStore
 
 if TYPE_CHECKING:
+    from ray.data import Dataset
     from squirrel.iterstream import Composable
     from squirrel.store.store import AbstractStore
 
@@ -42,8 +43,8 @@ class StoreDriver(MapDriver):
         self.storage_options = storage_options if storage_options is not None else {}
         self._store = None
 
-    def get_iter(self, flatten: bool = True, **kwargs) -> Composable:
-        """Returns an iterable of items in the form of a :py:class:`squirrel.iterstream.Composable`, which allows
+    def get_iter(self, flatten: bool = True, **kwargs) -> Composable | Dataset:
+        """Returns an iterable of items in the form of a :py:class:`squirrel.iterstream.Composable` or ray.data.Dataset, which allows
         various stream manipulation functionalities.
 
         Items are fetched using the :py:meth:`get` method. The returned :py:class:`Composable` iterates over the items
@@ -55,7 +56,7 @@ class StoreDriver(MapDriver):
                 :py:meth:`squirrel.driver.MapDriver.get_iter`.
 
         Returns:
-            (squirrel.iterstream.Composable) Iterable over the items in the store.
+            (squirrel.iterstream.Composable | ray.data.Dataset) Iterable over the items in the store.
         """
         return super().get_iter(flatten=flatten, **kwargs)
 

@@ -5,6 +5,7 @@ import typing as t
 from squirrel.driver.store import StoreDriver
 from squirrel.iterstream import Composable
 from squirrel.serialization import JsonSerializer
+from ray.data import Dataset
 
 __all__ = ["JsonlDriver"]
 
@@ -45,7 +46,7 @@ class JsonlDriver(StoreDriver):
         self,
         get_kwargs: t.Optional[t.Dict] = None,
         **kwargs,
-    ) -> Composable:
+    ) -> Composable | Dataset:
         """Returns an iterable of samples as specified by `fetcher_func`.
 
         Args:
@@ -54,7 +55,7 @@ class JsonlDriver(StoreDriver):
             **kwargs: Other keyword arguments that will be passed to :py:meth:`MapDriver.get_iter`.
 
         Returns:
-            (Composable) Iterable over the items in the store.
+            (Composable | ray.data.Dataset) Iterable over the items in the store.
         """
         if get_kwargs is None:
             get_kwargs = {}
