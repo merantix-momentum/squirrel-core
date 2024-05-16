@@ -66,7 +66,7 @@ scipy = "*"
 setuptools = "69.0.2"
 twine = "4.0.2"
 wheel = "0.42.0"
-mlflow = "2.9.2"
+mlflow = "2.12.1"
 
 [tool.poetry.group.doc.dependencies]
 # doc dependencies are pinned for faster resolution
